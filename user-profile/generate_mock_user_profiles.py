@@ -1,21 +1,11 @@
 """
-Generate mock OTA user profiles.
+Generate weighted graph-friendly mock OTA user profiles.
 
 Output:
     mock_user_profiles.json
 
-Schema:
-    Matches the latest user profile schema:
-    - user_id
-    - name
-    - long_term_profile
-    - session_context
-
 Usage:
-    python generate_mock_user_profiles.py
-
-Optional:
-    Change USER_COUNT below if you want more or fewer users.
+    python user-profile/generate_mock_user_profiles.py
 """
 
 import json
@@ -24,11 +14,16 @@ from pathlib import Path
 
 
 USER_COUNT = 50
-OUTPUT_FILE = "user-profile/mock_user_profiles.json"
 RANDOM_SEED = 20260604
+BASE_DIR = Path(__file__).resolve().parent
+OUTPUT_FILE = BASE_DIR / "mock_user_profiles.json"
 
 random.seed(RANDOM_SEED)
 
+
+TRAVELER_TYPES = ["explorer", "comfort_seeker", "planner", "spontaneous"]
+TRIP_TYPES = ["solo", "tourist", "business", "family", "couple", "group"]
+BUDGET_LEVELS = ["low", "medium", "high"]
 
 HOTEL_TYPES = [
     "hotel",
@@ -80,7 +75,6 @@ SESSION_PREFERENCE_TAGS = LONG_TERM_PREFERENCE_TAGS + [
 AVOID_TAGS = [
     "noisy",
     "nightlife",
-    "city_center",
     "far_from_center",
     "shared_room",
     "low_rating",
@@ -168,21 +162,6 @@ VIETNAMESE_NAMES = [
     "Thanh Son Pham",
     "Linh Nguyen",
     "Ngoc Tran",
-    "Duc Manh Hoang",
-    "Thu Trang Pham",
-    "Van Phuc Nguyen",
-    "Bao Chau Nguyen",
-    "Minh Tri Phan",
-    "Minh Quan Dang",
-    "Ngoc Huyen Nguyen",
-    "Minh Khoi Le",
-    "Gia Bao Tran",
-    "Thanh Lam Bui",
-    "Ngoc Lan Pham",
-    "Bao Anh Le",
-    "Quang Huy Nguyen",
-    "Phuong Linh Tran",
-    "Tuan Anh Do",
 ]
 
 FOREIGN_NAMES = [
@@ -195,196 +174,133 @@ FOREIGN_NAMES = [
     "Anna Muller",
     "Sarah Johnson",
     "Thomas Lee",
-    "Ivan Petrov",
-    "Chen Wei",
-    "Aisha Rahman",
-    "Olivia Smith",
-    "Mark Davis",
-    "James Miller",
     "Maria Garcia",
     "Luca Rossi",
     "Hannah Schmidt",
     "Noah Anderson",
     "Emma Taylor",
     "David Wilson",
-    "Sofia Martinez",
-    "Daniel Lee",
-    "Yuna Park",
-    "Lucas Martin",
-    "Sophie Martin",
-    "Oliver Smith",
-    "Isabella Garcia",
-    "Ethan Brown",
-    "Mia Johnson",
 ]
 
 
 def maybe_null(value, probability=0.06):
-    """Return None with a small probability."""
     return None if random.random() < probability else value
 
 
-def sample_list(items, min_n=1, max_n=4, null_p=0.08, empty_p=0.08):
-    """
-    Return a random list, None, or [].
+def positive_weight():
+    return round(random.uniform(0.15, 1.0), 2)
 
-    This is intentional because recommendation systems need to handle:
-    - complete profiles
-    - sparse profiles
-    - cold-start users
-    """
+
+def negative_weight():
+    return round(random.uniform(-1.0, -0.15), 2)
+
+
+def weighted_map(items, min_n=1, max_n=4, null_p=0.08, empty_p=0.1):
     r = random.random()
-
     if r < null_p:
         return None
-
     if r < null_p + empty_p:
-        return []
+        return {}
 
     n = random.randint(min_n, min(max_n, len(items)))
-    return random.sample(items, n)
+    return {item: positive_weight() for item in random.sample(items, n)}
 
 
-def price_range(level):
-    """Return VND price range from budget level."""
-    if level == "low":
-        return random.choice(
-            [
-                (300000, 1500000),
-                (500000, 1800000),
-                (None, 2000000),
-            ]
-        )
+def negative_weighted_map(items, min_n=0, max_n=3, empty_p=0.35):
+    if random.random() < empty_p:
+        return {}
 
-    if level == "medium":
-        return random.choice(
-            [
-                (1500000, 3500000),
-                (2000000, 5000000),
-                (None, 4500000),
-            ]
-        )
+    n = random.randint(min_n, min(max_n, len(items)))
+    if n == 0:
+        return {}
 
-    if level == "high":
-        return random.choice(
-            [
-                (4000000, 9000000),
-                (5000000, 12000000),
-                (7000000, 15000000),
-            ]
-        )
-
-    return None, None
+    return {item: negative_weight() for item in random.sample(items, n)}
 
 
-def budget_from_profile(nationality, age_group):
-    """
-    Generate a realistic long-term budget level.
+def price_range(levels):
+    if not levels:
+        return {"min": None, "max": None, "currency": None}
 
-    These are mock assumptions only.
-    They should be treated as soft recommendation signals, not hard rules.
-    """
-    if nationality == "foreign":
-        return random.choice(["medium", "high", "high", "unknown", None])
-
-    if age_group == "under_25":
-        return random.choice(["low", "low", "medium", "unknown"])
-
-    if age_group == "25_35":
-        return random.choice(["medium", "medium", "high", "unknown"])
-
-    if age_group == "over_35":
-        return random.choice(["medium", "high", "high", "unknown"])
-
-    return random.choice(["unknown", "medium", None])
-
-
-def make_negative_preferences():
-    """Generate negative preference object."""
-    if random.random() < 0.18:
-        return {
-            "avoid_hotel_types": [],
-            "avoid_amenities": [],
-            "avoid_tags": [],
-            "avoid_nearby_places": [],
-            "avoid_locations": [],
-        }
-
-    nearby_places_no_null = [place for place in NEARBY_PLACES if place is not None]
-
+    level = max(levels, key=levels.get)
+    ranges = {
+        "low": [(300000, 1500000), (500000, 1800000), (None, 2000000)],
+        "medium": [(1500000, 3500000), (2000000, 5000000), (None, 4500000)],
+        "high": [(4000000, 9000000), (5000000, 12000000), (7000000, 15000000)],
+    }
+    min_price, max_price = random.choice(ranges.get(level, [(None, None)]))
     return {
-        "avoid_hotel_types": sample_list(HOTEL_TYPES, 0, 2, null_p=0, empty_p=0.35) or [],
-        "avoid_amenities": sample_list(AMENITIES, 0, 2, null_p=0, empty_p=0.35) or [],
-        "avoid_tags": sample_list(AVOID_TAGS, 1, 3, null_p=0, empty_p=0.25) or [],
-        "avoid_nearby_places": sample_list(nearby_places_no_null, 0, 2, null_p=0, empty_p=0.45) or [],
-        "avoid_locations": sample_list(AVOID_LOCATIONS, 0, 2, null_p=0, empty_p=0.45) or [],
+        "min": min_price,
+        "max": max_price,
+        "currency": "VND" if min_price is not None or max_price is not None else None,
     }
 
 
 def make_date_pair():
-    """Generate check-in/check-out datetime strings or nulls."""
-    if random.random() < 0.42:
+    if random.random() < 0.4:
         return None, None
 
     month = random.choice([7, 8, 9, 10, 11, 12])
-    day = random.randint(1, 24)
+    day = random.randint(1, 23)
     stay = random.randint(1, 5)
-
-    check_in = f"2026-{month:02d}-{day:02d}T14:00:00"
-    check_out = f"2026-{month:02d}-{day + stay:02d}T12:00:00"
-
-    return check_in, check_out
+    return f"2026-{month:02d}-{day:02d}T14:00:00", f"2026-{month:02d}-{day + stay:02d}T12:00:00"
 
 
-def guests_for_trip(trip_type):
-    """Generate number of guests from trip type."""
+def guests_for_trip(trip_types):
+    if not trip_types:
+        return None
+
+    trip_type = max(trip_types, key=trip_types.get)
     if trip_type == "solo":
         return 1
-
     if trip_type == "couple":
         return 2
-
     if trip_type == "business":
         return random.choice([1, 2])
-
     if trip_type == "family":
         return random.choice([3, 4, 5, 6])
-
     if trip_type == "group":
         return random.choice([4, 5, 6, 8])
-
-    if trip_type == "tourist":
-        return random.choice([1, 2, 3])
-
-    return None
+    return random.choice([1, 2, 3])
 
 
-def cold_start_user(index, name, nationality):
-    """Generate a sparse profile for cold-start testing."""
+def make_negative_preferences():
+    nearby_places = [place for place in NEARBY_PLACES if place is not None]
     return {
+        "avoid_hotel_types": negative_weighted_map(HOTEL_TYPES, 0, 2),
+        "avoid_amenities": negative_weighted_map(SESSION_AMENITIES, 0, 2),
+        "avoid_tags": negative_weighted_map(AVOID_TAGS, 1, 3, empty_p=0.22),
+        "avoid_nearby_places": negative_weighted_map(nearby_places, 0, 2, empty_p=0.5),
+        "avoid_locations": negative_weighted_map(AVOID_LOCATIONS, 0, 2, empty_p=0.45),
+    }
+
+
+def maybe_omit(data, keys, probability=0.06):
+    for key in keys:
+        if key in data and random.random() < probability:
+            del data[key]
+
+
+def make_cold_start_user(index, name, nationality):
+    profile = {
         "user_id": f"user_{index:03d}",
-        "name": name,
+        "name": maybe_null(name, 0.35),
         "long_term_profile": {
-            "nationality": nationality,
-            "age_group": random.choice(["unknown", None]),
+            "nationality": maybe_null(nationality, 0.45),
+            "age_group": None,
             "current_workplace": None,
-            "traveler_type": random.choice(["unknown", None]),
-            "long_term_trip_type": "unknown",
-            "long_term_budget_level": "unknown",
-            "long_term_price_range": {
-                "min": None,
-                "max": None,
-                "currency": None,
-            },
-            "long_term_preference_tags": None,
-            "long_term_hotel_types": None,
-            "long_term_amenities": None,
+            "traveler_type": {},
+            "long_term_trip_types": {},
+            "long_term_budget_levels": {},
+            "long_term_price_range": {"min": None, "max": None, "currency": None},
+            "long_term_preference_tags": {},
+            "long_term_hotel_types": {},
+            "long_term_amenities": {},
             "long_term_negative_preferences": {
-                "avoid_hotel_types": [],
-                "avoid_amenities": [],
-                "avoid_tags": [],
-                "avoid_nearby_places": [],
-                "avoid_locations": [],
+                "avoid_hotel_types": {},
+                "avoid_amenities": {},
+                "avoid_tags": {},
+                "avoid_nearby_places": {},
+                "avoid_locations": {},
             },
         },
         "session_context": {
@@ -396,92 +312,55 @@ def cold_start_user(index, name, nationality):
             "has_children": None,
             "check_in": None,
             "check_out": None,
-            "session_trip_type": random.choice(["unknown", None]),
-            "session_budget_level": "unknown",
-            "session_price_range": {
-                "min": None,
-                "max": None,
-                "currency": None,
-            },
-            "session_preference_tags": None,
-            "session_hotel_types": None,
-            "session_amenities": None,
+            "session_trip_types": {},
+            "session_budget_levels": {},
+            "session_price_range": {"min": None, "max": None, "currency": None},
+            "session_preference_tags": {},
+            "session_hotel_types": {},
+            "session_amenities": {},
             "session_negative_preferences": {
-                "avoid_hotel_types": [],
-                "avoid_amenities": [],
-                "avoid_tags": [],
-                "avoid_nearby_places": [],
-                "avoid_locations": [],
+                "avoid_hotel_types": {},
+                "avoid_amenities": {},
+                "avoid_tags": {},
+                "avoid_nearby_places": {},
+                "avoid_locations": {},
             },
         },
     }
+    maybe_omit(profile["long_term_profile"], ["traveler_type", "long_term_preference_tags"], 0.25)
+    maybe_omit(profile["session_context"], ["nearby_place", "session_amenities"], 0.25)
+    return profile
 
 
 def make_user(index, name, nationality):
-    """Generate one mock user profile."""
-    if index in [8, 19, 31, 45, 60]:
-        return cold_start_user(
-            index=index,
-            name=None if index == 60 else name,
-            nationality=random.choice([nationality, "unknown", None]),
-        )
+    if index in {8, 19, 31, 45}:
+        return make_cold_start_user(index, name, nationality)
 
-    age_group = maybe_null(
-        random.choice(["under_25", "25_35", "over_35", "unknown"]),
-        probability=0.05,
-    )
-
-    traveler_type = maybe_null(
-        random.choice(["explorer", "comfort_seeker", "planner", "spontaneous", "unknown"]),
-        probability=0.05,
-    )
-
-    long_trip_type = maybe_null(
-        random.choice(["solo", "tourist", "business", "family", "couple", "group", "unknown"]),
-        probability=0.06,
-    )
-
-    long_budget_level = budget_from_profile(nationality, age_group)
-    long_min_price, long_max_price = price_range(long_budget_level)
-
-    session_trip_type = maybe_null(
-        random.choice(["solo", "tourist", "business", "family", "couple", "group", "unknown"]),
-        probability=0.06,
-    )
-
-    guests = guests_for_trip(session_trip_type)
-
-    has_children = (
-        True
-        if session_trip_type == "family" and random.random() < 0.7
-        else random.choice([False, False, None])
-    )
-
-    has_pet = True if random.random() < 0.12 else random.choice([False, False, None])
-
-    session_budget_level = random.choice([long_budget_level, "low", "medium", "high", "unknown", None])
-    session_min_price, session_max_price = price_range(session_budget_level)
+    age_group = maybe_null(random.choice(["under_25", "25_35", "over_35"]), 0.08)
+    traveler_type = weighted_map(TRAVELER_TYPES, 1, 2, null_p=0.06, empty_p=0.08)
+    long_trip_types = weighted_map(TRIP_TYPES, 1, 2, null_p=0.05, empty_p=0.06)
+    long_budget_levels = weighted_map(BUDGET_LEVELS, 1, 2, null_p=0.06, empty_p=0.05)
+    session_trip_types = weighted_map(TRIP_TYPES, 1, 2, null_p=0.05, empty_p=0.08)
+    session_budget_levels = weighted_map(BUDGET_LEVELS, 1, 2, null_p=0.08, empty_p=0.08)
 
     check_in, check_out = make_date_pair()
+    guests = guests_for_trip(session_trip_types)
+    top_session_trip = max(session_trip_types, key=session_trip_types.get) if session_trip_types else None
 
-    return {
+    profile = {
         "user_id": f"user_{index:03d}",
-        "name": maybe_null(name, probability=0.04),
+        "name": maybe_null(name, 0.04),
         "long_term_profile": {
-            "nationality": maybe_null(nationality, probability=0.04),
+            "nationality": maybe_null(nationality, 0.05),
             "age_group": age_group,
             "current_workplace": random.choice(CURRENT_LOCATIONS),
             "traveler_type": traveler_type,
-            "long_term_trip_type": long_trip_type,
-            "long_term_budget_level": long_budget_level,
-            "long_term_price_range": {
-                "min": long_min_price,
-                "max": long_max_price,
-                "currency": "VND" if (long_min_price is not None or long_max_price is not None) else None,
-            },
-            "long_term_preference_tags": sample_list(LONG_TERM_PREFERENCE_TAGS, 1, 3),
-            "long_term_hotel_types": sample_list(HOTEL_TYPES, 1, 4),
-            "long_term_amenities": sample_list(AMENITIES, 1, 5),
+            "long_term_trip_types": long_trip_types,
+            "long_term_budget_levels": long_budget_levels,
+            "long_term_price_range": price_range(long_budget_levels),
+            "long_term_preference_tags": weighted_map(LONG_TERM_PREFERENCE_TAGS, 1, 3),
+            "long_term_hotel_types": weighted_map(HOTEL_TYPES, 1, 4),
+            "long_term_amenities": weighted_map(AMENITIES, 1, 5),
             "long_term_negative_preferences": make_negative_preferences(),
         },
         "session_context": {
@@ -489,73 +368,52 @@ def make_user(index, name, nationality):
             "current_location": random.choice(CURRENT_LOCATIONS),
             "nearby_place": random.choice(NEARBY_PLACES),
             "number_of_guests": guests,
-            "has_pet": has_pet,
-            "has_children": has_children,
+            "has_pet": True if random.random() < 0.12 else random.choice([False, False, None]),
+            "has_children": True if top_session_trip == "family" and random.random() < 0.7 else random.choice([False, False, None]),
             "check_in": check_in,
             "check_out": check_out,
-            "session_trip_type": session_trip_type,
-            "session_budget_level": session_budget_level,
-            "session_price_range": {
-                "min": session_min_price,
-                "max": session_max_price,
-                "currency": "VND" if (session_min_price is not None or session_max_price is not None) else None,
-            },
-            "session_preference_tags": sample_list(SESSION_PREFERENCE_TAGS, 1, 4),
-            "session_hotel_types": sample_list(HOTEL_TYPES, 1, 3),
-            "session_amenities": sample_list(SESSION_AMENITIES, 1, 5),
+            "session_trip_types": session_trip_types,
+            "session_budget_levels": session_budget_levels,
+            "session_price_range": price_range(session_budget_levels),
+            "session_preference_tags": weighted_map(SESSION_PREFERENCE_TAGS, 1, 4),
+            "session_hotel_types": weighted_map(HOTEL_TYPES, 1, 3),
+            "session_amenities": weighted_map(SESSION_AMENITIES, 1, 5),
             "session_negative_preferences": make_negative_preferences(),
         },
     }
 
-
-def generate_profiles(user_count=USER_COUNT):
-    """Generate all mock profiles."""
-    profiles = []
-
-    for index in range(1, user_count + 1):
-        if index <= user_count // 2:
-            name = VIETNAMESE_NAMES[(index - 1) % len(VIETNAMESE_NAMES)]
-            nationality = random.choice(["vietnamese", "vietnamese", "vietnamese", "unknown"])
-        else:
-            name = FOREIGN_NAMES[(index - 1 - user_count // 2) % len(FOREIGN_NAMES)]
-            nationality = random.choice(["foreign", "foreign", "foreign", "unknown"])
-
-        profiles.append(make_user(index, name, nationality))
-
-    apply_demo_overrides(profiles)
-
-    return profiles
+    maybe_omit(profile["long_term_profile"], ["current_workplace", "long_term_amenities"], 0.05)
+    maybe_omit(profile["session_context"], ["nearby_place", "check_out", "session_hotel_types"], 0.06)
+    return profile
 
 
 def apply_demo_overrides(profiles):
-    """
-    Make a few profiles more intentional for easy demo/testing.
-    This helps when testing recommendation behavior manually.
-    """
     if len(profiles) < 15:
         return
 
-    profiles[0].update(
-        {
-            "user_id": "user_001",
-            "name": "Minh Anh Nguyen",
-        }
-    )
-    profiles[0]["long_term_profile"].update(
-        {
+    profiles[0] = {
+        "user_id": "user_001",
+        "name": "Minh Anh Nguyen",
+        "long_term_profile": {
             "nationality": "vietnamese",
             "age_group": "under_25",
-            "traveler_type": "explorer",
-            "long_term_trip_type": "tourist",
-            "long_term_budget_level": "low",
+            "current_workplace": "Ho Chi Minh City",
+            "traveler_type": {"explorer": 0.92},
+            "long_term_trip_types": {"tourist": 0.95},
+            "long_term_budget_levels": {"low": 0.9},
             "long_term_price_range": {"min": 500000, "max": 1800000, "currency": "VND"},
-            "long_term_preference_tags": ["unique", "lively", "safe"],
-            "long_term_hotel_types": ["homestay", "hostel", "guesthouse"],
-            "long_term_amenities": ["wifi", "breakfast"],
-        }
-    )
-    profiles[0]["session_context"].update(
-        {
+            "long_term_preference_tags": {"unique": 0.9, "lively": 0.7, "safe": 0.55},
+            "long_term_hotel_types": {"homestay": 0.86, "hostel": 0.72, "guesthouse": 0.6},
+            "long_term_amenities": {"wifi": 0.9, "breakfast": 0.5},
+            "long_term_negative_preferences": {
+                "avoid_hotel_types": {"luxury_hotel": -0.4},
+                "avoid_amenities": {},
+                "avoid_tags": {"low_rating": -0.95, "unsafe_area": -0.9},
+                "avoid_nearby_places": {},
+                "avoid_locations": {"crowded_center": -0.45},
+            },
+        },
+        "session_context": {
             "destination": "Da Nang",
             "current_location": "Ho Chi Minh City",
             "nearby_place": "My Khe Beach",
@@ -564,106 +422,100 @@ def apply_demo_overrides(profiles):
             "has_children": False,
             "check_in": None,
             "check_out": None,
-            "session_trip_type": "tourist",
-            "session_budget_level": "low",
+            "session_trip_types": {"tourist": 0.9},
+            "session_budget_levels": {"low": 0.85},
             "session_price_range": {"min": 500000, "max": 1500000, "currency": "VND"},
-            "session_preference_tags": ["unique", "near_beach", "lively"],
-            "session_hotel_types": ["homestay", "budget_hotel"],
-            "session_amenities": ["wifi"],
-        }
-    )
+            "session_preference_tags": {"unique": 0.8, "near_beach": 0.92, "lively": 0.6},
+            "session_hotel_types": {"homestay": 0.82, "budget_hotel": 0.7},
+            "session_amenities": {"wifi": 0.95},
+            "session_negative_preferences": {
+                "avoid_hotel_types": {},
+                "avoid_amenities": {},
+                "avoid_tags": {"low_rating": -0.9},
+                "avoid_nearby_places": {},
+                "avoid_locations": {},
+            },
+        },
+    }
 
     profiles[4]["long_term_profile"].update(
         {
-            "nationality": "vietnamese",
-            "age_group": "over_35",
-            "traveler_type": "comfort_seeker",
-            "long_term_trip_type": "business",
-            "long_term_budget_level": "high",
-            "long_term_hotel_types": ["premium_hotel", "luxury_hotel", "resort"],
-            "long_term_amenities": ["wifi", "spa", "breakfast", "shuttle_service", "soundproof"],
+            "traveler_type": {"comfort_seeker": 0.88, "planner": 0.55},
+            "long_term_trip_types": {"business": 0.9},
+            "long_term_budget_levels": {"high": 0.9},
+            "long_term_hotel_types": {"premium_hotel": 0.9, "luxury_hotel": 0.76, "resort": 0.45},
+            "long_term_amenities": {"wifi": 0.95, "spa": 0.65, "breakfast": 0.7, "soundproof": 0.88},
         }
     )
     profiles[4]["session_context"].update(
         {
-            "session_trip_type": "business",
+            "session_trip_types": {"business": 0.92},
             "destination": "Ho Chi Minh City",
             "nearby_place": "City Center",
             "number_of_guests": 1,
-            "session_amenities": ["wifi", "shuttle_service", "soundproof"],
+            "session_amenities": {"wifi": 0.95, "shuttle_service": 0.8, "soundproof": 0.85},
             "session_negative_preferences": {
-                "avoid_hotel_types": ["hostel", "guesthouse"],
-                "avoid_amenities": ["bar"],
-                "avoid_tags": ["noisy", "old_facility", "low_rating"],
-                "avoid_nearby_places": ["Night Market"],
-                "avoid_locations": ["crowded_center"],
+                "avoid_hotel_types": {"hostel": -0.9, "guesthouse": -0.6},
+                "avoid_amenities": {"bar": -0.5},
+                "avoid_tags": {"noisy": -0.95, "old_facility": -0.8, "low_rating": -0.9},
+                "avoid_nearby_places": {"Night Market": -0.45},
+                "avoid_locations": {"crowded_center": -0.65},
             },
         }
     )
 
     profiles[14]["session_context"].update(
         {
-            "session_trip_type": "family",
+            "session_trip_types": {"family": 0.96},
             "destination": "Phu Quoc",
             "nearby_place": "VinWonders",
             "number_of_guests": 4,
             "has_children": True,
             "has_pet": False,
-            "session_budget_level": "medium",
+            "session_budget_levels": {"medium": 0.82},
             "session_price_range": {"min": 2000000, "max": 5000000, "currency": "VND"},
-            "session_preference_tags": ["comfort", "safe", "near_attraction"],
-            "session_hotel_types": ["resort", "hotel"],
-            "session_amenities": ["pool", "kids_club", "breakfast"],
+            "session_preference_tags": {"comfort": 0.8, "safe": 0.9, "near_attraction": 0.9},
+            "session_hotel_types": {"resort": 0.86, "hotel": 0.5},
+            "session_amenities": {"pool": 0.75, "kids_club": 0.95, "breakfast": 0.65},
         }
     )
 
-    if len(profiles) > 31:
-        profiles[31]["long_term_profile"].update(
-            {
-                "nationality": "foreign",
-                "age_group": "25_35",
-                "traveler_type": "explorer",
-                "long_term_budget_level": "high",
-                "long_term_preference_tags": ["unique", "comfort", "lively"],
-                "long_term_hotel_types": ["boutique_hotel", "resort", "hotel"],
-            }
-        )
-        profiles[31]["session_context"].update(
-            {
-                "session_trip_type": "tourist",
-                "destination": "Ha Noi",
-                "nearby_place": "Old Quarter",
-                "session_preference_tags": ["unique", "city_center", "lively"],
-                "session_amenities": ["wifi", "breakfast"],
-            }
-        )
+
+def generate_profiles(user_count=USER_COUNT):
+    profiles = []
+    for index in range(1, user_count + 1):
+        if index <= user_count // 2:
+            name = VIETNAMESE_NAMES[(index - 1) % len(VIETNAMESE_NAMES)]
+            nationality = "vietnamese"
+        else:
+            name = FOREIGN_NAMES[(index - 1 - user_count // 2) % len(FOREIGN_NAMES)]
+            nationality = "foreign"
+        profiles.append(make_user(index, name, nationality))
+
+    apply_demo_overrides(profiles)
+    return profiles
 
 
 def validate_ascii_only(path):
-    """Ensure the generated file contains only ASCII characters."""
     raw = Path(path).read_text(encoding="utf-8")
     non_ascii = sorted(set(ch for ch in raw if ord(ch) > 127))
-
     if non_ascii:
         raise ValueError(f"Generated file contains non-ASCII characters: {non_ascii[:10]}")
 
 
 def main():
     profiles = generate_profiles(USER_COUNT)
-
     output = {
-        "schema_version": "user_profile_mock",
+        "schema_version": "weighted_user_profile_mock",
         "language": "en",
         "count": len(profiles),
         "users": profiles,
     }
 
-    output_path = Path(OUTPUT_FILE)
-    output_path.write_text(json.dumps(output, ensure_ascii=True, indent=2), encoding="utf-8")
+    OUTPUT_FILE.write_text(json.dumps(output, ensure_ascii=True, indent=2), encoding="utf-8")
+    validate_ascii_only(OUTPUT_FILE)
 
-    validate_ascii_only(output_path)
-
-    print(f"Created {output_path.resolve()}")
+    print(f"Created {OUTPUT_FILE.resolve()}")
     print(f"Users: {len(profiles)}")
     print("Language: English only")
     print("ASCII validation: passed")

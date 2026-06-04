@@ -3,68 +3,84 @@
   "name": "string | null",
 
   "long_term_profile": {
-    "nationality": "vietnamese | foreign | unknown | null",
-    "age_group": "under_25 | 25_35 | over_35 | unknown | null",
+    "nationality": "vietnamese | foreign | null",
+    "age_group": "under_25 | 25_35 | over_35 | null",
     "current_workplace": "string | null",
-    "traveler_type": "explorer | comfort_seeker | planner | spontaneous | unknown | null",
+    "traveler_type": {
+      "explorer": "positive decimal number",
+      "comfort_seeker": "positive decimal number",
+      "planner": "positive decimal number",
+      "spontaneous": "positive decimal number"
+    },
 
-    "long_term_trip_type": "solo | tourist | business | family | couple | group | unknown | null",
-    "long_term_budget_level": "low | medium | high | unknown | null",
+    "long_term_trip_types": {
+      "solo": "positive decimal number",
+      "tourist": "positive decimal number",
+      "business": "positive decimal number",
+      "family": "positive decimal number",
+      "couple": "positive decimal number",
+      "group": "positive decimal number"
+    },
+    "long_term_budget_levels": {
+      "low": "positive decimal number",
+      "medium": "positive decimal number",
+      "high": "positive decimal number"
+    },
     "long_term_price_range": {
       "min": "number | null",
       "max": "number | null",
       "currency": "VND | null"
     },
-    "long_term_preference_tags": [
-      "luxury",
-      "comfort",
-      "quiet",
-      "privacy",
-      "unique",
-      "safe",
-      "lively"
-    ],
-    "long_term_hotel_types": [
-      "hotel",
-      "homestay",
-      "guesthouse",
-      "hostel",
-      "resort",
-      "villa",
-      "boutique_hotel",
-      "budget_hotel",
-      "premium_hotel",
-      "luxury_hotel"
-    ],
-    "long_term_amenities": [
-      "pool",
-      "wifi",
-      "spa",
-      "breakfast",
-      "bar",
-      "parking",
-      "elevator",
-      "kids_club",
-      "shuttle_service",
-      "pet_friendly",
-      "soundproof"
-    ],
+    "long_term_preference_tags": {
+      "luxury": "positive decimal number",
+      "comfort": "positive decimal number",
+      "quiet": "positive decimal number",
+      "privacy": "positive decimal number",
+      "unique": "positive decimal number",
+      "safe": "positive decimal number",
+      "lively": "positive decimal number"
+    },
+    "long_term_hotel_types": {
+      "hotel": "positive decimal number",
+      "homestay": "positive decimal number",
+      "guesthouse": "positive decimal number",
+      "hostel": "positive decimal number",
+      "resort": "positive decimal number",
+      "villa": "positive decimal number",
+      "boutique_hotel": "positive decimal number",
+      "budget_hotel": "positive decimal number",
+      "premium_hotel": "positive decimal number",
+      "luxury_hotel": "positive decimal number"
+    },
+    "long_term_amenities": {
+      "pool": "positive decimal number",
+      "wifi": "positive decimal number",
+      "spa": "positive decimal number",
+      "breakfast": "positive decimal number",
+      "bar": "positive decimal number",
+      "parking": "positive decimal number",
+      "elevator": "positive decimal number",
+      "kids_club": "positive decimal number",
+      "shuttle_service": "positive decimal number",
+      "pet_friendly": "positive decimal number",
+      "soundproof": "positive decimal number"
+    },
     "long_term_negative_preferences": {
-      "avoid_hotel_types": [
-        "string"
-      ],
-      "avoid_amenities": [
-        "string"
-      ],
-      "avoid_tags": [
-        "string"
-      ],
-      "avoid_nearby_places": [
-        "string"
-      ],
-      "avoid_locations": [
-        "string"
-      ]
+      "avoid_hotel_types": {
+        "string": "negative decimal number"
+      },
+      "avoid_amenities": {
+        "string": "negative decimal number"
+      },
+      "avoid_tags": {
+        "string": "negative decimal number"
+      },
+      "avoid_nearby_places": {
+        "string": "negative decimal number"
+      },
+      "avoid_locations": {
+        "string": "negative decimal number"
+      }
     }
   },
 
@@ -75,72 +91,83 @@
     "number_of_guests": "number | null",
     "has_pet": "boolean | null",
     "has_children": "boolean | null",
-    "check_in": "datetinme | null",
+    "check_in": "datetime | null",
     "check_out": "datetime | null",
-    
-    "session_trip_type": "solo | tourist | business | family | couple | group | unknown | null",
-    "session_budget_level": "low | medium | high | unknown | null",
+
+    "session_trip_types": {
+      "solo": "positive decimal number",
+      "tourist": "positive decimal number",
+      "business": "positive decimal number",
+      "family": "positive decimal number",
+      "couple": "positive decimal number",
+      "group": "positive decimal number"
+    },
+    "session_budget_levels": {
+      "low": "positive decimal number",
+      "medium": "positive decimal number",
+      "high": "positive decimal number"
+    },
     "session_price_range": {
       "min": "number | null",
       "max": "number | null",
       "currency": "VND | null"
     },
-    "session_preference_tags": [
-      "luxury",
-      "comfort",
-      "quiet",
-      "privacy",
-      "unique",
-      "safe",
-      "lively",
-      "near_attraction",
-      "near_beach",
-      "city_center",
-      "fast_checkin",
-      "pet_friendly"
-    ],
-    "session_hotel_types": [
-      "hotel",
-      "homestay",
-      "guesthouse",
-      "hostel",
-      "resort",
-      "villa",
-      "boutique_hotel",
-      "budget_hotel",
-      "premium_hotel",
-      "luxury_hotel"
-    ],
-    "session_amenities": [
-      "pool",
-      "wifi",
-      "spa",
-      "breakfast",
-      "bar",
-      "parking",
-      "elevator",
-      "kids_club",
-      "shuttle_service",
-      "pet_friendly",
-      "soundproof",
-      "smoke"
-    ],
+    "session_preference_tags": {
+      "luxury": "positive decimal number",
+      "comfort": "positive decimal number",
+      "quiet": "positive decimal number",
+      "privacy": "positive decimal number",
+      "unique": "positive decimal number",
+      "safe": "positive decimal number",
+      "lively": "positive decimal number",
+      "near_attraction": "positive decimal number",
+      "near_beach": "positive decimal number",
+      "city_center": "positive decimal number",
+      "fast_checkin": "positive decimal number",
+      "pet_friendly": "positive decimal number"
+    },
+    "session_hotel_types": {
+      "hotel": "positive decimal number",
+      "homestay": "positive decimal number",
+      "guesthouse": "positive decimal number",
+      "hostel": "positive decimal number",
+      "resort": "positive decimal number",
+      "villa": "positive decimal number",
+      "boutique_hotel": "positive decimal number",
+      "budget_hotel": "positive decimal number",
+      "premium_hotel": "positive decimal number",
+      "luxury_hotel": "positive decimal number"
+    },
+    "session_amenities": {
+      "pool": "positive decimal number",
+      "wifi": "positive decimal number",
+      "spa": "positive decimal number",
+      "breakfast": "positive decimal number",
+      "bar": "positive decimal number",
+      "parking": "positive decimal number",
+      "elevator": "positive decimal number",
+      "kids_club": "positive decimal number",
+      "shuttle_service": "positive decimal number",
+      "pet_friendly": "positive decimal number",
+      "soundproof": "positive decimal number",
+      "smoke": "positive decimal number"
+    },
     "session_negative_preferences": {
-      "avoid_hotel_types": [
-        "string"
-      ],
-      "avoid_amenities": [
-        "string"
-      ],
-      "avoid_tags": [
-        "string"
-      ],
-      "avoid_nearby_places": [
-        "string"
-      ],
-      "avoid_locations": [
-        "string"
-      ]
+      "avoid_hotel_types": {
+        "string": "negative decimal number"
+      },
+      "avoid_amenities": {
+        "string": "negative decimal number"
+      },
+      "avoid_tags": {
+        "string": "negative decimal number"
+      },
+      "avoid_nearby_places": {
+        "string": "negative decimal number"
+      },
+      "avoid_locations": {
+        "string": "negative decimal number"
+      }
     }
   }
 }
