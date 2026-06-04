@@ -1,0 +1,146 @@
+{
+  "user_id": "string",
+  "name": "string | null",
+
+  "long_term_profile": {
+    "nationality": "vietnamese | foreign | unknown | null",
+    "age_group": "under_25 | 25_35 | over_35 | unknown | null",
+    "current_workplace": "string | null",
+    "traveler_type": "explorer | comfort_seeker | planner | spontaneous | unknown | null",
+
+    "long_term_trip_type": "solo | tourist | business | family | couple | group | unknown | null",
+    "long_term_budget_level": "low | medium | high | unknown | null",
+    "long_term_price_range": {
+      "min": "number | null",
+      "max": "number | null",
+      "currency": "VND | null"
+    },
+    "long_term_preference_tags": [
+      "luxury",
+      "comfort",
+      "quiet",
+      "privacy",
+      "unique",
+      "safe",
+      "lively"
+    ],
+    "long_term_hotel_types": [
+      "hotel",
+      "homestay",
+      "guesthouse",
+      "hostel",
+      "resort",
+      "villa",
+      "boutique_hotel",
+      "budget_hotel",
+      "premium_hotel",
+      "luxury_hotel"
+    ],
+    "long_term_amenities": [
+      "pool",
+      "wifi",
+      "spa",
+      "breakfast",
+      "bar",
+      "parking",
+      "elevator",
+      "kids_club",
+      "shuttle_service",
+      "pet_friendly",
+      "soundproof"
+    ],
+    "long_term_negative_preferences": {
+      "avoid_hotel_types": [
+        "string"
+      ],
+      "avoid_amenities": [
+        "string"
+      ],
+      "avoid_tags": [
+        "string"
+      ],
+      "avoid_nearby_places": [
+        "string"
+      ],
+      "avoid_locations": [
+        "string"
+      ]
+    }
+  },
+
+  "session_context": {
+    "destination": "string | null",
+    "current_location": "string | null",
+    "nearby_place": "string | null",
+    "number_of_guests": "number | null",
+    "has_pet": "boolean | null",
+    "has_children": "boolean | null",
+    "check_in": "datetinme | null",
+    "check_out": "datetime | null",
+    
+    "session_trip_type": "solo | tourist | business | family | couple | group | unknown | null",
+    "session_budget_level": "low | medium | high | unknown | null",
+    "session_price_range": {
+      "min": "number | null",
+      "max": "number | null",
+      "currency": "VND | null"
+    },
+    "session_preference_tags": [
+      "luxury",
+      "comfort",
+      "quiet",
+      "privacy",
+      "unique",
+      "safe",
+      "lively",
+      "near_attraction",
+      "near_beach",
+      "city_center",
+      "fast_checkin",
+      "pet_friendly"
+    ],
+    "session_hotel_types": [
+      "hotel",
+      "homestay",
+      "guesthouse",
+      "hostel",
+      "resort",
+      "villa",
+      "boutique_hotel",
+      "budget_hotel",
+      "premium_hotel",
+      "luxury_hotel"
+    ],
+    "session_amenities": [
+      "pool",
+      "wifi",
+      "spa",
+      "breakfast",
+      "bar",
+      "parking",
+      "elevator",
+      "kids_club",
+      "shuttle_service",
+      "pet_friendly",
+      "soundproof",
+      "smoke"
+    ],
+    "session_negative_preferences": {
+      "avoid_hotel_types": [
+        "string"
+      ],
+      "avoid_amenities": [
+        "string"
+      ],
+      "avoid_tags": [
+        "string"
+      ],
+      "avoid_nearby_places": [
+        "string"
+      ],
+      "avoid_locations": [
+        "string"
+      ]
+    }
+  }
+}

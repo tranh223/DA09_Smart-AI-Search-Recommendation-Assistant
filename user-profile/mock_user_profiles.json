@@ -1,0 +1,4004 @@
+{
+  "schema_version": "user_profile_mock",
+  "language": "en",
+  "count": 50,
+  "users": [
+    {
+      "user_id": "user_001",
+      "name": "Minh Anh Nguyen",
+      "long_term_profile": {
+        "nationality": "vietnamese",
+        "age_group": "under_25",
+        "current_workplace": "Kuala Lumpur",
+        "traveler_type": "explorer",
+        "long_term_trip_type": "tourist",
+        "long_term_budget_level": "low",
+        "long_term_price_range": {
+          "min": 500000,
+          "max": 1800000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "unique",
+          "lively",
+          "safe"
+        ],
+        "long_term_hotel_types": [
+          "homestay",
+          "hostel",
+          "guesthouse"
+        ],
+        "long_term_amenities": [
+          "wifi",
+          "breakfast"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [
+            "breakfast",
+            "elevator"
+          ],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": [
+            "night_market_area"
+          ]
+        }
+      },
+      "session_context": {
+        "destination": "Da Nang",
+        "current_location": "Ho Chi Minh City",
+        "nearby_place": "My Khe Beach",
+        "number_of_guests": 2,
+        "has_pet": false,
+        "has_children": false,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "tourist",
+        "session_budget_level": "low",
+        "session_price_range": {
+          "min": 500000,
+          "max": 1500000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "unique",
+          "near_beach",
+          "lively"
+        ],
+        "session_hotel_types": [
+          "homestay",
+          "budget_hotel"
+        ],
+        "session_amenities": [
+          "wifi"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "low_rating",
+            "city_center",
+            "nightlife"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_002",
+      "name": "Hoang Nam Tran",
+      "long_term_profile": {
+        "nationality": "vietnamese",
+        "age_group": "under_25",
+        "current_workplace": "London",
+        "traveler_type": "spontaneous",
+        "long_term_trip_type": "couple",
+        "long_term_budget_level": "unknown",
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": [
+          "privacy",
+          "comfort",
+          "safe"
+        ],
+        "long_term_hotel_types": [
+          "hotel",
+          "luxury_hotel"
+        ],
+        "long_term_amenities": [
+          "breakfast"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [
+            "hotel",
+            "budget_hotel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "shared_room",
+            "unsafe_area",
+            "poor_cleanliness"
+          ],
+          "avoid_nearby_places": [
+            "Ancient Town"
+          ],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Hue",
+        "current_location": "Seoul",
+        "nearby_place": "Long Beach",
+        "number_of_guests": 1,
+        "has_pet": null,
+        "has_children": null,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "business",
+        "session_budget_level": null,
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": [
+          "lively"
+        ],
+        "session_hotel_types": [],
+        "session_amenities": [
+          "kids_club",
+          "breakfast",
+          "smoke",
+          "elevator",
+          "shuttle_service"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_003",
+      "name": "Thu Ha Le",
+      "long_term_profile": {
+        "nationality": "unknown",
+        "age_group": "over_35",
+        "current_workplace": "Seoul",
+        "traveler_type": "planner",
+        "long_term_trip_type": "solo",
+        "long_term_budget_level": "high",
+        "long_term_price_range": {
+          "min": 7000000,
+          "max": 15000000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "lively"
+        ],
+        "long_term_hotel_types": [
+          "budget_hotel",
+          "hostel",
+          "resort",
+          "guesthouse"
+        ],
+        "long_term_amenities": [
+          "breakfast",
+          "elevator",
+          "pool",
+          "parking",
+          "wifi"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Vung Tau",
+        "current_location": "Da Nang",
+        "nearby_place": "Ancient Town",
+        "number_of_guests": null,
+        "has_pet": null,
+        "has_children": null,
+        "check_in": "2026-08-15T14:00:00",
+        "check_out": "2026-08-17T12:00:00",
+        "session_trip_type": "unknown",
+        "session_budget_level": null,
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": [
+          "luxury",
+          "comfort",
+          "near_attraction"
+        ],
+        "session_hotel_types": [
+          "homestay",
+          "boutique_hotel",
+          "guesthouse"
+        ],
+        "session_amenities": null,
+        "session_negative_preferences": {
+          "avoid_hotel_types": [
+            "luxury_hotel"
+          ],
+          "avoid_amenities": [
+            "bar"
+          ],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": [
+            "isolated_area"
+          ]
+        }
+      }
+    },
+    {
+      "user_id": "user_004",
+      "name": "Gia Huy Pham",
+      "long_term_profile": {
+        "nationality": "unknown",
+        "age_group": "25_35",
+        "current_workplace": "Tokyo",
+        "traveler_type": "comfort_seeker",
+        "long_term_trip_type": "business",
+        "long_term_budget_level": "medium",
+        "long_term_price_range": {
+          "min": null,
+          "max": 4500000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "privacy",
+          "comfort",
+          "unique"
+        ],
+        "long_term_hotel_types": [
+          "guesthouse",
+          "hostel",
+          "villa"
+        ],
+        "long_term_amenities": [
+          "spa",
+          "soundproof",
+          "breakfast",
+          "wifi"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Vung Tau",
+        "current_location": null,
+        "nearby_place": "Dragon Bridge",
+        "number_of_guests": 2,
+        "has_pet": false,
+        "has_children": null,
+        "check_in": "2026-12-17T14:00:00",
+        "check_out": "2026-12-19T12:00:00",
+        "session_trip_type": "couple",
+        "session_budget_level": "low",
+        "session_price_range": {
+          "min": 500000,
+          "max": 1800000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "unique",
+          "city_center"
+        ],
+        "session_hotel_types": [
+          "homestay"
+        ],
+        "session_amenities": [
+          "parking",
+          "elevator"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [
+            "hostel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "far_from_center",
+            "small_room"
+          ],
+          "avoid_nearby_places": [
+            "Imperial City"
+          ],
+          "avoid_locations": [
+            "isolated_area",
+            "crowded_center"
+          ]
+        }
+      }
+    },
+    {
+      "user_id": "user_005",
+      "name": "Thanh Tung Do",
+      "long_term_profile": {
+        "nationality": "vietnamese",
+        "age_group": "over_35",
+        "current_workplace": "Singapore",
+        "traveler_type": "comfort_seeker",
+        "long_term_trip_type": "business",
+        "long_term_budget_level": "high",
+        "long_term_price_range": {
+          "min": 2000000,
+          "max": 5000000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [],
+        "long_term_hotel_types": [
+          "premium_hotel",
+          "luxury_hotel",
+          "resort"
+        ],
+        "long_term_amenities": [
+          "wifi",
+          "spa",
+          "breakfast",
+          "shuttle_service",
+          "soundproof"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Ho Chi Minh City",
+        "current_location": "London",
+        "nearby_place": "City Center",
+        "number_of_guests": 1,
+        "has_pet": false,
+        "has_children": null,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "business",
+        "session_budget_level": "medium",
+        "session_price_range": {
+          "min": 1500000,
+          "max": 3500000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "comfort",
+          "fast_checkin",
+          "near_beach"
+        ],
+        "session_hotel_types": [
+          "resort",
+          "luxury_hotel",
+          "villa"
+        ],
+        "session_amenities": [
+          "wifi",
+          "shuttle_service",
+          "soundproof"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [
+            "hostel",
+            "guesthouse"
+          ],
+          "avoid_amenities": [
+            "bar"
+          ],
+          "avoid_tags": [
+            "noisy",
+            "old_facility",
+            "low_rating"
+          ],
+          "avoid_nearby_places": [
+            "Night Market"
+          ],
+          "avoid_locations": [
+            "crowded_center"
+          ]
+        }
+      }
+    },
+    {
+      "user_id": "user_006",
+      "name": "Quoc Bao Nguyen",
+      "long_term_profile": {
+        "nationality": "vietnamese",
+        "age_group": "unknown",
+        "current_workplace": null,
+        "traveler_type": "planner",
+        "long_term_trip_type": "tourist",
+        "long_term_budget_level": "unknown",
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": [
+          "lively",
+          "unique",
+          "privacy"
+        ],
+        "long_term_hotel_types": [
+          "homestay",
+          "boutique_hotel"
+        ],
+        "long_term_amenities": [
+          "breakfast",
+          "spa"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Hoi An",
+        "current_location": null,
+        "nearby_place": "Imperial City",
+        "number_of_guests": 1,
+        "has_pet": false,
+        "has_children": false,
+        "check_in": "2026-11-14T14:00:00",
+        "check_out": "2026-11-18T12:00:00",
+        "session_trip_type": "tourist",
+        "session_budget_level": "unknown",
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": [
+          "privacy",
+          "unique",
+          "near_beach"
+        ],
+        "session_hotel_types": [
+          "hotel",
+          "budget_hotel",
+          "resort"
+        ],
+        "session_amenities": [],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "old_facility"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": [
+            "crowded_center",
+            "industrial_area"
+          ]
+        }
+      }
+    },
+    {
+      "user_id": "user_007",
+      "name": "Mai Linh Hoang",
+      "long_term_profile": {
+        "nationality": "vietnamese",
+        "age_group": "unknown",
+        "current_workplace": "Paris",
+        "traveler_type": "planner",
+        "long_term_trip_type": "tourist",
+        "long_term_budget_level": null,
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": [
+          "luxury",
+          "lively",
+          "safe"
+        ],
+        "long_term_hotel_types": [
+          "budget_hotel",
+          "boutique_hotel",
+          "hostel",
+          "guesthouse"
+        ],
+        "long_term_amenities": [
+          "breakfast",
+          "elevator",
+          "bar",
+          "pet_friendly",
+          "kids_club"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [
+            "boutique_hotel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "city_center",
+            "far_from_center"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Hue",
+        "current_location": "Ho Chi Minh City",
+        "nearby_place": "VinWonders",
+        "number_of_guests": 1,
+        "has_pet": false,
+        "has_children": null,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "solo",
+        "session_budget_level": "high",
+        "session_price_range": {
+          "min": 7000000,
+          "max": 15000000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "fast_checkin"
+        ],
+        "session_hotel_types": [
+          "resort",
+          "villa",
+          "hotel"
+        ],
+        "session_amenities": [
+          "bar",
+          "pet_friendly",
+          "wifi"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "far_from_center",
+            "shared_room"
+          ],
+          "avoid_nearby_places": [
+            "Hoan Kiem Lake"
+          ],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_008",
+      "name": "Duc Anh Bui",
+      "long_term_profile": {
+        "nationality": "vietnamese",
+        "age_group": "unknown",
+        "current_workplace": null,
+        "traveler_type": "unknown",
+        "long_term_trip_type": "unknown",
+        "long_term_budget_level": "unknown",
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": null,
+        "long_term_hotel_types": null,
+        "long_term_amenities": null,
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Da Lat",
+        "current_location": null,
+        "nearby_place": null,
+        "number_of_guests": null,
+        "has_pet": null,
+        "has_children": null,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "unknown",
+        "session_budget_level": "unknown",
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": null,
+        "session_hotel_types": null,
+        "session_amenities": null,
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_009",
+      "name": "Anh Khoa Vo",
+      "long_term_profile": {
+        "nationality": "vietnamese",
+        "age_group": "over_35",
+        "current_workplace": "Ho Chi Minh City",
+        "traveler_type": "unknown",
+        "long_term_trip_type": "unknown",
+        "long_term_budget_level": "high",
+        "long_term_price_range": {
+          "min": 4000000,
+          "max": 9000000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "comfort",
+          "privacy"
+        ],
+        "long_term_hotel_types": [
+          "hotel"
+        ],
+        "long_term_amenities": [
+          "pet_friendly",
+          "kids_club",
+          "elevator",
+          "pool",
+          "bar"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "old_facility",
+            "nightlife",
+            "crowded"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Ho Chi Minh City",
+        "current_location": "Bangkok",
+        "nearby_place": null,
+        "number_of_guests": 2,
+        "has_pet": false,
+        "has_children": false,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "business",
+        "session_budget_level": "high",
+        "session_price_range": {
+          "min": 7000000,
+          "max": 15000000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "near_attraction",
+          "safe",
+          "lively"
+        ],
+        "session_hotel_types": [
+          "budget_hotel",
+          "homestay",
+          "hotel"
+        ],
+        "session_amenities": [
+          "breakfast",
+          "pet_friendly",
+          "wifi",
+          "soundproof"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_010",
+      "name": "Phuong Thao Mai",
+      "long_term_profile": {
+        "nationality": "vietnamese",
+        "age_group": "unknown",
+        "current_workplace": "Bangkok",
+        "traveler_type": "explorer",
+        "long_term_trip_type": "couple",
+        "long_term_budget_level": null,
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": [
+          "quiet",
+          "lively",
+          "comfort"
+        ],
+        "long_term_hotel_types": [
+          "hotel",
+          "guesthouse"
+        ],
+        "long_term_amenities": [
+          "spa",
+          "wifi"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "crowded"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": [
+            "crowded_center"
+          ]
+        }
+      },
+      "session_context": {
+        "destination": "Hue",
+        "current_location": null,
+        "nearby_place": "Airport",
+        "number_of_guests": 2,
+        "has_pet": null,
+        "has_children": false,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "couple",
+        "session_budget_level": null,
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": [
+          "pet_friendly"
+        ],
+        "session_hotel_types": [
+          "resort",
+          "luxury_hotel",
+          "premium_hotel"
+        ],
+        "session_amenities": [
+          "pet_friendly",
+          "breakfast",
+          "pool",
+          "smoke"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_011",
+      "name": "Gia Bao Le",
+      "long_term_profile": {
+        "nationality": "vietnamese",
+        "age_group": "unknown",
+        "current_workplace": "London",
+        "traveler_type": "spontaneous",
+        "long_term_trip_type": "unknown",
+        "long_term_budget_level": "medium",
+        "long_term_price_range": {
+          "min": 1500000,
+          "max": 3500000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "quiet",
+          "unique"
+        ],
+        "long_term_hotel_types": null,
+        "long_term_amenities": [
+          "spa",
+          "soundproof",
+          "shuttle_service",
+          "bar"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [
+            "hotel",
+            "budget_hotel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [
+            "Night Market"
+          ],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Da Lat",
+        "current_location": "Tokyo",
+        "nearby_place": "Back Beach",
+        "number_of_guests": 5,
+        "has_pet": null,
+        "has_children": true,
+        "check_in": "2026-08-09T14:00:00",
+        "check_out": "2026-08-10T12:00:00",
+        "session_trip_type": "family",
+        "session_budget_level": "medium",
+        "session_price_range": {
+          "min": null,
+          "max": 4500000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "near_beach",
+          "city_center",
+          "quiet"
+        ],
+        "session_hotel_types": [
+          "homestay"
+        ],
+        "session_amenities": [
+          "kids_club",
+          "shuttle_service",
+          "parking"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_012",
+      "name": "Khanh Vy Nguyen",
+      "long_term_profile": {
+        "nationality": "vietnamese",
+        "age_group": null,
+        "current_workplace": "Da Nang",
+        "traveler_type": "spontaneous",
+        "long_term_trip_type": "business",
+        "long_term_budget_level": null,
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": [
+          "unique",
+          "privacy",
+          "safe"
+        ],
+        "long_term_hotel_types": [
+          "hotel",
+          "premium_hotel",
+          "resort",
+          "hostel"
+        ],
+        "long_term_amenities": [
+          "pet_friendly",
+          "elevator",
+          "pool"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [
+            "homestay"
+          ],
+          "avoid_amenities": [
+            "shuttle_service"
+          ],
+          "avoid_tags": [],
+          "avoid_nearby_places": [
+            "Dragon Bridge"
+          ],
+          "avoid_locations": [
+            "red_light_area"
+          ]
+        }
+      },
+      "session_context": {
+        "destination": "Ho Chi Minh City",
+        "current_location": "Da Nang",
+        "nearby_place": "Hoan Kiem Lake",
+        "number_of_guests": 1,
+        "has_pet": null,
+        "has_children": null,
+        "check_in": "2026-12-09T14:00:00",
+        "check_out": "2026-12-13T12:00:00",
+        "session_trip_type": "tourist",
+        "session_budget_level": null,
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": [
+          "city_center",
+          "near_attraction",
+          "quiet",
+          "unique"
+        ],
+        "session_hotel_types": null,
+        "session_amenities": [
+          "bar"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [
+            "resort"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "far_from_center",
+            "nightlife"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_013",
+      "name": "Thanh Son Pham",
+      "long_term_profile": {
+        "nationality": "vietnamese",
+        "age_group": "under_25",
+        "current_workplace": "Seoul",
+        "traveler_type": "spontaneous",
+        "long_term_trip_type": "solo",
+        "long_term_budget_level": "medium",
+        "long_term_price_range": {
+          "min": 1500000,
+          "max": 3500000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [],
+        "long_term_hotel_types": [
+          "resort",
+          "hotel",
+          "homestay"
+        ],
+        "long_term_amenities": null,
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [
+            "pool",
+            "soundproof"
+          ],
+          "avoid_tags": [
+            "shared_room"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": [
+            "red_light_area"
+          ]
+        }
+      },
+      "session_context": {
+        "destination": "Ho Chi Minh City",
+        "current_location": "Can Tho",
+        "nearby_place": null,
+        "number_of_guests": null,
+        "has_pet": null,
+        "has_children": false,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": null,
+        "session_budget_level": null,
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": null,
+        "session_hotel_types": [
+          "villa",
+          "hostel"
+        ],
+        "session_amenities": [],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [
+            "parking"
+          ],
+          "avoid_tags": [
+            "far_from_center",
+            "city_center"
+          ],
+          "avoid_nearby_places": [
+            "Night Market",
+            "My Khe Beach"
+          ],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_014",
+      "name": "Linh Nguyen",
+      "long_term_profile": {
+        "nationality": "unknown",
+        "age_group": "under_25",
+        "current_workplace": "Ho Chi Minh City",
+        "traveler_type": "unknown",
+        "long_term_trip_type": "solo",
+        "long_term_budget_level": "low",
+        "long_term_price_range": {
+          "min": null,
+          "max": 2000000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "safe",
+          "luxury",
+          "comfort"
+        ],
+        "long_term_hotel_types": [
+          "boutique_hotel",
+          "homestay",
+          "hotel"
+        ],
+        "long_term_amenities": [
+          "soundproof",
+          "elevator",
+          "parking",
+          "pool"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [
+            "elevator",
+            "kids_club"
+          ],
+          "avoid_tags": [
+            "small_room",
+            "nightlife"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": [
+            "remote_area"
+          ]
+        }
+      },
+      "session_context": {
+        "destination": "Hue",
+        "current_location": "Da Nang",
+        "nearby_place": "Hoan Kiem Lake",
+        "number_of_guests": 2,
+        "has_pet": true,
+        "has_children": false,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "business",
+        "session_budget_level": null,
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": [
+          "unique",
+          "privacy"
+        ],
+        "session_hotel_types": [
+          "boutique_hotel",
+          "luxury_hotel",
+          "guesthouse"
+        ],
+        "session_amenities": [
+          "elevator",
+          "parking",
+          "shuttle_service"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [
+            "homestay",
+            "luxury_hotel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": [
+            "night_market_area",
+            "remote_area"
+          ]
+        }
+      }
+    },
+    {
+      "user_id": "user_015",
+      "name": "Ngoc Tran",
+      "long_term_profile": {
+        "nationality": "vietnamese",
+        "age_group": "under_25",
+        "current_workplace": "Ha Noi",
+        "traveler_type": "explorer",
+        "long_term_trip_type": "family",
+        "long_term_budget_level": "unknown",
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": [
+          "quiet"
+        ],
+        "long_term_hotel_types": [
+          "hostel",
+          "hotel"
+        ],
+        "long_term_amenities": [
+          "soundproof",
+          "elevator",
+          "wifi",
+          "kids_club",
+          "spa"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Phu Quoc",
+        "current_location": "Tokyo",
+        "nearby_place": "VinWonders",
+        "number_of_guests": 4,
+        "has_pet": false,
+        "has_children": true,
+        "check_in": "2026-07-09T14:00:00",
+        "check_out": "2026-07-13T12:00:00",
+        "session_trip_type": "family",
+        "session_budget_level": "medium",
+        "session_price_range": {
+          "min": 2000000,
+          "max": 5000000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "comfort",
+          "safe",
+          "near_attraction"
+        ],
+        "session_hotel_types": [
+          "resort",
+          "hotel"
+        ],
+        "session_amenities": [
+          "pool",
+          "kids_club",
+          "breakfast"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [
+            "boutique_hotel",
+            "premium_hotel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "limited_service"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": [
+            "far_from_airport"
+          ]
+        }
+      }
+    },
+    {
+      "user_id": "user_016",
+      "name": "Duc Manh Hoang",
+      "long_term_profile": {
+        "nationality": "unknown",
+        "age_group": "unknown",
+        "current_workplace": null,
+        "traveler_type": "comfort_seeker",
+        "long_term_trip_type": "group",
+        "long_term_budget_level": "medium",
+        "long_term_price_range": {
+          "min": 1500000,
+          "max": 3500000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "safe"
+        ],
+        "long_term_hotel_types": [
+          "budget_hotel",
+          "guesthouse",
+          "hotel"
+        ],
+        "long_term_amenities": [
+          "spa"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [
+            "kids_club"
+          ],
+          "avoid_tags": [
+            "low_rating"
+          ],
+          "avoid_nearby_places": [
+            "VinWonders",
+            "Airport"
+          ],
+          "avoid_locations": [
+            "crowded_center",
+            "remote_area"
+          ]
+        }
+      },
+      "session_context": {
+        "destination": "Ho Chi Minh City",
+        "current_location": "Bangkok",
+        "nearby_place": "Beach",
+        "number_of_guests": 2,
+        "has_pet": false,
+        "has_children": false,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "couple",
+        "session_budget_level": "medium",
+        "session_price_range": {
+          "min": 1500000,
+          "max": 3500000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "luxury",
+          "quiet",
+          "unique",
+          "comfort"
+        ],
+        "session_hotel_types": [
+          "premium_hotel"
+        ],
+        "session_amenities": [
+          "shuttle_service",
+          "breakfast",
+          "wifi",
+          "soundproof"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [
+            "hostel",
+            "budget_hotel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "shared_room"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": [
+            "night_market_area"
+          ]
+        }
+      }
+    },
+    {
+      "user_id": "user_017",
+      "name": "Thu Trang Pham",
+      "long_term_profile": {
+        "nationality": "vietnamese",
+        "age_group": "unknown",
+        "current_workplace": "Kuala Lumpur",
+        "traveler_type": "comfort_seeker",
+        "long_term_trip_type": "tourist",
+        "long_term_budget_level": "medium",
+        "long_term_price_range": {
+          "min": null,
+          "max": 4500000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "unique"
+        ],
+        "long_term_hotel_types": null,
+        "long_term_amenities": [
+          "spa",
+          "wifi",
+          "breakfast",
+          "pet_friendly"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [
+            "parking",
+            "pet_friendly"
+          ],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Da Lat",
+        "current_location": "Berlin",
+        "nearby_place": "Beach",
+        "number_of_guests": 5,
+        "has_pet": false,
+        "has_children": false,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "group",
+        "session_budget_level": "low",
+        "session_price_range": {
+          "min": null,
+          "max": 2000000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "pet_friendly"
+        ],
+        "session_hotel_types": [
+          "premium_hotel",
+          "boutique_hotel",
+          "hotel"
+        ],
+        "session_amenities": [
+          "smoke"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "crowded"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_018",
+      "name": "Van Phuc Nguyen",
+      "long_term_profile": {
+        "nationality": "vietnamese",
+        "age_group": "unknown",
+        "current_workplace": "Da Nang",
+        "traveler_type": "comfort_seeker",
+        "long_term_trip_type": "tourist",
+        "long_term_budget_level": "medium",
+        "long_term_price_range": {
+          "min": 2000000,
+          "max": 5000000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "comfort",
+          "luxury"
+        ],
+        "long_term_hotel_types": [
+          "hostel"
+        ],
+        "long_term_amenities": [],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [
+            "luxury_hotel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Hue",
+        "current_location": "Seoul",
+        "nearby_place": "VinWonders",
+        "number_of_guests": 6,
+        "has_pet": false,
+        "has_children": null,
+        "check_in": "2026-11-06T14:00:00",
+        "check_out": "2026-11-11T12:00:00",
+        "session_trip_type": "family",
+        "session_budget_level": "medium",
+        "session_price_range": {
+          "min": 2000000,
+          "max": 5000000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "pet_friendly",
+          "quiet",
+          "fast_checkin"
+        ],
+        "session_hotel_types": [],
+        "session_amenities": [
+          "elevator",
+          "parking",
+          "pet_friendly",
+          "bar"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [
+            "budget_hotel",
+            "luxury_hotel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "unsafe_area"
+          ],
+          "avoid_nearby_places": [
+            "Beach",
+            "Old Quarter"
+          ],
+          "avoid_locations": [
+            "remote_area",
+            "red_light_area"
+          ]
+        }
+      }
+    },
+    {
+      "user_id": "user_019",
+      "name": "Bao Chau Nguyen",
+      "long_term_profile": {
+        "nationality": "unknown",
+        "age_group": null,
+        "current_workplace": null,
+        "traveler_type": "unknown",
+        "long_term_trip_type": "unknown",
+        "long_term_budget_level": "unknown",
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": null,
+        "long_term_hotel_types": null,
+        "long_term_amenities": null,
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Hoi An",
+        "current_location": null,
+        "nearby_place": null,
+        "number_of_guests": null,
+        "has_pet": null,
+        "has_children": null,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "unknown",
+        "session_budget_level": "unknown",
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": null,
+        "session_hotel_types": null,
+        "session_amenities": null,
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_020",
+      "name": "Minh Tri Phan",
+      "long_term_profile": {
+        "nationality": "vietnamese",
+        "age_group": null,
+        "current_workplace": "Kuala Lumpur",
+        "traveler_type": "spontaneous",
+        "long_term_trip_type": null,
+        "long_term_budget_level": null,
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": [
+          "luxury"
+        ],
+        "long_term_hotel_types": [
+          "homestay",
+          "premium_hotel",
+          "villa",
+          "hostel"
+        ],
+        "long_term_amenities": [
+          "soundproof",
+          "kids_club"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "shared_room"
+          ],
+          "avoid_nearby_places": [
+            "Airport",
+            "Hoan Kiem Lake"
+          ],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Hue",
+        "current_location": "Hai Phong",
+        "nearby_place": "Back Beach",
+        "number_of_guests": 1,
+        "has_pet": true,
+        "has_children": null,
+        "check_in": "2026-08-10T14:00:00",
+        "check_out": "2026-08-13T12:00:00",
+        "session_trip_type": "solo",
+        "session_budget_level": null,
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": [
+          "near_attraction",
+          "quiet",
+          "luxury",
+          "privacy"
+        ],
+        "session_hotel_types": [
+          "premium_hotel",
+          "guesthouse"
+        ],
+        "session_amenities": [
+          "spa",
+          "breakfast"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [
+            "hotel",
+            "boutique_hotel"
+          ],
+          "avoid_amenities": [
+            "pool",
+            "shuttle_service"
+          ],
+          "avoid_tags": [
+            "limited_service"
+          ],
+          "avoid_nearby_places": [
+            "Old Quarter",
+            "City Center"
+          ],
+          "avoid_locations": [
+            "remote_area"
+          ]
+        }
+      }
+    },
+    {
+      "user_id": "user_021",
+      "name": "Minh Quan Dang",
+      "long_term_profile": {
+        "nationality": "unknown",
+        "age_group": "unknown",
+        "current_workplace": "Paris",
+        "traveler_type": "explorer",
+        "long_term_trip_type": "unknown",
+        "long_term_budget_level": "medium",
+        "long_term_price_range": {
+          "min": null,
+          "max": 4500000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "quiet",
+          "luxury",
+          "privacy"
+        ],
+        "long_term_hotel_types": [
+          "luxury_hotel",
+          "resort"
+        ],
+        "long_term_amenities": null,
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [
+            "shuttle_service"
+          ],
+          "avoid_tags": [
+            "poor_cleanliness",
+            "city_center"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Hoi An",
+        "current_location": "Ho Chi Minh City",
+        "nearby_place": "Night Market",
+        "number_of_guests": 2,
+        "has_pet": false,
+        "has_children": false,
+        "check_in": "2026-11-03T14:00:00",
+        "check_out": "2026-11-07T12:00:00",
+        "session_trip_type": "couple",
+        "session_budget_level": "medium",
+        "session_price_range": {
+          "min": null,
+          "max": 4500000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "unique",
+          "lively"
+        ],
+        "session_hotel_types": null,
+        "session_amenities": [
+          "pet_friendly",
+          "breakfast",
+          "bar",
+          "wifi",
+          "shuttle_service"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [
+            "spa"
+          ],
+          "avoid_tags": [
+            "low_rating",
+            "crowded",
+            "small_room"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_022",
+      "name": "Ngoc Huyen Nguyen",
+      "long_term_profile": {
+        "nationality": "unknown",
+        "age_group": "under_25",
+        "current_workplace": "Da Nang",
+        "traveler_type": "planner",
+        "long_term_trip_type": "solo",
+        "long_term_budget_level": "low",
+        "long_term_price_range": {
+          "min": 500000,
+          "max": 1800000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "luxury"
+        ],
+        "long_term_hotel_types": [
+          "premium_hotel",
+          "luxury_hotel",
+          "resort",
+          "guesthouse"
+        ],
+        "long_term_amenities": [
+          "wifi"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Hoi An",
+        "current_location": "London",
+        "nearby_place": null,
+        "number_of_guests": null,
+        "has_pet": null,
+        "has_children": null,
+        "check_in": "2026-12-17T14:00:00",
+        "check_out": "2026-12-18T12:00:00",
+        "session_trip_type": "unknown",
+        "session_budget_level": "low",
+        "session_price_range": {
+          "min": 300000,
+          "max": 1500000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "luxury",
+          "safe",
+          "privacy",
+          "near_attraction"
+        ],
+        "session_hotel_types": [
+          "premium_hotel",
+          "boutique_hotel",
+          "budget_hotel"
+        ],
+        "session_amenities": [
+          "soundproof"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "noisy"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_023",
+      "name": "Minh Khoi Le",
+      "long_term_profile": {
+        "nationality": "vietnamese",
+        "age_group": "under_25",
+        "current_workplace": "Sydney",
+        "traveler_type": "spontaneous",
+        "long_term_trip_type": "tourist",
+        "long_term_budget_level": "low",
+        "long_term_price_range": {
+          "min": 500000,
+          "max": 1800000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": null,
+        "long_term_hotel_types": [
+          "hotel",
+          "resort",
+          "homestay",
+          "boutique_hotel"
+        ],
+        "long_term_amenities": [
+          "breakfast"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [
+            "premium_hotel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "shared_room"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": null,
+        "current_location": "Ho Chi Minh City",
+        "nearby_place": null,
+        "number_of_guests": 3,
+        "has_pet": false,
+        "has_children": false,
+        "check_in": "2026-12-24T14:00:00",
+        "check_out": "2026-12-27T12:00:00",
+        "session_trip_type": "family",
+        "session_budget_level": null,
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": [],
+        "session_hotel_types": [
+          "boutique_hotel",
+          "homestay"
+        ],
+        "session_amenities": [
+          "spa",
+          "pool",
+          "wifi"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_024",
+      "name": "Gia Bao Tran",
+      "long_term_profile": {
+        "nationality": "vietnamese",
+        "age_group": "over_35",
+        "current_workplace": "Kuala Lumpur",
+        "traveler_type": null,
+        "long_term_trip_type": "solo",
+        "long_term_budget_level": "high",
+        "long_term_price_range": {
+          "min": 5000000,
+          "max": 12000000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "comfort",
+          "lively",
+          "quiet"
+        ],
+        "long_term_hotel_types": [
+          "homestay",
+          "resort",
+          "boutique_hotel",
+          "villa"
+        ],
+        "long_term_amenities": [
+          "wifi"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "unsafe_area",
+            "low_rating"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": [
+            "remote_area"
+          ]
+        }
+      },
+      "session_context": {
+        "destination": "Nha Trang",
+        "current_location": "Berlin",
+        "nearby_place": "Long Beach",
+        "number_of_guests": 8,
+        "has_pet": false,
+        "has_children": null,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "group",
+        "session_budget_level": "low",
+        "session_price_range": {
+          "min": null,
+          "max": 2000000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "unique",
+          "comfort"
+        ],
+        "session_hotel_types": [
+          "villa",
+          "guesthouse"
+        ],
+        "session_amenities": [
+          "spa",
+          "bar",
+          "shuttle_service",
+          "breakfast"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [
+            "budget_hotel",
+            "luxury_hotel"
+          ],
+          "avoid_amenities": [
+            "bar"
+          ],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_025",
+      "name": "Thanh Lam Bui",
+      "long_term_profile": {
+        "nationality": "vietnamese",
+        "age_group": "over_35",
+        "current_workplace": "Paris",
+        "traveler_type": "planner",
+        "long_term_trip_type": null,
+        "long_term_budget_level": "unknown",
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": [
+          "comfort"
+        ],
+        "long_term_hotel_types": [
+          "villa"
+        ],
+        "long_term_amenities": [
+          "breakfast",
+          "wifi",
+          "parking"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [
+            "pool"
+          ],
+          "avoid_tags": [],
+          "avoid_nearby_places": [
+            "Back Beach",
+            "Long Beach"
+          ],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Sa Pa",
+        "current_location": "Can Tho",
+        "nearby_place": "Beach",
+        "number_of_guests": 1,
+        "has_pet": false,
+        "has_children": null,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "solo",
+        "session_budget_level": null,
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": [],
+        "session_hotel_types": [
+          "hostel",
+          "homestay",
+          "guesthouse"
+        ],
+        "session_amenities": [
+          "elevator",
+          "breakfast",
+          "pool",
+          "kids_club"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "city_center",
+            "poor_cleanliness",
+            "unsafe_area"
+          ],
+          "avoid_nearby_places": [
+            "Marble Mountains"
+          ],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_026",
+      "name": "Emily Carter",
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": "25_35",
+        "current_workplace": "Seoul",
+        "traveler_type": "planner",
+        "long_term_trip_type": "business",
+        "long_term_budget_level": "unknown",
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": [
+          "privacy"
+        ],
+        "long_term_hotel_types": [
+          "villa",
+          "boutique_hotel"
+        ],
+        "long_term_amenities": [
+          "elevator",
+          "wifi"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Sa Pa",
+        "current_location": "Da Nang",
+        "nearby_place": "VinWonders",
+        "number_of_guests": null,
+        "has_pet": null,
+        "has_children": false,
+        "check_in": "2026-09-18T14:00:00",
+        "check_out": "2026-09-22T12:00:00",
+        "session_trip_type": "unknown",
+        "session_budget_level": "unknown",
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": [
+          "comfort",
+          "pet_friendly"
+        ],
+        "session_hotel_types": [],
+        "session_amenities": [
+          "pet_friendly",
+          "shuttle_service"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "low_rating"
+          ],
+          "avoid_nearby_places": [
+            "My Khe Beach",
+            "Beach"
+          ],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_027",
+      "name": null,
+      "long_term_profile": {
+        "nationality": "unknown",
+        "age_group": "over_35",
+        "current_workplace": "Ho Chi Minh City",
+        "traveler_type": "comfort_seeker",
+        "long_term_trip_type": "unknown",
+        "long_term_budget_level": "medium",
+        "long_term_price_range": {
+          "min": null,
+          "max": 4500000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "luxury"
+        ],
+        "long_term_hotel_types": [
+          "resort",
+          "homestay"
+        ],
+        "long_term_amenities": [
+          "kids_club",
+          "wifi",
+          "breakfast"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Da Lat",
+        "current_location": "Sydney",
+        "nearby_place": "Beach",
+        "number_of_guests": 1,
+        "has_pet": false,
+        "has_children": false,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "tourist",
+        "session_budget_level": null,
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": [
+          "safe",
+          "luxury"
+        ],
+        "session_hotel_types": [],
+        "session_amenities": [],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [
+            "pet_friendly",
+            "spa"
+          ],
+          "avoid_tags": [
+            "far_from_center"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_028",
+      "name": "Yuki Sato",
+      "long_term_profile": {
+        "nationality": "unknown",
+        "age_group": "over_35",
+        "current_workplace": "Da Nang",
+        "traveler_type": "explorer",
+        "long_term_trip_type": "family",
+        "long_term_budget_level": "high",
+        "long_term_price_range": {
+          "min": 5000000,
+          "max": 12000000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "unique",
+          "quiet"
+        ],
+        "long_term_hotel_types": [],
+        "long_term_amenities": [
+          "pet_friendly",
+          "soundproof",
+          "spa",
+          "shuttle_service"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "far_from_center",
+            "noisy",
+            "old_facility"
+          ],
+          "avoid_nearby_places": [
+            "My Khe Beach"
+          ],
+          "avoid_locations": [
+            "remote_area"
+          ]
+        }
+      },
+      "session_context": {
+        "destination": null,
+        "current_location": "London",
+        "nearby_place": "VinWonders",
+        "number_of_guests": 2,
+        "has_pet": false,
+        "has_children": null,
+        "check_in": "2026-12-20T14:00:00",
+        "check_out": "2026-12-25T12:00:00",
+        "session_trip_type": "couple",
+        "session_budget_level": "medium",
+        "session_price_range": {
+          "min": 1500000,
+          "max": 3500000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "pet_friendly",
+          "lively",
+          "safe"
+        ],
+        "session_hotel_types": [
+          "resort"
+        ],
+        "session_amenities": [
+          "pool",
+          "soundproof",
+          "spa",
+          "kids_club",
+          "breakfast"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [
+            "hotel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [
+            "My Khe Beach",
+            "Marble Mountains"
+          ],
+          "avoid_locations": [
+            "red_light_area",
+            "remote_area"
+          ]
+        }
+      }
+    },
+    {
+      "user_id": "user_029",
+      "name": "Minjun Kim",
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": "unknown",
+        "current_workplace": "Kuala Lumpur",
+        "traveler_type": "comfort_seeker",
+        "long_term_trip_type": "tourist",
+        "long_term_budget_level": null,
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": [
+          "comfort",
+          "safe"
+        ],
+        "long_term_hotel_types": [
+          "homestay",
+          "hotel",
+          "guesthouse",
+          "boutique_hotel"
+        ],
+        "long_term_amenities": [
+          "soundproof",
+          "kids_club",
+          "breakfast"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [
+            "villa",
+            "budget_hotel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "nightlife",
+            "far_from_center"
+          ],
+          "avoid_nearby_places": [
+            "Dragon Bridge"
+          ],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": null,
+        "current_location": "Tokyo",
+        "nearby_place": "Ancient Town",
+        "number_of_guests": null,
+        "has_pet": false,
+        "has_children": false,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "unknown",
+        "session_budget_level": null,
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": [
+          "fast_checkin",
+          "quiet",
+          "lively"
+        ],
+        "session_hotel_types": [
+          "hotel",
+          "budget_hotel",
+          "guesthouse"
+        ],
+        "session_amenities": [],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [
+            "guesthouse"
+          ],
+          "avoid_amenities": [
+            "bar"
+          ],
+          "avoid_tags": [
+            "shared_room",
+            "unsafe_area"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_030",
+      "name": null,
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": "over_35",
+        "current_workplace": "Kuala Lumpur",
+        "traveler_type": null,
+        "long_term_trip_type": "solo",
+        "long_term_budget_level": "medium",
+        "long_term_price_range": {
+          "min": 1500000,
+          "max": 3500000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [],
+        "long_term_hotel_types": [
+          "hotel",
+          "premium_hotel"
+        ],
+        "long_term_amenities": [
+          "wifi",
+          "pool"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [
+            "breakfast",
+            "shuttle_service"
+          ],
+          "avoid_tags": [
+            "city_center",
+            "noisy"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Nha Trang",
+        "current_location": "Kuala Lumpur",
+        "nearby_place": "Beach",
+        "number_of_guests": null,
+        "has_pet": false,
+        "has_children": false,
+        "check_in": "2026-07-09T14:00:00",
+        "check_out": "2026-07-10T12:00:00",
+        "session_trip_type": null,
+        "session_budget_level": "medium",
+        "session_price_range": {
+          "min": 2000000,
+          "max": 5000000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "comfort",
+          "safe",
+          "privacy",
+          "luxury"
+        ],
+        "session_hotel_types": [
+          "luxury_hotel",
+          "hostel",
+          "boutique_hotel"
+        ],
+        "session_amenities": [
+          "spa",
+          "soundproof",
+          "elevator",
+          "pool"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [
+            "spa"
+          ],
+          "avoid_tags": [
+            "low_rating"
+          ],
+          "avoid_nearby_places": [
+            "VinWonders",
+            "Ancient Town"
+          ],
+          "avoid_locations": [
+            "remote_area"
+          ]
+        }
+      }
+    },
+    {
+      "user_id": "user_031",
+      "name": "Robert Wilson",
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": null,
+        "current_workplace": null,
+        "traveler_type": null,
+        "long_term_trip_type": "unknown",
+        "long_term_budget_level": "unknown",
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": null,
+        "long_term_hotel_types": null,
+        "long_term_amenities": null,
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Ha Noi",
+        "current_location": null,
+        "nearby_place": null,
+        "number_of_guests": null,
+        "has_pet": null,
+        "has_children": null,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "unknown",
+        "session_budget_level": "unknown",
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": null,
+        "session_hotel_types": null,
+        "session_amenities": null,
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_032",
+      "name": "Anna Muller",
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": "25_35",
+        "current_workplace": "Ha Noi",
+        "traveler_type": "explorer",
+        "long_term_trip_type": "group",
+        "long_term_budget_level": "high",
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": [
+          "unique",
+          "comfort",
+          "lively"
+        ],
+        "long_term_hotel_types": [
+          "boutique_hotel",
+          "resort",
+          "hotel"
+        ],
+        "long_term_amenities": [
+          "parking",
+          "wifi",
+          "spa",
+          "shuttle_service"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [
+            "budget_hotel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "crowded",
+            "city_center",
+            "poor_cleanliness"
+          ],
+          "avoid_nearby_places": [
+            "Imperial City"
+          ],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Ha Noi",
+        "current_location": "Tokyo",
+        "nearby_place": "Old Quarter",
+        "number_of_guests": null,
+        "has_pet": null,
+        "has_children": null,
+        "check_in": "2026-07-07T14:00:00",
+        "check_out": "2026-07-11T12:00:00",
+        "session_trip_type": "tourist",
+        "session_budget_level": "high",
+        "session_price_range": {
+          "min": 7000000,
+          "max": 15000000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "unique",
+          "city_center",
+          "lively"
+        ],
+        "session_hotel_types": null,
+        "session_amenities": [
+          "wifi",
+          "breakfast"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_033",
+      "name": "Sarah Johnson",
+      "long_term_profile": {
+        "nationality": "unknown",
+        "age_group": "over_35",
+        "current_workplace": "Kuala Lumpur",
+        "traveler_type": "unknown",
+        "long_term_trip_type": "unknown",
+        "long_term_budget_level": "medium",
+        "long_term_price_range": {
+          "min": 1500000,
+          "max": 3500000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "unique"
+        ],
+        "long_term_hotel_types": [
+          "resort",
+          "guesthouse",
+          "hostel"
+        ],
+        "long_term_amenities": [
+          "pet_friendly",
+          "breakfast",
+          "shuttle_service"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [
+            "elevator"
+          ],
+          "avoid_tags": [
+            "unsafe_area",
+            "nightlife"
+          ],
+          "avoid_nearby_places": [
+            "Ancient Town"
+          ],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": null,
+        "current_location": "Da Nang",
+        "nearby_place": "Hoan Kiem Lake",
+        "number_of_guests": 4,
+        "has_pet": null,
+        "has_children": null,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "group",
+        "session_budget_level": "high",
+        "session_price_range": {
+          "min": 4000000,
+          "max": 9000000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "fast_checkin",
+          "comfort",
+          "luxury"
+        ],
+        "session_hotel_types": [
+          "villa",
+          "hostel"
+        ],
+        "session_amenities": [
+          "pet_friendly",
+          "shuttle_service",
+          "elevator"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [
+            "resort",
+            "budget_hotel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "far_from_center",
+            "unsafe_area",
+            "shared_room"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_034",
+      "name": "Thomas Lee",
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": "under_25",
+        "current_workplace": "Hai Phong",
+        "traveler_type": "planner",
+        "long_term_trip_type": "couple",
+        "long_term_budget_level": "high",
+        "long_term_price_range": {
+          "min": 7000000,
+          "max": 15000000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "quiet",
+          "lively"
+        ],
+        "long_term_hotel_types": [],
+        "long_term_amenities": [
+          "soundproof",
+          "pet_friendly"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [
+            "pet_friendly"
+          ],
+          "avoid_tags": [
+            "low_rating",
+            "crowded",
+            "unsafe_area"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": [
+            "crowded_center",
+            "industrial_area"
+          ]
+        }
+      },
+      "session_context": {
+        "destination": "Sa Pa",
+        "current_location": "Da Nang",
+        "nearby_place": "Airport",
+        "number_of_guests": 8,
+        "has_pet": false,
+        "has_children": false,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "group",
+        "session_budget_level": "high",
+        "session_price_range": {
+          "min": 7000000,
+          "max": 15000000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "comfort"
+        ],
+        "session_hotel_types": [
+          "hotel",
+          "villa"
+        ],
+        "session_amenities": [
+          "wifi"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "crowded"
+          ],
+          "avoid_nearby_places": [
+            "Airport",
+            "Beach"
+          ],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_035",
+      "name": "Ivan Petrov",
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": "over_35",
+        "current_workplace": null,
+        "traveler_type": "explorer",
+        "long_term_trip_type": null,
+        "long_term_budget_level": null,
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": [
+          "safe"
+        ],
+        "long_term_hotel_types": [],
+        "long_term_amenities": [
+          "parking",
+          "soundproof"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [
+            "villa",
+            "hostel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "small_room"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Hue",
+        "current_location": "Ho Chi Minh City",
+        "nearby_place": "Back Beach",
+        "number_of_guests": 2,
+        "has_pet": null,
+        "has_children": false,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "business",
+        "session_budget_level": null,
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": [
+          "near_beach"
+        ],
+        "session_hotel_types": [
+          "resort",
+          "villa"
+        ],
+        "session_amenities": [
+          "bar",
+          "smoke",
+          "shuttle_service",
+          "soundproof",
+          "parking"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [
+            "bar",
+            "pool"
+          ],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_036",
+      "name": "Chen Wei",
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": "unknown",
+        "current_workplace": "Berlin",
+        "traveler_type": "unknown",
+        "long_term_trip_type": null,
+        "long_term_budget_level": null,
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": [
+          "comfort",
+          "safe",
+          "privacy"
+        ],
+        "long_term_hotel_types": null,
+        "long_term_amenities": [
+          "spa",
+          "elevator"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [
+            "premium_hotel",
+            "budget_hotel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [
+            "Airport"
+          ],
+          "avoid_locations": [
+            "remote_area",
+            "isolated_area"
+          ]
+        }
+      },
+      "session_context": {
+        "destination": null,
+        "current_location": "Bangkok",
+        "nearby_place": "Hoan Kiem Lake",
+        "number_of_guests": 2,
+        "has_pet": false,
+        "has_children": false,
+        "check_in": "2026-08-08T14:00:00",
+        "check_out": "2026-08-11T12:00:00",
+        "session_trip_type": "business",
+        "session_budget_level": null,
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": [
+          "near_attraction",
+          "city_center"
+        ],
+        "session_hotel_types": [],
+        "session_amenities": [
+          "breakfast",
+          "parking",
+          "spa",
+          "pet_friendly"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "old_facility",
+            "city_center",
+            "noisy"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": [
+            "night_market_area"
+          ]
+        }
+      }
+    },
+    {
+      "user_id": "user_037",
+      "name": "Aisha Rahman",
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": "unknown",
+        "current_workplace": "Hai Phong",
+        "traveler_type": "spontaneous",
+        "long_term_trip_type": "couple",
+        "long_term_budget_level": null,
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": [
+          "privacy"
+        ],
+        "long_term_hotel_types": [
+          "homestay",
+          "resort"
+        ],
+        "long_term_amenities": [
+          "breakfast"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [
+            "luxury_hotel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "small_room",
+            "nightlife"
+          ],
+          "avoid_nearby_places": [
+            "Beach",
+            "Long Beach"
+          ],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Hoi An",
+        "current_location": "Seoul",
+        "nearby_place": "City Center",
+        "number_of_guests": 1,
+        "has_pet": false,
+        "has_children": false,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "business",
+        "session_budget_level": "low",
+        "session_price_range": {
+          "min": 300000,
+          "max": 1500000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "city_center",
+          "lively"
+        ],
+        "session_hotel_types": [
+          "premium_hotel",
+          "guesthouse",
+          "villa"
+        ],
+        "session_amenities": [
+          "elevator",
+          "spa",
+          "kids_club",
+          "smoke"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [
+            "boutique_hotel",
+            "hotel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "poor_cleanliness",
+            "small_room",
+            "city_center"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": [
+            "red_light_area"
+          ]
+        }
+      }
+    },
+    {
+      "user_id": "user_038",
+      "name": "Olivia Smith",
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": "25_35",
+        "current_workplace": "Ho Chi Minh City",
+        "traveler_type": "explorer",
+        "long_term_trip_type": "tourist",
+        "long_term_budget_level": "high",
+        "long_term_price_range": {
+          "min": 7000000,
+          "max": 15000000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "lively",
+          "quiet",
+          "luxury"
+        ],
+        "long_term_hotel_types": [],
+        "long_term_amenities": [],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "low_rating"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Sa Pa",
+        "current_location": "Ha Noi",
+        "nearby_place": "VinWonders",
+        "number_of_guests": 1,
+        "has_pet": false,
+        "has_children": false,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "tourist",
+        "session_budget_level": "high",
+        "session_price_range": {
+          "min": 5000000,
+          "max": 12000000,
+          "currency": "VND"
+        },
+        "session_preference_tags": null,
+        "session_hotel_types": [],
+        "session_amenities": [
+          "elevator",
+          "bar",
+          "spa",
+          "pool",
+          "shuttle_service"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "old_facility"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": [
+            "night_market_area",
+            "remote_area"
+          ]
+        }
+      }
+    },
+    {
+      "user_id": "user_039",
+      "name": "Mark Davis",
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": "unknown",
+        "current_workplace": "Hai Phong",
+        "traveler_type": "explorer",
+        "long_term_trip_type": "family",
+        "long_term_budget_level": "high",
+        "long_term_price_range": {
+          "min": 5000000,
+          "max": 12000000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "quiet",
+          "luxury"
+        ],
+        "long_term_hotel_types": [
+          "resort"
+        ],
+        "long_term_amenities": [
+          "breakfast",
+          "spa"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "small_room",
+            "poor_cleanliness",
+            "unsafe_area"
+          ],
+          "avoid_nearby_places": [
+            "Dragon Bridge"
+          ],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": null,
+        "current_location": "Seoul",
+        "nearby_place": "City Center",
+        "number_of_guests": null,
+        "has_pet": false,
+        "has_children": false,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": null,
+        "session_budget_level": "medium",
+        "session_price_range": {
+          "min": 2000000,
+          "max": 5000000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "luxury",
+          "privacy",
+          "unique"
+        ],
+        "session_hotel_types": [
+          "homestay",
+          "budget_hotel",
+          "luxury_hotel"
+        ],
+        "session_amenities": [
+          "parking",
+          "pet_friendly",
+          "bar"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "old_facility",
+            "far_from_center"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_040",
+      "name": "James Miller",
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": null,
+        "current_workplace": "Ho Chi Minh City",
+        "traveler_type": "spontaneous",
+        "long_term_trip_type": "couple",
+        "long_term_budget_level": "medium",
+        "long_term_price_range": {
+          "min": null,
+          "max": 4500000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "luxury",
+          "lively"
+        ],
+        "long_term_hotel_types": [
+          "hotel"
+        ],
+        "long_term_amenities": [
+          "wifi",
+          "shuttle_service",
+          "bar",
+          "pet_friendly"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [
+            "luxury_hotel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "small_room",
+            "unsafe_area"
+          ],
+          "avoid_nearby_places": [
+            "Old Quarter"
+          ],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Phu Quoc",
+        "current_location": "Sydney",
+        "nearby_place": "Long Beach",
+        "number_of_guests": null,
+        "has_pet": false,
+        "has_children": false,
+        "check_in": "2026-09-02T14:00:00",
+        "check_out": "2026-09-07T12:00:00",
+        "session_trip_type": "unknown",
+        "session_budget_level": null,
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": [
+          "fast_checkin",
+          "near_beach",
+          "pet_friendly"
+        ],
+        "session_hotel_types": [
+          "hotel",
+          "hostel"
+        ],
+        "session_amenities": [
+          "pool",
+          "parking"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_041",
+      "name": "Maria Garcia",
+      "long_term_profile": {
+        "nationality": "unknown",
+        "age_group": "under_25",
+        "current_workplace": "Tokyo",
+        "traveler_type": "unknown",
+        "long_term_trip_type": "business",
+        "long_term_budget_level": "medium",
+        "long_term_price_range": {
+          "min": 2000000,
+          "max": 5000000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "quiet",
+          "unique",
+          "safe"
+        ],
+        "long_term_hotel_types": [
+          "premium_hotel"
+        ],
+        "long_term_amenities": [
+          "elevator",
+          "wifi",
+          "kids_club",
+          "pool",
+          "spa"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [
+            "breakfast",
+            "spa"
+          ],
+          "avoid_tags": [
+            "shared_room",
+            "noisy"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Nha Trang",
+        "current_location": null,
+        "nearby_place": "Old Quarter",
+        "number_of_guests": 2,
+        "has_pet": false,
+        "has_children": null,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "business",
+        "session_budget_level": null,
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": null,
+        "session_hotel_types": [
+          "guesthouse",
+          "hostel"
+        ],
+        "session_amenities": [
+          "pet_friendly",
+          "breakfast",
+          "bar",
+          "elevator"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_042",
+      "name": "Luca Rossi",
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": "25_35",
+        "current_workplace": "Tokyo",
+        "traveler_type": "planner",
+        "long_term_trip_type": "tourist",
+        "long_term_budget_level": null,
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": [
+          "luxury"
+        ],
+        "long_term_hotel_types": [],
+        "long_term_amenities": [
+          "breakfast",
+          "kids_club"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [
+            "hotel"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "city_center",
+            "noisy",
+            "low_rating"
+          ],
+          "avoid_nearby_places": [
+            "Long Beach",
+            "Dragon Bridge"
+          ],
+          "avoid_locations": [
+            "red_light_area",
+            "industrial_area"
+          ]
+        }
+      },
+      "session_context": {
+        "destination": "Vung Tau",
+        "current_location": "Seoul",
+        "nearby_place": "Hoan Kiem Lake",
+        "number_of_guests": 2,
+        "has_pet": true,
+        "has_children": false,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "business",
+        "session_budget_level": "medium",
+        "session_price_range": {
+          "min": 2000000,
+          "max": 5000000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "fast_checkin",
+          "near_attraction"
+        ],
+        "session_hotel_types": [
+          "homestay",
+          "hotel",
+          "villa"
+        ],
+        "session_amenities": [
+          "pet_friendly",
+          "smoke",
+          "parking",
+          "breakfast"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_043",
+      "name": "Hannah Schmidt",
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": "over_35",
+        "current_workplace": "Hai Phong",
+        "traveler_type": "spontaneous",
+        "long_term_trip_type": "unknown",
+        "long_term_budget_level": "unknown",
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": [
+          "luxury",
+          "privacy",
+          "safe"
+        ],
+        "long_term_hotel_types": [],
+        "long_term_amenities": [
+          "bar",
+          "soundproof",
+          "parking",
+          "pool",
+          "shuttle_service"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "small_room",
+            "limited_service",
+            "poor_cleanliness"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Sa Pa",
+        "current_location": "Bangkok",
+        "nearby_place": "Marble Mountains",
+        "number_of_guests": null,
+        "has_pet": true,
+        "has_children": false,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": null,
+        "session_budget_level": "high",
+        "session_price_range": {
+          "min": 4000000,
+          "max": 9000000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "near_beach",
+          "lively",
+          "safe"
+        ],
+        "session_hotel_types": [],
+        "session_amenities": [
+          "shuttle_service"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [
+            "pet_friendly",
+            "kids_club"
+          ],
+          "avoid_tags": [
+            "small_room",
+            "city_center",
+            "old_facility"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_044",
+      "name": "Noah Anderson",
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": "25_35",
+        "current_workplace": "Kuala Lumpur",
+        "traveler_type": null,
+        "long_term_trip_type": "solo",
+        "long_term_budget_level": "high",
+        "long_term_price_range": {
+          "min": 5000000,
+          "max": 12000000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "safe",
+          "quiet"
+        ],
+        "long_term_hotel_types": [
+          "guesthouse",
+          "luxury_hotel"
+        ],
+        "long_term_amenities": [
+          "elevator",
+          "soundproof",
+          "parking",
+          "wifi",
+          "kids_club"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [
+            "premium_hotel"
+          ],
+          "avoid_amenities": [
+            "pool"
+          ],
+          "avoid_tags": [
+            "old_facility",
+            "poor_cleanliness",
+            "unsafe_area"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": [
+            "isolated_area"
+          ]
+        }
+      },
+      "session_context": {
+        "destination": "Da Lat",
+        "current_location": "Ho Chi Minh City",
+        "nearby_place": "Airport",
+        "number_of_guests": 1,
+        "has_pet": null,
+        "has_children": false,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "business",
+        "session_budget_level": "medium",
+        "session_price_range": {
+          "min": null,
+          "max": 4500000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "near_attraction",
+          "comfort",
+          "pet_friendly"
+        ],
+        "session_hotel_types": [
+          "hostel",
+          "budget_hotel"
+        ],
+        "session_amenities": [
+          "soundproof",
+          "wifi"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "limited_service",
+            "far_from_center"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": [
+            "isolated_area"
+          ]
+        }
+      }
+    },
+    {
+      "user_id": "user_045",
+      "name": "Emma Taylor",
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": null,
+        "current_workplace": null,
+        "traveler_type": "unknown",
+        "long_term_trip_type": "unknown",
+        "long_term_budget_level": "unknown",
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": null,
+        "long_term_hotel_types": null,
+        "long_term_amenities": null,
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Vung Tau",
+        "current_location": null,
+        "nearby_place": null,
+        "number_of_guests": null,
+        "has_pet": null,
+        "has_children": null,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "unknown",
+        "session_budget_level": "unknown",
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": null,
+        "session_hotel_types": null,
+        "session_amenities": null,
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_046",
+      "name": "David Wilson",
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": "unknown",
+        "current_workplace": "Tokyo",
+        "traveler_type": "explorer",
+        "long_term_trip_type": "unknown",
+        "long_term_budget_level": "high",
+        "long_term_price_range": {
+          "min": 7000000,
+          "max": 15000000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "unique",
+          "luxury",
+          "quiet"
+        ],
+        "long_term_hotel_types": [
+          "resort",
+          "guesthouse"
+        ],
+        "long_term_amenities": null,
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [
+            "luxury_hotel",
+            "resort"
+          ],
+          "avoid_amenities": [
+            "spa",
+            "pet_friendly"
+          ],
+          "avoid_tags": [],
+          "avoid_nearby_places": [
+            "Back Beach"
+          ],
+          "avoid_locations": [
+            "crowded_center",
+            "industrial_area"
+          ]
+        }
+      },
+      "session_context": {
+        "destination": "Phu Quoc",
+        "current_location": "Singapore",
+        "nearby_place": "VinWonders",
+        "number_of_guests": null,
+        "has_pet": null,
+        "has_children": false,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": null,
+        "session_budget_level": "high",
+        "session_price_range": {
+          "min": 7000000,
+          "max": 15000000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [],
+        "session_hotel_types": [
+          "boutique_hotel",
+          "resort",
+          "budget_hotel"
+        ],
+        "session_amenities": [
+          "pet_friendly",
+          "soundproof"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_047",
+      "name": "Sofia Martinez",
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": null,
+        "current_workplace": "Sydney",
+        "traveler_type": "comfort_seeker",
+        "long_term_trip_type": "couple",
+        "long_term_budget_level": "high",
+        "long_term_price_range": {
+          "min": 5000000,
+          "max": 12000000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "unique",
+          "lively"
+        ],
+        "long_term_hotel_types": [
+          "hotel",
+          "homestay"
+        ],
+        "long_term_amenities": [],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "small_room",
+            "far_from_center"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Ha Noi",
+        "current_location": "Can Tho",
+        "nearby_place": "Dragon Bridge",
+        "number_of_guests": 2,
+        "has_pet": false,
+        "has_children": false,
+        "check_in": "2026-07-14T14:00:00",
+        "check_out": "2026-07-15T12:00:00",
+        "session_trip_type": "couple",
+        "session_budget_level": "low",
+        "session_price_range": {
+          "min": null,
+          "max": 2000000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "pet_friendly"
+        ],
+        "session_hotel_types": [
+          "resort"
+        ],
+        "session_amenities": [
+          "pool",
+          "soundproof",
+          "parking",
+          "pet_friendly"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [
+            "guesthouse"
+          ],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "shared_room",
+            "poor_cleanliness",
+            "noisy"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_048",
+      "name": "Daniel Lee",
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": "unknown",
+        "current_workplace": "Singapore",
+        "traveler_type": "comfort_seeker",
+        "long_term_trip_type": "business",
+        "long_term_budget_level": "high",
+        "long_term_price_range": {
+          "min": 5000000,
+          "max": 12000000,
+          "currency": "VND"
+        },
+        "long_term_preference_tags": [
+          "safe"
+        ],
+        "long_term_hotel_types": [
+          "villa"
+        ],
+        "long_term_amenities": [
+          "pool",
+          "pet_friendly"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "shared_room"
+          ],
+          "avoid_nearby_places": [
+            "Night Market",
+            "VinWonders"
+          ],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Sa Pa",
+        "current_location": "Berlin",
+        "nearby_place": "My Khe Beach",
+        "number_of_guests": 1,
+        "has_pet": true,
+        "has_children": false,
+        "check_in": "2026-08-20T14:00:00",
+        "check_out": "2026-08-22T12:00:00",
+        "session_trip_type": "business",
+        "session_budget_level": null,
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": [
+          "luxury",
+          "lively"
+        ],
+        "session_hotel_types": [
+          "homestay",
+          "hostel"
+        ],
+        "session_amenities": [
+          "pet_friendly",
+          "smoke",
+          "kids_club"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "crowded",
+            "noisy",
+            "unsafe_area"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_049",
+      "name": "Yuna Park",
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": "unknown",
+        "current_workplace": "Berlin",
+        "traveler_type": "unknown",
+        "long_term_trip_type": null,
+        "long_term_budget_level": null,
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": null,
+        "long_term_hotel_types": [
+          "premium_hotel"
+        ],
+        "long_term_amenities": [
+          "soundproof",
+          "spa",
+          "bar"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [
+            "limited_service",
+            "small_room",
+            "shared_room"
+          ],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Da Nang",
+        "current_location": "Paris",
+        "nearby_place": "VinWonders",
+        "number_of_guests": 2,
+        "has_pet": true,
+        "has_children": null,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_type": "tourist",
+        "session_budget_level": "medium",
+        "session_price_range": {
+          "min": 2000000,
+          "max": 5000000,
+          "currency": "VND"
+        },
+        "session_preference_tags": [
+          "pet_friendly",
+          "fast_checkin",
+          "city_center",
+          "unique"
+        ],
+        "session_hotel_types": [
+          "hotel"
+        ],
+        "session_amenities": [
+          "breakfast",
+          "kids_club",
+          "pool",
+          "smoke",
+          "spa"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [
+            "villa",
+            "hostel"
+          ],
+          "avoid_amenities": [
+            "shuttle_service"
+          ],
+          "avoid_tags": [
+            "old_facility",
+            "low_rating",
+            "nightlife"
+          ],
+          "avoid_nearby_places": [
+            "Night Market"
+          ],
+          "avoid_locations": []
+        }
+      }
+    },
+    {
+      "user_id": "user_050",
+      "name": null,
+      "long_term_profile": {
+        "nationality": "foreign",
+        "age_group": "unknown",
+        "current_workplace": "Kuala Lumpur",
+        "traveler_type": "explorer",
+        "long_term_trip_type": "family",
+        "long_term_budget_level": "unknown",
+        "long_term_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "long_term_preference_tags": [
+          "luxury",
+          "lively"
+        ],
+        "long_term_hotel_types": [
+          "homestay",
+          "resort",
+          "villa"
+        ],
+        "long_term_amenities": [
+          "elevator",
+          "shuttle_service",
+          "parking",
+          "kids_club"
+        ],
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      },
+      "session_context": {
+        "destination": "Vung Tau",
+        "current_location": "Da Nang",
+        "nearby_place": null,
+        "number_of_guests": 4,
+        "has_pet": false,
+        "has_children": false,
+        "check_in": "2026-10-20T14:00:00",
+        "check_out": "2026-10-21T12:00:00",
+        "session_trip_type": "family",
+        "session_budget_level": "unknown",
+        "session_price_range": {
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "session_preference_tags": [
+          "city_center",
+          "lively",
+          "luxury"
+        ],
+        "session_hotel_types": [
+          "hotel",
+          "guesthouse"
+        ],
+        "session_amenities": [
+          "shuttle_service"
+        ],
+        "session_negative_preferences": {
+          "avoid_hotel_types": [],
+          "avoid_amenities": [],
+          "avoid_tags": [],
+          "avoid_nearby_places": [],
+          "avoid_locations": []
+        }
+      }
+    }
+  ]
+}
