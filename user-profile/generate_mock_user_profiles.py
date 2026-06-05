@@ -146,6 +146,8 @@ NEARBY_PLACES = [
     None,
 ]
 
+HOTEL_IDS = [f"hotel_{index:04d}" for index in range(1, 121)]
+
 VIETNAMESE_NAMES = [
     "Minh Anh Nguyen",
     "Hoang Nam Tran",
@@ -245,6 +247,42 @@ def make_date_pair():
     return f"2026-{month:02d}-{day:02d}T14:00:00", f"2026-{month:02d}-{day + stay:02d}T12:00:00"
 
 
+def make_click_time():
+    month = random.choice([1, 2, 3, 4, 5, 6])
+    day = random.randint(1, 26)
+    hour = random.randint(8, 23)
+    minute = random.choice([0, 5, 10, 15, 20, 30, 45])
+    return f"2026-{month:02d}-{day:02d}T{hour:02d}:{minute:02d}:00"
+
+
+def click_map(ids, min_n=0, max_n=5, null_time_p=0.12):
+    n = random.randint(min_n, min(max_n, len(ids)))
+    if n == 0:
+        return {}
+
+    return {
+        item_id: {
+            "click_count": random.randint(1, 18),
+            "last_clicked_at": maybe_null(make_click_time(), null_time_p),
+        }
+        for item_id in random.sample(ids, n)
+    }
+
+
+def make_recommendation_clicks(empty_p=0.18, null_p=0.06):
+    r = random.random()
+    if r < null_p:
+        return None
+    if r < null_p + empty_p:
+        return {
+            "hotel": {},
+        }
+
+    return {
+        "hotel": click_map(HOTEL_IDS, 1, 5),
+    }
+
+
 def guests_for_trip(trip_types):
     if not trip_types:
         return None
@@ -295,6 +333,7 @@ def make_cold_start_user(index, name, nationality):
             "long_term_preference_tags": {},
             "long_term_hotel_types": {},
             "long_term_amenities": {},
+            "recommendation_clicks": make_recommendation_clicks(empty_p=0.7, null_p=0.1),
             "long_term_negative_preferences": {
                 "avoid_hotel_types": {},
                 "avoid_amenities": {},
@@ -361,6 +400,7 @@ def make_user(index, name, nationality):
             "long_term_preference_tags": weighted_map(LONG_TERM_PREFERENCE_TAGS, 1, 3),
             "long_term_hotel_types": weighted_map(HOTEL_TYPES, 1, 4),
             "long_term_amenities": weighted_map(AMENITIES, 1, 5),
+            "recommendation_clicks": make_recommendation_clicks(),
             "long_term_negative_preferences": make_negative_preferences(),
         },
         "session_context": {
@@ -405,6 +445,18 @@ def apply_demo_overrides(profiles):
             "long_term_preference_tags": {"unique": 0.9, "lively": 0.7, "safe": 0.55},
             "long_term_hotel_types": {"homestay": 0.86, "hostel": 0.72, "guesthouse": 0.6},
             "long_term_amenities": {"wifi": 0.9, "breakfast": 0.5},
+            "recommendation_clicks": {
+                "hotel": {
+                    "hotel_0007": {
+                        "click_count": 8,
+                        "last_clicked_at": "2026-05-22T20:15:00",
+                    },
+                    "hotel_0021": {
+                        "click_count": 3,
+                        "last_clicked_at": "2026-05-28T21:30:00",
+                    },
+                },
+            },
             "long_term_negative_preferences": {
                 "avoid_hotel_types": {"luxury_hotel": -0.4},
                 "avoid_amenities": {},
@@ -445,6 +497,14 @@ def apply_demo_overrides(profiles):
             "long_term_budget_levels": {"high": 0.9},
             "long_term_hotel_types": {"premium_hotel": 0.9, "luxury_hotel": 0.76, "resort": 0.45},
             "long_term_amenities": {"wifi": 0.95, "spa": 0.65, "breakfast": 0.7, "soundproof": 0.88},
+            "recommendation_clicks": {
+                "hotel": {
+                    "hotel_0090": {
+                        "click_count": 12,
+                        "last_clicked_at": "2026-06-01T09:45:00",
+                    }
+                },
+            },
         }
     )
     profiles[4]["session_context"].update(

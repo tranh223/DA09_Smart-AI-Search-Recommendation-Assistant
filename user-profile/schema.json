@@ -65,6 +65,14 @@
       "pet_friendly": "positive decimal number",
       "soundproof": "positive decimal number"
     },
+    "recommendation_clicks": {
+      "hotel": {
+        "hotel_id": {
+          "click_count": "integer number",
+          "last_clicked_at": "datetime | null"
+        }
+      }
+    },
     "long_term_negative_preferences": {
       "avoid_hotel_types": {
         "string": "negative decimal number"
