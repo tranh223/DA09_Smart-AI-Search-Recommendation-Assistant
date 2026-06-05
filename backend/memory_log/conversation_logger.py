@@ -5,7 +5,7 @@ from bson import ObjectId
 from openai import OpenAI
 import os
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv('BASE_URL'))
 
 def summarize_chat(summary: str, history: list, user_id: str) -> tuple[str, list]:
     '''
