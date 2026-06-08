@@ -44,7 +44,7 @@ def analysis_by_day(month: int):
             "answer_relevance": [],
             "context_precision": [],
             "context_recall": [],
-        }, (chỉ có data vào các ngày CN)
+        }, (chỉ có data vào các ngày CN, cân nhắc lưu thêm trường date gì đó để biết là kết quả ragas rơi vào những ngày nào)
         "latency": [],
         "ttft": []
     }
