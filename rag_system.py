@@ -4,7 +4,7 @@ Hệ thống RAG với Short-term Memory Layer
 Chỉ nhận đầu vào và đưa ra kết quả, tất cả chạy ngầm
 """
 
-from typing import Optional, List, Dict
+from typing import Any, Optional, List, Dict, Union
 import json
 from utils.logger import get_logger
 from utils.langsmith_tracer import tracer
@@ -20,6 +20,86 @@ from modules.generation import generate_response
 
 logger = get_logger(__name__)
 
+SUPPORTED_INTENTS = {
+    "HOTEL_FEATURE_QA",
+    "HOTEL_POLICY_QA",
+    "HOTEL_COMPARISON_QA",
+}
+DEFAULT_INTENT_TYPE = "HOTEL_FEATURE_QA"
+DEFAULT_SOURCE = "RAG_SERVICE"
+
+
+def _default_features() -> Dict[str, Any]:
+    return {
+        "hotel_name": "",
+        "destination": "",
+        "amenities": [],
+        "expectations": [],
+    }
+
+
+def _normalize_rag_input(rag_input: Union[str, Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Normalize input to the schema described in AGENTS.md.
+
+    String input is still accepted for backward compatibility with the current CLI
+    and tests, then wrapped into the structured RAG input schema.
+    """
+    if isinstance(rag_input, str):
+        query = rag_input.strip()
+        if not query:
+            raise ValueError("Input query must not be empty")
+        return {
+            "intent_type": DEFAULT_INTENT_TYPE,
+            "source": DEFAULT_SOURCE,
+            "parameters": {
+                "query": query,
+                "features": _default_features(),
+            },
+        }
+
+    if not isinstance(rag_input, dict):
+        raise TypeError("RAG input must be a string or a dict following AGENTS.md")
+
+    intent_type = rag_input.get("intent_type") or DEFAULT_INTENT_TYPE
+    if intent_type not in SUPPORTED_INTENTS:
+        raise ValueError(
+            f"Unsupported intent_type: {intent_type}. "
+            f"Supported intents: {sorted(SUPPORTED_INTENTS)}"
+        )
+
+    source = rag_input.get("source") or DEFAULT_SOURCE
+    parameters = rag_input.get("parameters")
+    if not isinstance(parameters, dict):
+        raise ValueError("RAG input must include parameters as an object")
+
+    query = parameters.get("query")
+    if not isinstance(query, str) or not query.strip():
+        raise ValueError("RAG input must include parameters.query as a non-empty string")
+
+    features = parameters.get("features") or {}
+    if not isinstance(features, dict):
+        raise ValueError("RAG input parameters.features must be an object")
+
+    normalized_features = _default_features()
+    normalized_features.update(features)
+    for list_key in ("amenities", "expectations"):
+        value = normalized_features.get(list_key)
+        if value is None:
+            normalized_features[list_key] = []
+        elif not isinstance(value, list):
+            normalized_features[list_key] = [value]
+
+    return {
+        "intent_type": intent_type,
+        "source": source,
+        "parameters": {
+            "query": query.strip(),
+            "features": normalized_features,
+        },
+    }
+
+
 class chatbot:
     """
     Hệ thống RAG chính.
@@ -34,7 +114,7 @@ class chatbot:
     @tracer.trace("rag_system_process")
     def process(
         self,
-        query: str,
+        query: Union[str, Dict[str, Any]],
         enable_short_term_memory: bool = True,
         enable_rag: bool = True,
         enable_graph: bool = True,
@@ -55,12 +135,14 @@ class chatbot:
         Returns:
             Response text (hoặc dict nếu return_detailed=True)
         """
-        logger.info(f"Processing query: {query}")
-        
         try:
+            normalized_input = _normalize_rag_input(query)
+            query_text = normalized_input["parameters"]["query"]
+            logger.info(f"Processing query: {query_text}")
+
             # Step 1: Planning
             logger.info("Step 1: Planning...")
-            plan_result = plan(query)
+            plan_result = plan(query_text)
             logger.info(f"Plan: {json.dumps(plan_result, ensure_ascii=False)}")
             
             # Step 2: Short-term Memory Retrieval
@@ -68,7 +150,7 @@ class chatbot:
             if enable_short_term_memory and plan_result.get("needs_short_term_memory"):
                 logger.info("Step 2: Retrieving from short-term memory...")
                 short_term_memory_results = retrieve_from_short_term_memory(
-                    query,
+                    query_text,
                     context=plan_result.get("context")
                 )
                 logger.info(f"Short-term memory: {short_term_memory_results}")
@@ -81,20 +163,20 @@ class chatbot:
             
             if enable_rag and plan_result.get("needs_rag"):
                 logger.info("Retrieving from RAG...")
-                rag_results = retrieve_from_rag(query)
+                rag_results = retrieve_from_rag(query_text)
             
             if enable_graph and plan_result.get("needs_graph"):
                 logger.info("Retrieving from Graph...")
-                graph_results = retrieve_from_graph(query)
+                graph_results = retrieve_from_graph(query_text)
             
             if enable_user_profile and plan_result.get("needs_user_profile"):
                 logger.info("Retrieving from User Profile...")
-                user_profile_results = retrieve_from_user_profile(self.user_id, query)
+                user_profile_results = retrieve_from_user_profile(self.user_id, query_text)
             
             # Step 4: Information Aggregation
             logger.info("Step 4: Aggregating information...")
             aggregated_result = aggregate_information(
-                query,
+                query_text,
                 plan_result=plan_result,
                 rag_results=rag_results,
                 graph_results=graph_results,
@@ -106,20 +188,21 @@ class chatbot:
             # Step 5: Response Generation
             logger.info("Step 5: Generating response...")
             response = generate_response(
-                query,
+                query_text,
                 aggregated_result.get("aggregated_info", ""),
                 conversation_history=self.conversation_history
             )
             logger.info("Response generated successfully")
             
             # Update conversation history
-            self.conversation_history.append({"role": "user", "content": query})
+            self.conversation_history.append({"role": "user", "content": query_text})
             self.conversation_history.append({"role": "assistant", "content": response})
             
             # Return result
             if return_detailed:
                 return {
-                    "query": query,
+                    "input": normalized_input,
+                    "query": query_text,
                     "response": response,
                     "plan": plan_result,
                     "short_term_memory": short_term_memory_results,
@@ -142,7 +225,7 @@ class chatbot:
             else:
                 return f"Xin lỗi, có lỗi xảy ra: {str(e)}"
     
-    def chat(self, query: str) -> str:
+    def chat(self, query: Union[str, Dict[str, Any]]) -> str:
         """
         Giao diện chat đơn giản.
         
