@@ -247,26 +247,12 @@ def make_date_pair():
     return f"2026-{month:02d}-{day:02d}T14:00:00", f"2026-{month:02d}-{day + stay:02d}T12:00:00"
 
 
-def make_click_time():
-    month = random.choice([1, 2, 3, 4, 5, 6])
-    day = random.randint(1, 26)
-    hour = random.randint(8, 23)
-    minute = random.choice([0, 5, 10, 15, 20, 30, 45])
-    return f"2026-{month:02d}-{day:02d}T{hour:02d}:{minute:02d}:00"
-
-
-def click_map(ids, min_n=0, max_n=5, null_time_p=0.12):
+def hotel_click_list(ids, min_n=0, max_n=5):
     n = random.randint(min_n, min(max_n, len(ids)))
     if n == 0:
-        return {}
+        return []
 
-    return {
-        item_id: {
-            "click_count": random.randint(1, 18),
-            "last_clicked_at": maybe_null(make_click_time(), null_time_p),
-        }
-        for item_id in random.sample(ids, n)
-    }
+    return random.sample(ids, n)
 
 
 def make_recommendation_clicks(empty_p=0.18, null_p=0.06):
@@ -275,11 +261,11 @@ def make_recommendation_clicks(empty_p=0.18, null_p=0.06):
         return None
     if r < null_p + empty_p:
         return {
-            "hotel": {},
+            "hotel": [],
         }
 
     return {
-        "hotel": click_map(HOTEL_IDS, 1, 5),
+        "hotel": hotel_click_list(HOTEL_IDS, 1, 5),
     }
 
 
@@ -446,16 +432,7 @@ def apply_demo_overrides(profiles):
             "long_term_hotel_types": {"homestay": 0.86, "hostel": 0.72, "guesthouse": 0.6},
             "long_term_amenities": {"wifi": 0.9, "breakfast": 0.5},
             "recommendation_clicks": {
-                "hotel": {
-                    "hotel_0007": {
-                        "click_count": 8,
-                        "last_clicked_at": "2026-05-22T20:15:00",
-                    },
-                    "hotel_0021": {
-                        "click_count": 3,
-                        "last_clicked_at": "2026-05-28T21:30:00",
-                    },
-                },
+                "hotel": ["hotel_0007", "hotel_0021"],
             },
             "long_term_negative_preferences": {
                 "avoid_hotel_types": {"luxury_hotel": -0.4},
@@ -498,12 +475,7 @@ def apply_demo_overrides(profiles):
             "long_term_hotel_types": {"premium_hotel": 0.9, "luxury_hotel": 0.76, "resort": 0.45},
             "long_term_amenities": {"wifi": 0.95, "spa": 0.65, "breakfast": 0.7, "soundproof": 0.88},
             "recommendation_clicks": {
-                "hotel": {
-                    "hotel_0090": {
-                        "click_count": 12,
-                        "last_clicked_at": "2026-06-01T09:45:00",
-                    }
-                },
+                "hotel": ["hotel_0090"],
             },
         }
     )
