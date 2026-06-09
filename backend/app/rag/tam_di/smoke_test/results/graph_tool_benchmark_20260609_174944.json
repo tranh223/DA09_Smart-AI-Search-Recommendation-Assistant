@@ -1,0 +1,935 @@
+{
+  "timestamp": "2026-06-09T17:49:44.328748",
+  "graph_info": {
+    "graph_source": {
+      "url": "http://34.158.39.31:7474",
+      "user": "neo4j",
+      "password": "***",
+      "database": "neo4j"
+    },
+    "node_count": 18068,
+    "labels": [
+      "Hotel",
+      "Room",
+      "Activity",
+      "City",
+      "Tag",
+      "Place",
+      "User",
+      "UserFeature"
+    ],
+    "relationship_types": [
+      "LOCATED_IN",
+      "HAS_ROOM",
+      "OFFERS_ACTIVITY",
+      "NEAR",
+      "HAS_TAG",
+      "HAS_FEATURES",
+      "INTERESTED_IN",
+      "BOOKED"
+    ],
+    "database": "neo4j"
+  },
+  "total_scenarios": 23,
+  "successful_scenarios": 23,
+  "results": [
+    {
+      "scenario_id": "CONN_001",
+      "name": "Count all nodes",
+      "operation": "cypher",
+      "category": "baseline",
+      "query": null,
+      "queries": null,
+      "top_k": null,
+      "iterations": 5,
+      "latency_ms": 67.12889671325684,
+      "latency_total_ms": 335.6444835662842,
+      "result_preview": {
+        "count": 1,
+        "first": {
+          "count": 18068
+        }
+      },
+      "expected_metric": "latency < 800ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:48:32.758554"
+    },
+    {
+      "scenario_id": "CONN_002",
+      "name": "Count all relationships",
+      "operation": "cypher",
+      "category": "baseline",
+      "query": null,
+      "queries": null,
+      "top_k": null,
+      "iterations": 5,
+      "latency_ms": 193.951416015625,
+      "latency_total_ms": 969.757080078125,
+      "result_preview": {
+        "count": 1,
+        "first": {
+          "count": 250474
+        }
+      },
+      "expected_metric": "latency < 900ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:48:33.729330"
+    },
+    {
+      "scenario_id": "META_001",
+      "name": "List labels",
+      "operation": "cypher",
+      "category": "metadata",
+      "query": null,
+      "queries": null,
+      "top_k": null,
+      "iterations": 8,
+      "latency_ms": 90.17330408096313,
+      "latency_total_ms": 721.3864326477051,
+      "result_preview": {
+        "count": 1,
+        "first": {
+          "labels": [
+            "Hotel",
+            "Room",
+            "Activity",
+            "City",
+            "Tag",
+            "Place",
+            "User",
+            "UserFeature"
+          ]
+        }
+      },
+      "expected_metric": "latency < 400ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:48:34.451737"
+    },
+    {
+      "scenario_id": "META_002",
+      "name": "Label distribution",
+      "operation": "cypher",
+      "category": "metadata",
+      "query": null,
+      "queries": null,
+      "top_k": null,
+      "iterations": 4,
+      "latency_ms": 122.516930103302,
+      "latency_total_ms": 490.067720413208,
+      "result_preview": {
+        "count": 8,
+        "first": {
+          "label": "Room",
+          "count": 9364
+        }
+      },
+      "expected_metric": "latency < 1200ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:48:34.942481"
+    },
+    {
+      "scenario_id": "META_003",
+      "name": "Relationship distribution",
+      "operation": "cypher",
+      "category": "metadata",
+      "query": null,
+      "queries": null,
+      "top_k": null,
+      "iterations": 4,
+      "latency_ms": 347.10967540740967,
+      "latency_total_ms": 1388.4387016296387,
+      "result_preview": {
+        "count": 8,
+        "first": {
+          "relationship_type": "HAS_TAG",
+          "count": 87989
+        }
+      },
+      "expected_metric": "latency < 1600ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:48:36.332291"
+    },
+    {
+      "scenario_id": "SEARCH_001",
+      "name": "Get first 5 graph nodes (empty query)",
+      "operation": "search",
+      "category": "retrieval",
+      "query": "",
+      "queries": null,
+      "top_k": 5,
+      "iterations": 10,
+      "latency_ms": 83.20274353027344,
+      "latency_total_ms": 832.0274353027344,
+      "result_preview": {
+        "count": 5,
+        "first": {
+          "score": 0,
+          "relationships": [
+            {
+              "neighbor_properties": {
+                "address": "Quốc Lộ 1A, Xã Cà Ná, Huyện Thuận Nam, tỉnh Ninh Thuận, Bãi Biển Cà Ná (Ninh Thuận), Bãi Biển Cà Ná (Ninh Thuận), Việt Nam",
+                "accommodation_type": "Resort",
+                "city": "Cà Ná",
+                "review_score": 8.3,
+                "latitude": 11.333359718322754,
+                "star_rating": 3.0,
+                "hotel_id": 772347,
+                "name": "Khu nghỉ dưỡng Hòn Cò - Cà Ná (Hon Co Resort - Ca Na)",
+                "review_count": 1109,
+                "longitude": 108.87323760986328
+              },
+              "neighbor_id": 1023,
+              "neighbor_labels": [
+                "Hotel"
+              ],
+              "type": "LOCATED_IN",
+              "direction": "in"
+            }
+          ],
+          "matched_properties": [],
+          "id": 0,
+          "properties": {
+            "name": "Cà Ná"
+          },
+          "labels": [
+            "City"
+          ]
+        }
+      },
+      "expected_metric": "latency < 1200ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:48:37.165061"
+    },
+    {
+      "scenario_id": "SEARCH_002",
+      "name": "Search Da Nang (bigger top_k)",
+      "operation": "search",
+      "category": "retrieval",
+      "query": "Da Nang",
+      "queries": null,
+      "top_k": 20,
+      "iterations": 7,
+      "latency_ms": 918.7796115875244,
+      "latency_total_ms": 6431.457281112671,
+      "result_preview": {
+        "count": 20,
+        "first": {
+          "score": 8,
+          "relationships": [
+            {
+              "neighbor_properties": {
+                "name": "Đà Nẵng"
+              },
+              "neighbor_id": 1,
+              "neighbor_labels": [
+                "City"
+              ],
+              "type": "LOCATED_IN",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 7145,
+                "bed_type": "1 giường đôi lớn và 1 giường sofa",
+                "name": "Phòng Loại Sang Đặc Biệt Giường Đôi Có Ban Công (Super Deluxe Double Room with Balcony)",
+                "room_type_id": 1074667216
+              },
+              "neighbor_id": 8212,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 7151,
+                "bed_type": "1 giường đôi lớn",
+                "name": "Phòng Đôi Loại Sang (Deluxe Double Room)",
+                "room_type_id": 1155281564
+              },
+              "neighbor_id": 8218,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 7148,
+                "bed_type": "1 giường đơn và 1 giường đôi",
+                "name": "Phòng Gia Đình Có Ban Công (Balcony Family Room)",
+                "room_type_id": 1361302178
+              },
+              "neighbor_id": 8215,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 7139,
+                "max_occupancy": 3,
+                "bed_type": "1 giường đôi lớn",
+                "price": 440000.0,
+                "room_view": "Hướng Thành phố",
+                "name": "Vietnam Standard Double Room",
+                "room_type_id": 339706465
+              },
+              "neighbor_id": 8206,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            }
+          ],
+          "matched_properties": [
+            "address",
+            "name"
+          ],
+          "id": 927,
+          "properties": {
+            "address": "04 Loseby, Phuoc My, Son Tra, Da Nang, An Hải Bắc, Đà Nẵng, Việt Nam",
+            "accommodation_type": "Khách sạn",
+            "city": "Đà Nẵng",
+            "review_score": 8.0,
+            "latitude": 16.073474884033203,
+            "hotel_id": 6185262,
+            "star_rating": 2.0,
+            "name": "Sunshine Beach Đà Nẵng (Sunshine Beach Da Nang)",
+            "review_count": 267,
+            "longitude": 108.24085235595703
+          },
+          "labels": [
+            "Hotel"
+          ]
+        }
+      },
+      "expected_metric": "latency < 2000ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:48:43.597776"
+    },
+    {
+      "scenario_id": "SEARCH_003",
+      "name": "Search hotel (bigger top_k + more iterations)",
+      "operation": "search",
+      "category": "retrieval",
+      "query": "hotel room price",
+      "queries": null,
+      "top_k": 25,
+      "iterations": 6,
+      "latency_ms": 886.0582907994589,
+      "latency_total_ms": 5316.349744796753,
+      "result_preview": {
+        "count": 25,
+        "first": {
+          "score": 4,
+          "relationships": [
+            {
+              "neighbor_properties": {
+                "nationality": "foreign",
+                "user_id": "user_682",
+                "current_workplace": "Ho Chi Minh City",
+                "name": "Michael Brown"
+              },
+              "neighbor_id": 17749,
+              "neighbor_labels": [
+                "User"
+              ],
+              "type": "BOOKED",
+              "direction": "in"
+            },
+            {
+              "neighbor_properties": {
+                "nationality": "vietnamese",
+                "user_id": "user_429",
+                "current_workplace": "Hai Phong",
+                "name": "Anh Khoa Vo"
+              },
+              "neighbor_id": 17496,
+              "neighbor_labels": [
+                "User"
+              ],
+              "type": "BOOKED",
+              "direction": "in"
+            },
+            {
+              "neighbor_properties": {
+                "nationality": "vietnamese",
+                "user_id": "user_296",
+                "current_workplace": "Da Nang",
+                "name": "Gia Bao Le"
+              },
+              "neighbor_id": 17363,
+              "neighbor_labels": [
+                "User"
+              ],
+              "type": "BOOKED",
+              "direction": "in"
+            },
+            {
+              "neighbor_properties": {
+                "nationality": "vietnamese",
+                "user_id": "user_029",
+                "current_workplace": "Tokyo",
+                "name": "Linh Nguyen"
+              },
+              "neighbor_id": 17096,
+              "neighbor_labels": [
+                "User"
+              ],
+              "type": "BOOKED",
+              "direction": "in"
+            },
+            {
+              "neighbor_properties": {
+                "nationality": "vietnamese",
+                "user_id": "user_014",
+                "current_workplace": "Hai Phong",
+                "name": "Linh Nguyen"
+              },
+              "neighbor_id": 17081,
+              "neighbor_labels": [
+                "User"
+              ],
+              "type": "BOOKED",
+              "direction": "in"
+            }
+          ],
+          "matched_properties": [
+            "address",
+            "name"
+          ],
+          "id": 679,
+          "properties": {
+            "address": "Hoang Quoc Viet, Hung Thang Sunrise Apartment, Block 5S, Level 5, Room 506, Hạ Long, Hạ Long, Việt Nam",
+            "accommodation_type": "Căn hộ",
+            "city": "Hạ Long",
+            "review_score": 8.6,
+            "latitude": 20.9593391418457,
+            "star_rating": 0.0,
+            "hotel_id": 27874314,
+            "name": "SUN FLOWER II - 3 Phòng ngủ - Sea View - Green Bay Premium condotel (SUN FLOWER II - 3 Bedroom - Sea View - Green Bay Premium condotel)",
+            "review_count": 35,
+            "longitude": 107.009422302246
+          },
+          "labels": [
+            "Hotel"
+          ]
+        }
+      },
+      "expected_metric": "latency < 2500ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:48:48.914675"
+    },
+    {
+      "scenario_id": "SEARCH_004",
+      "name": "Search restaurant (diacritics + multi-term)",
+      "operation": "search",
+      "category": "retrieval",
+      "query": "nhà hàng ẩm thực",
+      "queries": null,
+      "top_k": 20,
+      "iterations": 6,
+      "latency_ms": 1015.9633954366047,
+      "latency_total_ms": 6095.780372619629,
+      "result_preview": {
+        "count": 20,
+        "first": {
+          "score": 6,
+          "relationships": [
+            {
+              "neighbor_properties": {
+                "room_id": 3653,
+                "max_occupancy": 4,
+                "room_size": "14 m²",
+                "price": 600000.0,
+                "name": "Phòng Ba Người (Triple Room)",
+                "room_type_id": 1210159441
+              },
+              "neighbor_id": 4720,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 3660,
+                "name": "Phòng Tiêu Chuẩn Giường Đôi (Standard Double Room)",
+                "room_type_id": 1210159442
+              },
+              "neighbor_id": 4727,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 3657,
+                "bed_type": "2 giường đơn",
+                "name": "Phòng giường đôi có phòng tắm chung (Double Room with Shared bathroom)",
+                "room_type_id": 557424177
+              },
+              "neighbor_id": 4724,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 3656,
+                "bed_type": "1 giường tầng",
+                "name": "Giường trong Phòng Tập Thể Cả 8 Giường Nam và Nữ (Bed in 8-Bed Mixed Dormitory Room)",
+                "room_type_id": 557424178
+              },
+              "neighbor_id": 4723,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 3649,
+                "max_occupancy": 3,
+                "room_size": "14 m²",
+                "price": 600000.0,
+                "name": "Phòng Tiêu Chuẩn 2 Giường Đơn (Standard Twin Room)",
+                "room_type_id": 1210159444
+              },
+              "neighbor_id": 4716,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            }
+          ],
+          "matched_properties": [
+            "address",
+            "accommodation_type",
+            "name"
+          ],
+          "id": 734,
+          "properties": {
+            "address": "397 Cửa Đại, Cẩm Châu, Hội An, Việt Nam",
+            "accommodation_type": "Nhà nghỉ",
+            "city": "Hội An",
+            "review_score": 8.6,
+            "latitude": 15.88031005859375,
+            "star_rating": 0.0,
+            "hotel_id": 34054260,
+            "name": "Nhà trọ & Pool Bar Bed Station Hội An \" Trước đây là Sunflower\" (Bed Station Hostel & Pool Bar Hoi An \" Former Sunflower\")",
+            "review_count": 82,
+            "longitude": 108.34194946289062
+          },
+          "labels": [
+            "Hotel"
+          ]
+        }
+      },
+      "expected_metric": "latency < 2800ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:48:55.010872"
+    },
+    {
+      "scenario_id": "SEARCH_005",
+      "name": "Search Vietnamese city + larger top_k",
+      "operation": "search",
+      "category": "retrieval",
+      "query": "Đà Nẵng khách sạn gần biển hồ bơi wifi",
+      "queries": null,
+      "top_k": 40,
+      "iterations": 4,
+      "latency_ms": 488.406240940094,
+      "latency_total_ms": 1953.624963760376,
+      "result_preview": {
+        "count": 0,
+        "first": null
+      },
+      "expected_metric": "latency < 3500ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:48:56.965370"
+    },
+    {
+      "scenario_id": "SEARCH_006",
+      "name": "Search amenities and room terms (very large top_k)",
+      "operation": "search",
+      "category": "retrieval",
+      "query": "wifi pool breakfast room family sea view",
+      "queries": null,
+      "top_k": 50,
+      "iterations": 3,
+      "latency_ms": 90.4831091562907,
+      "latency_total_ms": 271.44932746887207,
+      "result_preview": {
+        "count": 0,
+        "first": null
+      },
+      "expected_metric": "latency < 4200ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:48:57.237277"
+    },
+    {
+      "scenario_id": "SEARCH_007",
+      "name": "Search whitespace/odd spacing (term extraction edge)",
+      "operation": "search",
+      "category": "edge",
+      "query": "   wifi   pool    ",
+      "queries": null,
+      "top_k": 30,
+      "iterations": 6,
+      "latency_ms": 73.21043809254964,
+      "latency_total_ms": 439.26262855529785,
+      "result_preview": {
+        "count": 0,
+        "first": null
+      },
+      "expected_metric": "latency < 3000ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:48:57.676868"
+    },
+    {
+      "scenario_id": "SEARCH_008",
+      "name": "Search multi-lingual mixed tokens",
+      "operation": "search",
+      "category": "retrieval",
+      "query": "beach gần biển pool hồ bơi breakfast bữa sáng",
+      "queries": null,
+      "top_k": 35,
+      "iterations": 4,
+      "latency_ms": 85.65139770507812,
+      "latency_total_ms": 342.6055908203125,
+      "result_preview": {
+        "count": 0,
+        "first": null
+      },
+      "expected_metric": "latency < 3800ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:48:58.020525"
+    },
+    {
+      "scenario_id": "TRAVERSAL_001",
+      "name": "City to hotels to rooms aggregation (more iterations)",
+      "operation": "cypher",
+      "category": "traversal",
+      "query": null,
+      "queries": null,
+      "top_k": null,
+      "iterations": 5,
+      "latency_ms": 206.06045722961426,
+      "latency_total_ms": 1030.3022861480713,
+      "result_preview": {
+        "count": 0,
+        "first": null
+      },
+      "expected_metric": "latency < 2200ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:48:59.051985"
+    },
+    {
+      "scenario_id": "TRAVERSAL_002",
+      "name": "City to hotels to activities expansion (more expensive projection)",
+      "operation": "cypher",
+      "category": "traversal",
+      "query": null,
+      "queries": null,
+      "top_k": null,
+      "iterations": 4,
+      "latency_ms": 210.3155255317688,
+      "latency_total_ms": 841.2621021270752,
+      "result_preview": {
+        "count": 0,
+        "first": null
+      },
+      "expected_metric": "latency < 2600ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:48:59.893983"
+    },
+    {
+      "scenario_id": "TRAVERSAL_003",
+      "name": "Hotel neighborhood and tag fanout (reduced to avoid timeouts)",
+      "operation": "cypher",
+      "category": "traversal",
+      "query": null,
+      "queries": null,
+      "top_k": null,
+      "iterations": 2,
+      "latency_ms": 304.4564723968506,
+      "latency_total_ms": 608.9129447937012,
+      "result_preview": {
+        "count": 0,
+        "first": null
+      },
+      "expected_metric": "latency < 6000ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:49:00.503557"
+    },
+    {
+      "scenario_id": "TRAVERSAL_004",
+      "name": "Two-hop path expansion from hotels (less expansion to avoid timeouts)",
+      "operation": "cypher",
+      "category": "traversal",
+      "query": null,
+      "queries": null,
+      "top_k": null,
+      "iterations": 2,
+      "latency_ms": 197.2067356109619,
+      "latency_total_ms": 394.4134712219238,
+      "result_preview": {
+        "count": 0,
+        "first": null
+      },
+      "expected_metric": "latency < 7000ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:49:00.898849"
+    },
+    {
+      "scenario_id": "ANALYTICS_001",
+      "name": "Hotel score and price analytics by city (tighter + more iterations)",
+      "operation": "cypher",
+      "category": "analytics",
+      "query": null,
+      "queries": null,
+      "top_k": null,
+      "iterations": 3,
+      "latency_ms": 162.38896052042642,
+      "latency_total_ms": 487.1668815612793,
+      "result_preview": {
+        "count": 0,
+        "first": null
+      },
+      "expected_metric": "latency < 3800ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:49:01.387165"
+    },
+    {
+      "scenario_id": "ANALYTICS_002",
+      "name": "Top connected nodes by relationship fanout (tighter + heavier projection)",
+      "operation": "cypher",
+      "category": "analytics",
+      "query": null,
+      "queries": null,
+      "top_k": null,
+      "iterations": 3,
+      "latency_ms": 173.36742083231607,
+      "latency_total_ms": 520.1022624969482,
+      "result_preview": {
+        "count": 0,
+        "first": null
+      },
+      "expected_metric": "latency < 4200ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:49:01.907817"
+    },
+    {
+      "scenario_id": "ANALYTICS_003",
+      "name": "Relational density per city (fanout + aggregations)",
+      "operation": "cypher",
+      "category": "analytics",
+      "query": null,
+      "queries": null,
+      "top_k": null,
+      "iterations": 3,
+      "latency_ms": 183.3189328511556,
+      "latency_total_ms": 549.9567985534668,
+      "result_preview": {
+        "count": 0,
+        "first": null
+      },
+      "expected_metric": "latency < 3500ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:49:02.458673"
+    },
+    {
+      "scenario_id": "MIXED_001",
+      "name": "Mixed retrieval workload (more queries + bigger top_k)",
+      "operation": "mixed_search",
+      "category": "stress",
+      "query": null,
+      "queries": [
+        "Da Nang",
+        "hotel",
+        "restaurant",
+        "wifi pool breakfast",
+        "Đà Nẵng khách sạn gần biển",
+        "room family",
+        "activity",
+        "near beach",
+        "hồ bơi",
+        "bữa sáng"
+      ],
+      "top_k": 20,
+      "iterations": 4,
+      "latency_ms": 7539.470255374908,
+      "latency_total_ms": 30157.881021499634,
+      "result_preview": {
+        "count": 10,
+        "queries": [
+          {
+            "query": "Da Nang",
+            "result_count": 20,
+            "first_labels": [
+              "Hotel"
+            ]
+          },
+          {
+            "query": "hotel",
+            "result_count": 20,
+            "first_labels": [
+              "Hotel"
+            ]
+          },
+          {
+            "query": "restaurant",
+            "result_count": 2,
+            "first_labels": [
+              "Hotel"
+            ]
+          },
+          {
+            "query": "wifi pool breakfast",
+            "result_count": 20,
+            "first_labels": [
+              "Tag"
+            ]
+          },
+          {
+            "query": "Đà Nẵng khách sạn gần biển",
+            "result_count": 20,
+            "first_labels": [
+              "Hotel"
+            ]
+          },
+          {
+            "query": "room family",
+            "result_count": 20,
+            "first_labels": [
+              "Hotel"
+            ]
+          },
+          {
+            "query": "activity",
+            "result_count": 0,
+            "first_labels": null
+          },
+          {
+            "query": "near beach",
+            "result_count": 20,
+            "first_labels": [
+              "Hotel"
+            ]
+          },
+          {
+            "query": "hồ bơi",
+            "result_count": 20,
+            "first_labels": [
+              "Room"
+            ]
+          },
+          {
+            "query": "bữa sáng",
+            "result_count": 20,
+            "first_labels": [
+              "Tag"
+            ]
+          }
+        ]
+      },
+      "expected_metric": "latency < 4200ms",
+      "status": "SLOW",
+      "timestamp": "2026-06-09T17:49:32.617907"
+    },
+    {
+      "scenario_id": "MIXED_002",
+      "name": "Mixed retrieval workload (hard multi-term tokens)",
+      "operation": "mixed_search",
+      "category": "stress",
+      "query": null,
+      "queries": [
+        "wifi pool breakfast room sea view",
+        "gần biển khách sạn wifi miễn phí",
+        "nhà hàng hải sản",
+        "family room lớn",
+        "activity thể thao biển"
+      ],
+      "top_k": 35,
+      "iterations": 3,
+      "latency_ms": 3902.046044667562,
+      "latency_total_ms": 11706.138134002686,
+      "result_preview": {
+        "count": 5,
+        "queries": [
+          {
+            "query": "wifi pool breakfast room sea view",
+            "result_count": 35,
+            "first_labels": [
+              "Tag"
+            ]
+          },
+          {
+            "query": "gần biển khách sạn wifi miễn phí",
+            "result_count": 35,
+            "first_labels": [
+              "Hotel"
+            ]
+          },
+          {
+            "query": "nhà hàng hải sản",
+            "result_count": 35,
+            "first_labels": [
+              "Hotel"
+            ]
+          },
+          {
+            "query": "family room lớn",
+            "result_count": 35,
+            "first_labels": [
+              "Hotel"
+            ]
+          },
+          {
+            "query": "activity thể thao biển",
+            "result_count": 35,
+            "first_labels": [
+              "Hotel"
+            ]
+          }
+        ]
+      },
+      "expected_metric": "latency < 5200ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:49:44.324730"
+    },
+    {
+      "scenario_id": "EDGE_001",
+      "name": "Search top_k zero",
+      "operation": "search",
+      "category": "edge",
+      "query": "anything",
+      "queries": null,
+      "top_k": 0,
+      "iterations": 80,
+      "latency_ms": 0.0002771615982055664,
+      "latency_total_ms": 0.022172927856445312,
+      "result_preview": {
+        "count": 0,
+        "first": null
+      },
+      "expected_metric": "latency < 0.8ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:49:44.325410"
+    }
+  ]
+}
