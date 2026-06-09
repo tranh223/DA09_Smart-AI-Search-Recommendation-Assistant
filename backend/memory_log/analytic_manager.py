@@ -7,7 +7,7 @@ def evaluate_session(session_id: str):
 
 def clear_log(session_id: str):
     '''
-    xóa reaction, final reaction, latency, ttft của phiên chat sau khi đánh giá
+    xóa reaction, final reaction, latency, ttft, booking của phiên chat sau khi đánh giá
     * KHÔNG xóa log chat
     '''
     pass
