@@ -1,13 +1,20 @@
+def evaluate_session(session_id: str):
+    '''
+    riêng hàm này k thay đổi tham sổ, k xóa (vì file còn lại đang import)
+    vào mongodb lấy hết log của 1 session ra & đánh giá (có thể gọi các hàm ở dưới)
+    '''
+    pass
+
 def clear_log(session_id: str):
     '''
-    xóa reaction, final reaction, latency, ttft của phiên chat sau khi đánh giá, chờ DATA
+    xóa reaction, final reaction, latency, ttft của phiên chat sau khi đánh giá
     * KHÔNG xóa log chat
     '''
     pass
 
 def save_evaluation_result(session_id: str, csat: float, average_latency: float, average_ttft: float):
     '''
-    lưu CSAT, average latency, TTFT của 1 phiên vào mongodb, chờ DATA
+    lưu CSAT, average latency, TTFT, booking của 1 phiên vào mongodb & set trường evaluated = true
     * cái đầu lưu ở đơn vị %, 2 cái sau là giây
     '''
     pass
@@ -46,7 +53,8 @@ def analysis_by_day(month: int):
             "context_recall": [],
         }, (chỉ có data vào các ngày CN, cân nhắc lưu thêm trường date gì đó để biết là kết quả ragas rơi vào những ngày nào)
         "latency": [],
-        "ttft": []
+        "ttft": [],
+        "booking": []
     }
     '''
     pass
