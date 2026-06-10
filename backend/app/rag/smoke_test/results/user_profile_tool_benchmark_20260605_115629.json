@@ -1,0 +1,206 @@
+{
+  "timestamp": "2026-06-05T11:56:29.900254",
+  "profile_source": {
+    "database": "VinSmartFuture",
+    "collection": "Users"
+  },
+  "total_scenarios": 13,
+  "successful_scenarios": 13,
+  "results": [
+    {
+      "scenario_id": "LOAD_001",
+      "name": "Load all users (cold start)",
+      "operation": "load_all",
+      "profile_source": {
+        "database": "VinSmartFuture",
+        "collection": "Users"
+      },
+      "iterations": 1,
+      "latency_ms": 2292.5899028778076,
+      "latency_total_ms": 2292.5899028778076,
+      "result": "50",
+      "expected_metric": "latency < 500ms",
+      "timestamp": "2026-06-05T11:56:03.602086"
+    },
+    {
+      "scenario_id": "LOAD_002",
+      "name": "Load all users (cached)",
+      "operation": "load_all",
+      "profile_source": {
+        "database": "VinSmartFuture",
+        "collection": "Users"
+      },
+      "iterations": 100,
+      "latency_ms": 0.00013828277587890625,
+      "latency_total_ms": 0.013828277587890623,
+      "result": "50",
+      "expected_metric": "latency < 5ms (avg)",
+      "timestamp": "2026-06-05T11:56:03.602294"
+    },
+    {
+      "scenario_id": "SEARCH_001",
+      "name": "Get user by ID (first)",
+      "operation": "get_by_id",
+      "profile_source": {
+        "database": "VinSmartFuture",
+        "collection": "Users"
+      },
+      "iterations": 50,
+      "latency_ms": 140.99130153656006,
+      "latency_total_ms": 7049.565076828003,
+      "result": "Minh Anh Nguyen",
+      "expected_metric": "latency < 10ms",
+      "timestamp": "2026-06-05T11:56:10.686744"
+    },
+    {
+      "scenario_id": "SEARCH_002",
+      "name": "Get user by ID (middle)",
+      "operation": "get_by_id",
+      "profile_source": {
+        "database": "VinSmartFuture",
+        "collection": "Users"
+      },
+      "iterations": 50,
+      "latency_ms": 42.413649559020996,
+      "latency_total_ms": 2120.68247795105,
+      "result": "Thanh Tung Do",
+      "expected_metric": "latency < 10ms",
+      "timestamp": "2026-06-05T11:56:12.841490"
+    },
+    {
+      "scenario_id": "SEARCH_003",
+      "name": "Search user profile by ID",
+      "operation": "search_profile",
+      "profile_source": {
+        "database": "VinSmartFuture",
+        "collection": "Users"
+      },
+      "iterations": 50,
+      "latency_ms": 40.47332286834717,
+      "latency_total_ms": 2023.6661434173584,
+      "result": "Minh Anh Nguyen",
+      "expected_metric": "latency < 10ms",
+      "timestamp": "2026-06-05T11:56:15.030785"
+    },
+    {
+      "scenario_id": "DEST_001",
+      "name": "Search users by destination (Da Nang)",
+      "operation": "search_destination",
+      "profile_source": {
+        "database": "VinSmartFuture",
+        "collection": "Users"
+      },
+      "iterations": 30,
+      "latency_ms": 170.38704554239908,
+      "latency_total_ms": 5111.611366271973,
+      "result": "8",
+      "expected_metric": "latency < 20ms",
+      "timestamp": "2026-06-05T11:56:20.180767"
+    },
+    {
+      "scenario_id": "DEST_002",
+      "name": "Search users by destination (Ho Chi Minh)",
+      "operation": "search_destination",
+      "profile_source": {
+        "database": "VinSmartFuture",
+        "collection": "Users"
+      },
+      "iterations": 30,
+      "latency_ms": 57.602834701538086,
+      "latency_total_ms": 1728.0850410461426,
+      "result": "3",
+      "expected_metric": "latency < 20ms",
+      "timestamp": "2026-06-05T11:56:21.943226"
+    },
+    {
+      "scenario_id": "DEST_003",
+      "name": "Search users by partial destination match",
+      "operation": "search_destination",
+      "profile_source": {
+        "database": "VinSmartFuture",
+        "collection": "Users"
+      },
+      "iterations": 30,
+      "latency_ms": 128.51082483927408,
+      "latency_total_ms": 3855.3247451782227,
+      "result": "6",
+      "expected_metric": "latency < 20ms",
+      "timestamp": "2026-06-05T11:56:25.855203"
+    },
+    {
+      "scenario_id": "PREF_001",
+      "name": "Get user preferences (user_001)",
+      "operation": "get_preferences",
+      "profile_source": {
+        "database": "VinSmartFuture",
+        "collection": "Users"
+      },
+      "iterations": 40,
+      "latency_ms": 63.17886114120483,
+      "latency_total_ms": 2527.1544456481934,
+      "result": "True",
+      "expected_metric": "latency < 15ms",
+      "timestamp": "2026-06-05T11:56:28.421022"
+    },
+    {
+      "scenario_id": "PREF_002",
+      "name": "Get user preferences (user_002)",
+      "operation": "get_preferences",
+      "profile_source": {
+        "database": "VinSmartFuture",
+        "collection": "Users"
+      },
+      "iterations": 40,
+      "latency_ms": 35.89875102043152,
+      "latency_total_ms": 1435.9500408172607,
+      "result": "True",
+      "expected_metric": "latency < 15ms",
+      "timestamp": "2026-06-05T11:56:29.891554"
+    },
+    {
+      "scenario_id": "COMPLEX_001",
+      "name": "Filter users by budget level",
+      "operation": "complex_filter",
+      "profile_source": {
+        "database": "VinSmartFuture",
+        "collection": "Users"
+      },
+      "iterations": 20,
+      "latency_ms": 0.0865936279296875,
+      "latency_total_ms": 1.73187255859375,
+      "result": "22",
+      "expected_metric": "latency < 30ms",
+      "timestamp": "2026-06-05T11:56:29.893743"
+    },
+    {
+      "scenario_id": "COMPLEX_002",
+      "name": "Filter users by traveler type",
+      "operation": "complex_filter",
+      "profile_source": {
+        "database": "VinSmartFuture",
+        "collection": "Users"
+      },
+      "iterations": 20,
+      "latency_ms": 0.14363527297973633,
+      "latency_total_ms": 2.8727054595947266,
+      "result": "9",
+      "expected_metric": "latency < 30ms",
+      "timestamp": "2026-06-05T11:56:29.897361"
+    },
+    {
+      "scenario_id": "COMPLEX_003",
+      "name": "Filter users by amenities preference",
+      "operation": "complex_filter",
+      "profile_source": {
+        "database": "VinSmartFuture",
+        "collection": "Users"
+      },
+      "iterations": 20,
+      "latency_ms": 0.04947185516357422,
+      "latency_total_ms": 0.9894371032714844,
+      "result": "13",
+      "expected_metric": "latency < 30ms",
+      "timestamp": "2026-06-05T11:56:29.898564"
+    }
+  ]
+}

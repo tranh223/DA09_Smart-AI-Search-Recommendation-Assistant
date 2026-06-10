@@ -1,0 +1,150 @@
+{
+  "timestamp": "2026-06-05T11:36:57.410767",
+  "total_scenarios": 13,
+  "successful_scenarios": 13,
+  "results": [
+    {
+      "scenario_id": "LOAD_001",
+      "name": "Load all users (cold start)",
+      "operation": "load_all",
+      "iterations": 1,
+      "latency_ms": 0.0064373016357421875,
+      "latency_total_ms": 0.0064373016357421875,
+      "result": "50",
+      "expected_metric": "latency < 500ms",
+      "timestamp": "2026-06-05T11:36:57.393851"
+    },
+    {
+      "scenario_id": "LOAD_002",
+      "name": "Load all users (cached)",
+      "operation": "load_all",
+      "iterations": 100,
+      "latency_ms": 0.00019550323486328125,
+      "latency_total_ms": 0.019550323486328125,
+      "result": "50",
+      "expected_metric": "latency < 5ms (avg)",
+      "timestamp": "2026-06-05T11:36:57.394399"
+    },
+    {
+      "scenario_id": "SEARCH_001",
+      "name": "Get user by ID (first)",
+      "operation": "get_by_id",
+      "iterations": 50,
+      "latency_ms": 0.00040531158447265625,
+      "latency_total_ms": 0.020265579223632812,
+      "result": "Minh Anh Nguyen",
+      "expected_metric": "latency < 10ms",
+      "timestamp": "2026-06-05T11:36:57.395336"
+    },
+    {
+      "scenario_id": "SEARCH_002",
+      "name": "Get user by ID (middle)",
+      "operation": "get_by_id",
+      "iterations": 50,
+      "latency_ms": 0.001316070556640625,
+      "latency_total_ms": 0.06580352783203125,
+      "result": "Thanh Tung Do",
+      "expected_metric": "latency < 10ms",
+      "timestamp": "2026-06-05T11:36:57.396441"
+    },
+    {
+      "scenario_id": "SEARCH_003",
+      "name": "Search user profile by ID",
+      "operation": "search_profile",
+      "iterations": 50,
+      "latency_ms": 0.0007915496826171875,
+      "latency_total_ms": 0.039577484130859375,
+      "result": "Minh Anh Nguyen",
+      "expected_metric": "latency < 10ms",
+      "timestamp": "2026-06-05T11:36:57.397465"
+    },
+    {
+      "scenario_id": "DEST_001",
+      "name": "Search users by destination (Da Nang)",
+      "operation": "search_destination",
+      "iterations": 30,
+      "latency_ms": 0.027632713317871094,
+      "latency_total_ms": 0.8289813995361328,
+      "result": "9",
+      "expected_metric": "latency < 20ms",
+      "timestamp": "2026-06-05T11:36:57.398980"
+    },
+    {
+      "scenario_id": "DEST_002",
+      "name": "Search users by destination (Ho Chi Minh)",
+      "operation": "search_destination",
+      "iterations": 30,
+      "latency_ms": 0.01834233601888021,
+      "latency_total_ms": 0.5502700805664062,
+      "result": "6",
+      "expected_metric": "latency < 20ms",
+      "timestamp": "2026-06-05T11:36:57.400113"
+    },
+    {
+      "scenario_id": "DEST_003",
+      "name": "Search users by partial destination match",
+      "operation": "search_destination",
+      "iterations": 30,
+      "latency_ms": 0.016919771830240887,
+      "latency_total_ms": 0.5075931549072266,
+      "result": "8",
+      "expected_metric": "latency < 20ms",
+      "timestamp": "2026-06-05T11:36:57.401788"
+    },
+    {
+      "scenario_id": "PREF_001",
+      "name": "Get user preferences (user_001)",
+      "operation": "get_preferences",
+      "iterations": 40,
+      "latency_ms": 0.013852119445800781,
+      "latency_total_ms": 0.5540847778320312,
+      "result": "True",
+      "expected_metric": "latency < 15ms",
+      "timestamp": "2026-06-05T11:36:57.403099"
+    },
+    {
+      "scenario_id": "PREF_002",
+      "name": "Get user preferences (user_002)",
+      "operation": "get_preferences",
+      "iterations": 40,
+      "latency_ms": 0.0022411346435546875,
+      "latency_total_ms": 0.0896453857421875,
+      "result": "True",
+      "expected_metric": "latency < 15ms",
+      "timestamp": "2026-06-05T11:36:57.404289"
+    },
+    {
+      "scenario_id": "COMPLEX_001",
+      "name": "Filter users by budget level",
+      "operation": "complex_filter",
+      "iterations": 20,
+      "latency_ms": 0.009012222290039062,
+      "latency_total_ms": 0.18024444580078125,
+      "result": "filter_complete",
+      "expected_metric": "latency < 30ms",
+      "timestamp": "2026-06-05T11:36:57.405157"
+    },
+    {
+      "scenario_id": "COMPLEX_002",
+      "name": "Filter users by traveler type",
+      "operation": "complex_filter",
+      "iterations": 20,
+      "latency_ms": 0.0657796859741211,
+      "latency_total_ms": 1.3155937194824219,
+      "result": "filter_complete",
+      "expected_metric": "latency < 30ms",
+      "timestamp": "2026-06-05T11:36:57.407175"
+    },
+    {
+      "scenario_id": "COMPLEX_003",
+      "name": "Filter users by amenities preference",
+      "operation": "complex_filter",
+      "iterations": 20,
+      "latency_ms": 0.00743865966796875,
+      "latency_total_ms": 0.148773193359375,
+      "result": "filter_complete",
+      "expected_metric": "latency < 30ms",
+      "timestamp": "2026-06-05T11:36:57.407744"
+    }
+  ]
+}
