@@ -10,7 +10,8 @@ Usage:
 
 import json
 import random
-from datetime import date
+from copy import deepcopy
+from datetime import date, datetime, time, timedelta
 from pathlib import Path
 
 
@@ -18,7 +19,9 @@ USER_COUNT = 1000
 RANDOM_SEED = 20260608
 BASE_DIR = Path(__file__).resolve().parent
 OUTPUT_FILE = BASE_DIR / "mock_user_profiles.json"
+SESSION_OUTPUT_FILE = BASE_DIR / "mock_user_sessions.json"
 SESSION_CURRENT_DATE = date.today()
+SESSION_CURRENT_DATETIME = datetime.combine(SESSION_CURRENT_DATE, time.min)
 
 random.seed(RANDOM_SEED)
 
@@ -850,12 +853,13 @@ def maybe_null(value, probability=0.06):
     return None if random.random() < probability else value
 
 
-def signal_count(min_count=1, max_count=30):
+def signal_count(min_count=1, max_count=10):
     return random.randint(min_count, max_count)
 
 
 def signal(count=None):
     count = count if count is not None else signal_count()
+    count = max(1, min(10, int(count)))
     return {
         "count": count,
         "last_interaction": SESSION_CURRENT_DATE.isoformat(),
@@ -902,11 +906,17 @@ def fields_are_enough(container, required_fields):
     return all(has_enough_value(container.get(field)) for field in required_fields)
 
 
-def refresh_is_enough(profile):
-    long_term = profile["long_term_profile"]
-    session = profile["session_context"]
+def refresh_long_term_is_enough(long_term):
     long_term["is_enough"] = fields_are_enough(long_term, LONG_TERM_ENOUGH_FIELDS)
+
+
+def refresh_session_is_enough(session):
     session["is_enough"] = fields_are_enough(session, SESSION_ENOUGH_FIELDS)
+
+
+def refresh_is_enough(profile):
+    refresh_long_term_is_enough(profile["long_term_profile"])
+    refresh_session_is_enough(profile["session_context"])
 
 
 def price_range(budget_levels):
@@ -937,6 +947,16 @@ def date_pair():
     return f"2026-{month:02d}-{day:02d}T14:00:00", f"2026-{month:02d}-{day + stay:02d}T12:00:00"
 
 
+def click_event(hotel_id, days_ago=None):
+    days_ago = random.randint(0, 29) if days_ago is None else days_ago
+    click_date = SESSION_CURRENT_DATE - timedelta(days=days_ago)
+    click_time = time(hour=random.randint(8, 22), minute=random.randint(0, 59), second=random.randint(0, 59))
+    return {
+        "hotel_id": hotel_id,
+        "clicked_at": f"{datetime.combine(click_date, click_time).isoformat()}Z",
+    }
+
+
 def recommendation_clicks(empty_p=0.18, null_p=0.06):
     roll = random.random()
     if roll < null_p:
@@ -945,7 +965,7 @@ def recommendation_clicks(empty_p=0.18, null_p=0.06):
         return {"hotel": []}
 
     count = random.randint(1, 5)
-    return {"hotel": random.sample(HOTEL_IDS, count)}
+    return {"hotel": [click_event(random.choice(HOTEL_IDS)) for _ in range(count)]}
 
 
 def guest_count(trip_types):
@@ -1121,7 +1141,7 @@ def apply_demo_overrides(profiles):
             "long_term_hotel_types": {"Nhà dân": signal(26), "Nhà nghỉ": signal(22), "Nhà khách / Nhà nghỉ B&B": signal(18)},
             "long_term_room_views": {"Hướng Biển": signal(26), "Hướng Thành phố": signal(18)},
             "long_term_amenities": {"WiFi miễn phí": signal(27), "Máy pha trà cà phê": signal(15)},
-            "recommendation_clicks": {"hotel": [10961, 10954459]},
+            "recommendation_clicks": {"hotel": [click_event(10961, 1), click_event(10961, 4), click_event(10954459, 2)]},
             "long_term_negative_preferences": {
                 "avoid_hotel_types": {"Biệt thự nghỉ dưỡng": signal(12)},
                 "avoid_amenities": {},
@@ -1171,7 +1191,7 @@ def apply_demo_overrides(profiles):
                 "Máy pha trà cà phê": signal(21),
                 "Cách âm": signal(26),
             },
-            "recommendation_clicks": {"hotel": [2985143]},
+            "recommendation_clicks": {"hotel": [click_event(2985143, 3), click_event(2985143, 9)]},
         }
     )
     profiles[4]["session_context"].update(
@@ -1236,6 +1256,55 @@ def generate_profiles(user_count=USER_COUNT):
     return profiles
 
 
+def iso_timestamp(days_ago=0):
+    timestamp = SESSION_CURRENT_DATETIME - timedelta(days=days_ago)
+    return f"{timestamp.isoformat()}Z"
+
+
+def current_session_document(user_id, session_context):
+    return {
+        "session_id": f"{user_id}_current",
+        "user_id": user_id,
+        "is_current": True,
+        "created_at": iso_timestamp(0),
+        "updated_at": iso_timestamp(0),
+        "session_context": session_context,
+    }
+
+
+def historical_session_document(user_id, session_context, history_index):
+    history_context = deepcopy(session_context)
+    refresh_session_is_enough(history_context)
+    days_ago = 7 + history_index
+    return {
+        "session_id": f"{user_id}_history_{history_index:02d}",
+        "user_id": user_id,
+        "is_current": False,
+        "created_at": iso_timestamp(days_ago + 2),
+        "updated_at": iso_timestamp(days_ago),
+        "session_context": history_context,
+    }
+
+
+def split_profiles_and_sessions(combined_profiles):
+    profiles = []
+    sessions = []
+    for index, combined_profile in enumerate(combined_profiles, start=1):
+        profile = deepcopy(combined_profile)
+        session_context = profile.pop("session_context")
+        refresh_long_term_is_enough(profile["long_term_profile"])
+        refresh_session_is_enough(session_context)
+
+        user_id = profile["user_id"]
+        profiles.append(profile)
+        sessions.append(current_session_document(user_id, session_context))
+
+        if index % 4 == 0:
+            sessions.append(historical_session_document(user_id, session_context, index))
+
+    return profiles, sessions
+
+
 def validate_signal_map(name, value, allowed_keys=None):
     if value is None:
         return
@@ -1266,7 +1335,8 @@ def validate_signal_map(name, value, allowed_keys=None):
 
 def validate_profile(profile):
     long_term = profile["long_term_profile"]
-    session = profile["session_context"]
+    if "session_context" in profile:
+        raise ValueError("User profile document must not contain top-level session_context")
 
     if "is_enough" not in long_term:
         raise ValueError("long_term_profile.is_enough is required")
@@ -1276,14 +1346,6 @@ def validate_profile(profile):
     if long_term["is_enough"] != expected_long_term_is_enough:
         raise ValueError("long_term_profile.is_enough does not match LONG_TERM_ENOUGH_FIELDS")
 
-    if "is_enough" not in session:
-        raise ValueError("session_context.is_enough is required")
-    if not isinstance(session["is_enough"], bool):
-        raise TypeError("session_context.is_enough must be boolean")
-    expected_session_is_enough = fields_are_enough(session, SESSION_ENOUGH_FIELDS)
-    if session["is_enough"] != expected_session_is_enough:
-        raise ValueError("session_context.is_enough does not match SESSION_ENOUGH_FIELDS")
-
     validate_signal_map("traveler_type", long_term["traveler_type"], TRAVELER_TYPES)
     validate_signal_map("long_term_trip_types", long_term["long_term_trip_types"], TRIP_TYPES)
     validate_signal_map("long_term_budget_levels", long_term["long_term_budget_levels"], BUDGET_LEVELS)
@@ -1292,16 +1354,8 @@ def validate_profile(profile):
     validate_signal_map("long_term_room_views", long_term["long_term_room_views"], ROOM_VIEWS)
     validate_signal_map("long_term_amenities", long_term["long_term_amenities"], AMENITIES)
 
-    validate_signal_map("session_trip_types", session["session_trip_types"], TRIP_TYPES)
-    validate_signal_map("session_budget_levels", session["session_budget_levels"], BUDGET_LEVELS)
-    validate_signal_map("session_preference_habits", session["session_preference_habits"], PREFERENCE_SIGNALS)
-    validate_signal_map("session_hotel_types", session["session_hotel_types"], HOTEL_TYPES)
-    validate_signal_map("session_room_views", session["session_room_views"], ROOM_VIEWS)
-    validate_signal_map("session_amenities", session["session_amenities"], SESSION_AMENITIES)
-
     for container_name, container in [
         ("long_term_negative_preferences", long_term["long_term_negative_preferences"]),
-        ("session_negative_preferences", session["session_negative_preferences"]),
     ]:
         for field_name, value in container.items():
             validate_signal_map(f"{container_name}.{field_name}", value)
@@ -1310,14 +1364,89 @@ def validate_profile(profile):
     if clicks is not None:
         if not isinstance(clicks, dict) or not isinstance(clicks.get("hotel"), list):
             raise TypeError("recommendation_clicks must be null or contain hotel list")
-        for hotel_id in clicks["hotel"]:
+        for click in clicks["hotel"]:
+            if not isinstance(click, dict):
+                raise TypeError("recommendation_clicks.hotel entries must be objects")
+            if sorted(click) != ["clicked_at", "hotel_id"]:
+                raise ValueError("recommendation_clicks.hotel entries must contain only hotel_id and clicked_at")
+
+            hotel_id = click["hotel_id"]
+            if isinstance(hotel_id, str) and hotel_id.isdigit():
+                hotel_id = int(hotel_id)
             if hotel_id not in HOTEL_IDS:
-                raise ValueError(f"Unknown hotel id in recommendation_clicks: {hotel_id}")
+                raise ValueError(f"Unknown hotel id in recommendation_clicks: {click['hotel_id']}")
+
+            clicked_at = click["clicked_at"]
+            if not isinstance(clicked_at, str):
+                raise TypeError("recommendation_clicks.hotel.clicked_at must be a string")
+            try:
+                datetime.fromisoformat(clicked_at.replace("Z", "+00:00"))
+            except ValueError as error:
+                raise ValueError(f"Invalid recommendation click timestamp: {clicked_at}") from error
 
 
 def validate_profiles(profiles):
     for profile in profiles:
         validate_profile(profile)
+
+
+def validate_session(session_doc):
+    required = {"session_id", "user_id", "is_current", "created_at", "updated_at", "session_context"}
+    missing = sorted(required - set(session_doc))
+    if missing:
+        raise ValueError(f"Session document missing fields: {missing}")
+    if not isinstance(session_doc["session_id"], str) or not session_doc["session_id"]:
+        raise TypeError("session_id must be a non-empty string")
+    if not isinstance(session_doc["user_id"], str) or not session_doc["user_id"]:
+        raise TypeError("session user_id must be a non-empty string")
+    if not isinstance(session_doc["is_current"], bool):
+        raise TypeError("session is_current must be boolean")
+    for field in ["created_at", "updated_at"]:
+        try:
+            datetime.fromisoformat(session_doc[field].replace("Z", "+00:00"))
+        except (AttributeError, ValueError) as error:
+            raise ValueError(f"Invalid session {field}: {session_doc[field]}") from error
+
+    session = session_doc["session_context"]
+    if not isinstance(session, dict):
+        raise TypeError("session_context must be an object")
+    if "is_enough" not in session:
+        raise ValueError("session_context.is_enough is required")
+    if not isinstance(session["is_enough"], bool):
+        raise TypeError("session_context.is_enough must be boolean")
+    expected_session_is_enough = fields_are_enough(session, SESSION_ENOUGH_FIELDS)
+    if session["is_enough"] != expected_session_is_enough:
+        raise ValueError("session_context.is_enough does not match SESSION_ENOUGH_FIELDS")
+
+    validate_signal_map("session_trip_types", session["session_trip_types"], TRIP_TYPES)
+    validate_signal_map("session_budget_levels", session["session_budget_levels"], BUDGET_LEVELS)
+    validate_signal_map("session_preference_habits", session["session_preference_habits"], PREFERENCE_SIGNALS)
+    validate_signal_map("session_hotel_types", session["session_hotel_types"], HOTEL_TYPES)
+    validate_signal_map("session_room_views", session["session_room_views"], ROOM_VIEWS)
+    validate_signal_map("session_amenities", session["session_amenities"], SESSION_AMENITIES)
+
+    for field_name, value in session["session_negative_preferences"].items():
+        validate_signal_map(f"session_negative_preferences.{field_name}", value)
+
+
+def validate_sessions(sessions, user_ids):
+    current_by_user = {user_id: 0 for user_id in user_ids}
+    session_ids = set()
+    for session_doc in sessions:
+        validate_session(session_doc)
+        user_id = session_doc["user_id"]
+        if user_id not in user_ids:
+            raise ValueError(f"Session user_id does not exist in profiles: {user_id}")
+        session_id = session_doc["session_id"]
+        if session_id in session_ids:
+            raise ValueError(f"Duplicate session_id: {session_id}")
+        session_ids.add(session_id)
+        if session_doc["is_current"]:
+            current_by_user[user_id] += 1
+
+    invalid = [user_id for user_id, count in current_by_user.items() if count != 1]
+    if invalid:
+        raise ValueError(f"Each user must have exactly one current session. Invalid users: {invalid[:10]}")
 
 
 def validate_ascii_only(path):
@@ -1328,21 +1457,33 @@ def validate_ascii_only(path):
 
 
 def main():
-    profiles = generate_profiles(USER_COUNT)
+    combined_profiles = generate_profiles(USER_COUNT)
+    profiles, sessions = split_profiles_and_sessions(combined_profiles)
     validate_profiles(profiles)
+    validate_sessions(sessions, {profile["user_id"] for profile in profiles})
 
     output = {
-        "schema_version": "count_expiry_user_profile_mock",
+        "schema_version": "count_interaction_user_profile_mock",
         "language": "en",
         "count": len(profiles),
         "users": profiles,
     }
+    session_output = {
+        "schema_version": "count_interaction_user_session_mock",
+        "language": "en",
+        "count": len(sessions),
+        "sessions": sessions,
+    }
 
     OUTPUT_FILE.write_text(json.dumps(output, ensure_ascii=True, indent=2), encoding="utf-8")
+    SESSION_OUTPUT_FILE.write_text(json.dumps(session_output, ensure_ascii=True, indent=2), encoding="utf-8")
     validate_ascii_only(OUTPUT_FILE)
+    validate_ascii_only(SESSION_OUTPUT_FILE)
 
     print(f"Created {OUTPUT_FILE.resolve()}")
+    print(f"Created {SESSION_OUTPUT_FILE.resolve()}")
     print(f"Users: {len(profiles)}")
+    print(f"Sessions: {len(sessions)}")
     print("Schema alignment: passed")
     print("ASCII validation: passed")
 
