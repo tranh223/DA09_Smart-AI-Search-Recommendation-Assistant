@@ -8,6 +8,11 @@ from dotenv import load_dotenv
 import json
 from kafka import KafkaProducer, KafkaConsumer
 from memory_log.analytic_manager import evaluate_session
+from datasets import Dataset
+from ragas import evaluate
+from ragas.llms import llm_factory
+from ragas.embeddings import OpenAIEmbeddings
+import random
 
 load_dotenv()
 
@@ -269,12 +274,29 @@ def start_log_listener():
         except Exception as e:
             print(f"❌ [Log] Lỗi xử lý tin nhắn: {str(e)}")
 
-def ragas_at_deploy(golden_dataset: list) -> dict:
-    '''
+def ragas_at_deploy(questions: list, ground_truths: list, llm_answers: list, contexts_list: list) -> dict:
+    """
     chạy ragas trước khi deploy bằng golden dataset (hỏi DATA)
     output: 4 metric ragas (đơn vị %)
-    '''
-    pass
+    """
+    dataset = Dataset.from_dict({
+        "question": questions,
+        "answer": llm_answers,
+        "contexts": contexts_list,
+        "ground_truth": ground_truths
+    })
+    custom_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv("BASE_URL"))
+    ragas_llm = llm_factory(model="gpt-4o-mini", client=custom_client)
+    ragas_emb = OpenAIEmbeddings(client=custom_client)
+    if hasattr(ragas_emb, 'embed_text'):
+        ragas_emb.embed_query = ragas_emb.embed_text
+        ragas_emb.embed_documents = lambda texts: [ragas_emb.embed_text(t) for t in texts]
+    result = evaluate(dataset=dataset, llm=ragas_llm, embeddings=ragas_emb)    
+    result = result._scores_dict
+    for i in result:
+        result[i] = int(sum(result[i]) / len(result[i]) * 10000) / 100
+    print(result)
+    return result
 
 def ragas_at_weekend():
     '''
@@ -282,4 +304,82 @@ def ragas_at_weekend():
     tính xong lưu luôn 4 metric ragas (đơn vị %) vào mongodb
     * chỉ lấy random từ những session mà có end < now() và evaluated = true, chạy xong xóa session
     '''
-    pass
+    sessions_collection = get_collection('Sessions')
+    evals_collection = get_collection('Eval')
+    now = datetime.now()
+    query_filter = {
+        "end": {"$lt": now},
+        "evaluated": True
+    }
+    valid_sessions = list(sessions_collection.find(query_filter))
+    if not valid_sessions:
+        print("📭 [Ragas Weekend] Không có session nào thỏa mãn điều kiện lọc.")
+        return
+    all_chat_pairs = []
+    session_ids_to_delete = []
+    for session in valid_sessions:
+        session_ids_to_delete.append(transform_id(session["_id"]))
+        for chat in session.get("history", []):
+            if "user_query" in chat and "llm_answer" in chat and "contexts" in chat:
+                all_chat_pairs.append({
+                    "question": chat["user_query"],
+                    "answer": chat["llm_answer"],
+                    "contexts": chat["contexts"]
+                })
+    if not all_chat_pairs:
+        print("📭 [Ragas Weekend] Các session hợp lệ không chứa dữ liệu lịch sử chat hợp lệ.")
+        return
+    sample_size = max(1, int(len(all_chat_pairs) * 0.05))
+    sample_size = min(sample_size, 30)
+    sampled_chats = random.sample(all_chat_pairs, sample_size)
+    print(f"🔄 [Ragas Weekend] Đang tiến hành đánh giá trên {len(sampled_chats)} mẫu chat ngẫu nhiên...")
+    questions = [c["question"] for c in sampled_chats]
+    llm_answers = [c["answer"] for c in sampled_chats]
+    contexts_list = [c["contexts"] for c in sampled_chats]
+    ground_truths = [""] * len(questions)
+    dataset = Dataset.from_dict({
+        "question": questions,
+        "answer": llm_answers,
+        "contexts": contexts_list,
+        "ground_truth": ground_truths
+    })
+    custom_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv("BASE_URL"))
+    ragas_llm = llm_factory(model="gpt-4o-mini", client=custom_client)
+    ragas_emb = OpenAIEmbeddings(client=custom_client)
+    if hasattr(ragas_emb, 'embed_text'):
+        ragas_emb.embed_query = ragas_emb.embed_text
+        ragas_emb.embed_documents = lambda texts: [ragas_emb.embed_text(t) for t in texts]
+    result = evaluate(dataset=dataset, llm=ragas_llm, embeddings=ragas_emb)    
+    result = result._scores_dict
+    for i in result:
+        result[i] = int(sum(result[i]) / len(result[i]) * 10000) / 100
+    today_str = now.strftime("%Y-%m-%d")
+    evals_collection.update_one(
+        {"date": today_str},
+        {"$set": {"ragas": result}},
+        upsert=True
+    )
+    if session_ids_to_delete:
+        delete_result = sessions_collection.delete_many({"_id": {"$in": session_ids_to_delete}})
+        print(f"🗑️ [Ragas Weekend] Đã xóa {delete_result.deleted_count} session cũ khỏi database.")
+
+def log_booking_for_graph(hotel_id, user_id, hotel_name):
+    '''
+    lưu user bấm booking khách sạn nào (để tăng weight trong graphDB)
+    '''
+    bookings_collection = get_collection('Booking')
+    booking_data = {
+        "user_id": transform_id(user_id),
+        "hotel_id": hotel_id,
+        "hotel_name": hotel_name,
+        "booked_at": datetime.now()
+    }
+    try:
+        result = bookings_collection.insert_one(booking_data)
+        print(f"✅ [Mongo] Đã ghi nhận booking thành công. ID: {result.inserted_id}")
+        return result.inserted_id
+    except Exception as e:
+        print(f"❌ [Mongo] Lỗi khi log booking: {str(e)}")
+        return None
+
+
