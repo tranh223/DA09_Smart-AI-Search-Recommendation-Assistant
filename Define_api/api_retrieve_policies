@@ -1,0 +1,29 @@
+## DA10 Hotel Policies API
+
+### Endpoint
+
+Curl
+
+curl -X 'GET' \
+  'https://supabase-ota-travel.onrender.com/api/hotels/9195/policies' \
+  -H 'accept: application/json' \
+  -H 'X-API-Key: ota_sk_7f3d9b2e1a4c8f6e5d3a'
+Request URL
+https://supabase-ota-travel.onrender.com/api/hotels/9195/policies
+
+### Purpose
+
+Retrieve all hotel policies for a specific hotel.
+
+Used by:
+- HOTEL_POLICY_QA
+- HOTEL_FEATURE_QA (when amenities/rules are mentioned)
+- RAG document enrichment
+- Context building
+
+### Auth
+
+Header:
+
+```http
+X-API-Key: <token>

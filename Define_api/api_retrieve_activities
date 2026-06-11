@@ -1,0 +1,73 @@
+## DA10 Hotel Activities API
+
+### Endpoint
+
+Curl
+
+curl -X 'GET' \
+  'https://supabase-ota-travel.onrender.com/api/hotels/9195/activities' \
+  -H 'accept: application/json' \
+  -H 'X-API-Key: ota_sk_7f3d9b2e1a4c8f6e5d3a'
+Request URL
+https://supabase-ota-travel.onrender.com/api/hotels/9195/activities
+
+### Purpose
+
+Retrieve nearby activities associated with a hotel.
+
+Used for:
+- Activity enrichment
+- Travel planning
+- Itinerary generation
+- Attraction recommendation context
+- RAG document enrichment
+
+### Auth
+
+Header:
+
+X-API-Key: <token>
+
+### Path Parameters
+
+| Param | Type | Required | Description |
+|---------|---------|---------|---------|
+| hotel_id | integer | Yes | Hotel ID |
+
+### Query Parameters
+
+| Param | Type | Required | Description |
+|---------|---------|---------|---------|
+| price_max | number | No | Maximum activity price |
+| review_score_min | number | No | Minimum activity review score |
+| sort_by | string | No | id:asc, price:asc, price:desc, review_score:desc |
+
+### Example
+
+GET /api/hotels/9195/activities
+
+GET /api/hotels/9195/activities?price_max=500000
+
+GET /api/hotels/9195/activities?review_score_min=8
+
+### Output
+
+Raw activity records related to the hotel.
+
+Return raw JSON only.
+
+No ranking.
+No summarization.
+No recommendation logic.
+
+### RAG Usage
+
+Store activity information as activity chunks.
+
+Metadata:
+
+{
+  "entity_type": "hotel",
+  "entity_id": 9195,
+  "chunk_type": "activity"
+}
