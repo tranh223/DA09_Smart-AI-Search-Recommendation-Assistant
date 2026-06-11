@@ -1,4 +1,4 @@
-# Báo Cáo Thống Kê Dữ Liệu Tag
+# Báo Cáo Thống Kê Dữ Liệu Khách Sạn
 
 Báo cáo này trình bày kết quả thống kê chi tiết từ việc phân tích tệp dữ liệu SQL sau khi đã chạy chuẩn hóa và làm sạch dữ liệu, bao gồm thông tin của **520 khách sạn**, **9.364 phòng**, và **4.991 địa điểm lân cận**.
 
@@ -12,6 +12,7 @@ Báo cáo này trình bày kết quả thống kê chi tiết từ việc phân 
 | **Tiện ích phòng (`room_amenities`)** | **87** | Các tiện ích được trang bị trong phòng của khách sạn |
 | **Nhãn đánh giá (`reviews_detail/tags`)** | **45** | Chỉ tính các nhãn có `mentioned > 4` tại từng khách sạn |
 | **Phân loại địa điểm lân cận (`PLACE_TYPE`)** | **53** | Loại hình địa điểm xung quanh khách sạn (từ bảng `nearby_places`) |
+| **Loại hình lưu trú (`HOTEL_TYPE`)** | **11** | Loại hình khách sạn/resort/homestay/... (từ trường `accommodation_type`) |
 
 ---
 
@@ -32,7 +33,7 @@ Dưới đây là danh sách toàn bộ 6 loại đối tượng phù hợp cùn
 
 ## 3. Tiện Ích Phổ Biến Nhất (`amenities` - Top 30 trên tổng số 269 loại)
 
-Dưới đây là top 30 tiện ích phổ biến nhất xuất hiện tại 520 khách sạn (sau khi đã chạy chuẩn hóa và lọc sạch). Có thể xem danh sách đầy đủ tại tệp [amenities_statistics_clean_normalized.csv](data_csv/amenities_statistics_clean_normalized.csv).
+Dưới đây là top 30 tiện ích phổ biến nhất xuất hiện tại 520 khách sạn (sau khi đã chạy chuẩn hóa và lọc sạch):
 
 | STT | Tên tiện ích | Số khách sạn sở hữu | Tỷ lệ (%) |
 | :---: | :--- | :---: | :---: |
@@ -90,7 +91,7 @@ Thống kê phân phối cảnh quan phòng (room view) từ **9.364 phòng ng�
 
 ## 5. Chi Tiết Tiện Ích Phòng (`room_amenities` - Top 30 trên tổng số 87 loại)
 
-Dưới đây là thống kê 30 tiện ích phòng phổ biến nhất được trang bị trong 9.364 phòng. Có thể xem danh sách đầy đủ tại tệp [room_amenities_statistics_normalized.csv](data_csv/room_amenities_statistics_normalized.csv).
+Dưới đây là thống kê 30 tiện ích phòng phổ biến nhất được trang bị trong 9.364 phòng:
 
 | STT | Tiện ích phòng | Số lượng phòng sở hữu | Tỷ lệ (%) |
 | :---: | :--- | :---: | :---: |
@@ -240,3 +241,23 @@ Thống kê phân phối loại hình địa điểm lân cận từ **4.991 đ�
 | 51 | Nhà máy rượu | 1 | 0.02% |
 | 52 | Các Sân Bay và Bãi Đáp Trực Thăng | 1 | 0.02% |
 | 53 | Nơi Biểu Diễn Âm Nhạc | 1 | 0.02% |
+
+---
+
+## 8. Chi Tiết Loại Hình Lưu Trú (`HOTEL_TYPE` - 11 loại)
+
+Thống kê phân phối loại hình lưu trú từ **520 khách sạn**:
+
+| STT | Loại hình lưu trú (HOTEL_TYPE) | Số lượng khách sạn | Tỷ lệ (%) | Ghi chú |
+| :---: | :--- | :---: | :---: | :--- |
+| 1 | Khách sạn | 394 | 75.77% | Loại hình lưu trú phổ biến nhất |
+| 2 | Resort | 43 | 8.27% | Các khu nghỉ dưỡng |
+| 3 | Căn hộ | 37 | 7.12% | Căn hộ độc lập |
+| 4 | Căn hộ dịch vụ | 17 | 3.27% | Căn hộ có dịch vụ đi kèm |
+| 5 | Homestay | 10 | 1.92% | Loại hình lưu trú nhà dân |
+| 6 | Nhà khách/Nhà nghỉ B&B | 5 | 0.96% | Bed and Breakfast / Guesthouse |
+| 7 | Toàn bộ căn nhà | 5 | 0.96% | Cho thuê nguyên căn |
+| 8 | Biệt thự | 3 | 0.58% | Villa nguyên căn |
+| 9 | Nhà nghỉ | 3 | 0.58% | Motel/Inn |
+| 10 | Bungalow | 2 | 0.38% | Nhà gỗ nhỏ độc lập |
+| 11 | Nhà nghỉ ven đường | 1 | 0.19% | Motel ven đường lớn |

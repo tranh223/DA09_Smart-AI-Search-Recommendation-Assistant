@@ -158,6 +158,7 @@ def main():
                 hotels.append({
                     'hotel_id': vals[0],
                     'name': vals[1],
+                    'accommodation_type': vals[2] if len(vals) > 2 else None,
                     'amenities': vals[12] if len(vals) > 12 else [],
                     'suitable_for': vals[15] if len(vals) > 15 else [],
                     'reviews_detail': vals[16] if len(vals) > 16 else None
@@ -286,6 +287,28 @@ def main():
     for idx, (k, v) in enumerate(places_counter.most_common(30), 1):
         pct = (v / num_places) * 100
         print(f"{idx}. {k}: {v} places ({pct:.2f}%)")
+
+    # 7. HOTEL_TYPE (Loại hình lưu trú)
+    hotel_type_counter = Counter()
+    # Ánh xạ chuẩn hóa từ dữ liệu thô sang 11 nhóm loại hình trong tag_statistics.md
+    type_mapping = {
+        "Giường và Bữa sáng": "Khách sạn",
+        "Nhà dân": "Homestay",
+        "Biệt thự nghỉ dưỡng": "Biệt thự",
+        "Nhà khách / Nhà nghỉ B&B": "Nhà khách/Nhà nghỉ B&B",
+        "Nhà khách/Nhà nghỉ B&B": "Nhà khách/Nhà nghỉ B&B"
+    }
+    for h in hotels:
+        htype = h['accommodation_type']
+        if htype:
+            cleaned_type = type_mapping.get(htype, htype)
+            hotel_type_counter[cleaned_type] += 1
+            
+    print("\n--- 8. HOTEL_TYPE (Loại hình lưu trú) ---")
+    print(f"Total Unique: {len(hotel_type_counter)}")
+    for idx, (k, v) in enumerate(hotel_type_counter.most_common(), 1):
+        pct = (v / num_hotels) * 100
+        print(f"{idx}. {k}: {v} hotels ({pct:.2f}%)")
 
 if __name__ == "__main__":
     main()
