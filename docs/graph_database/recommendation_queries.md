@@ -12,6 +12,8 @@ LLM dùng Neo4j để xử lý các nghiệp vụ gợi ý cá nhân hóa, tìm 
 *   **`User`**: Người dùng hệ thống.
     *   `user_id` (String): ID định danh người dùng.
     *   `name` (String): Tên người dùng.
+    *   `nationality` (String): Quốc tịch.
+    *   `current_workplace` (String): Nơi làm việc hiện tại.
 *   **`Hotel`**: Khách sạn / Resort.
     *   `hotel_id` (Integer): ID khách sạn.
     *   `name` (String): Tên khách sạn.
@@ -20,8 +22,19 @@ LLM dùng Neo4j để xử lý các nghiệp vụ gợi ý cá nhân hóa, tìm 
     *   `review_score` (Float): Điểm review trung bình (0.0 - 10.0).
     *   `review_count` (Integer): Số lượng lượt đánh giá.
     *   `city` (String): Thành phố.
+    *   `address` (String): Địa chỉ chi tiết.
+    *   `latitude` (Float): Vĩ độ.
+    *   `longitude` (Float): Kinh độ.
 *   **`Room`**: Phòng ngủ thuộc khách sạn.
-    *   `room_id` (Integer), `name` (String), `price` (Float), `room_size` (String), `max_occupancy` (Integer), `room_view` (String).
+    *   `room_id` (Integer): ID phòng.
+    *   `name` (String): Tên phòng.
+    *   `price` (Float): Giá phòng.
+    *   `room_size` (String): Diện tích phòng.
+    *   `max_occupancy` (Integer): Số lượng khách tối đa.
+    *   `room_view` (String): Hướng nhìn phòng.
+    *   `bed_type` (String): Loại giường.
+    *   `room_type_id` (Integer): ID loại phòng.
+    *   `review_score` (Float): Điểm đánh giá của phòng.
 *   **`Place`**: Điểm du lịch, vui chơi gần khách sạn.
     *   `place_id` (Integer), `name` (String), `type` (String).
 *   **`Activity`**: Hoạt động trải nghiệm mà khách sạn cung cấp.
@@ -44,6 +57,8 @@ LLM dùng Neo4j để xử lý các nghiệp vụ gợi ý cá nhân hóa, tìm 
 ### 1.2 Các loại Quan hệ (Relationships)
 *   `(:User)-[:INTERESTED_IN]->(:Tag)`: Sở thích của User đối với các Tag.
     *   **Properties**: `count` (Integer - Số lần tương tác), `last_interaction` (String - Ngày tương tác cuối, định dạng "YYYY-MM-DD").
+*   `(:User)-[:HAS_FEATURES]->(:UserFeature)`: Liên kết User với các đặc trưng hành vi / nhân khẩu học của họ.
+    *   **Properties**: `count` (Integer - Số lần ghi nhận/tương tác), `last_interaction` (String - Ngày tương tác cuối, định dạng "YYYY-MM-DD").
 *   `(:User)-[:BOOKED]->(:Hotel)`: Lịch sử đặt phòng của User.
 *   `(:Hotel)-[:HAS_ROOM]->(:Room)`
 *   `(:Hotel)-[:LOCATED_IN]->(:City)`
