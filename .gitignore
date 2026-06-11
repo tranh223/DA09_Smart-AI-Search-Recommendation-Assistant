@@ -2,3 +2,25 @@
 __pycache__/
 *.pyc
 venv
+
+# Frontend dependencies
+frontend/node_modules/
+
+# Frontend build output
+frontend/dist/
+
+# Frontend cache
+frontend/.vite/
+frontend/.turbo/
+frontend/.next/
+
+# Frontend local env files
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# Logs
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*

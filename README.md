@@ -29,10 +29,17 @@ ota_ai_assitant/
     │   ├── schema.py        # introspect schema + danh mục City/Tag
     │   ├── search.py        # NL -> Cypher -> kết quả (generate_cypher, run_plan, search)
     │   └── recommender.py   # gợi ý cá nhân hóa (recommend)
+    ├── api/                 # tầng API (FastAPI) cho web
+    │   ├── schemas.py       # Pydantic (khớp frontend/src/types.ts)
+    │   └── server.py        # POST /chat (SSE) -> gợi ý
     └── cli/
         ├── format.py        # hàm định dạng dùng chung
         ├── interface.py     # CLI chính: GỢI Ý cá nhân hóa (python main.py)
         └── search_cli.py    # CLI tìm kiếm (python -m app.cli.search_cli)
+
+frontend/                    # React + Vite + Tailwind (ChatUI)
+  src/components/Login.tsx   # "đăng nhập" tạm: nhập user_id
+  src/...                    # ChatWindow, ProductCard, useChat, api/chat.ts
 ```
 
 ## Cài đặt
@@ -61,6 +68,21 @@ python -m app.cli.search_cli
 ```
 - Gõ câu hỏi: `khách sạn ở Đà Nẵng có view biển` / `địa điểm gần khách sạn X` / `phòng ...`
 - Thoát: `thoát`.
+
+### Web (ChatUI) — backend + frontend
+Mở 2 terminal:
+```bash
+# 1) Backend API (FastAPI)
+uvicorn app.api.server:app --port 8000 --reload
+
+# 2) Frontend (Vite dev server, proxy /api -> :8000)
+cd frontend
+npm install      # lần đầu
+npm run dev      # mở http://localhost:5173
+```
+Mở trình duyệt → **nhập user_id** (vd `user_141`) để "đăng nhập" tạm → chat yêu cầu
+(vd "khách sạn ở Đà Nẵng có view biển") → nhận gợi ý kèm lý do. Bấm **Đổi user** để
+đổi user_id.
 
 ### Dùng như thư viện
 ```python

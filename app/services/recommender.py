@@ -70,7 +70,7 @@ def get_candidates(user_id: str, limit: int = CANDIDATE_LIMIT) -> list[dict]:
         WITH h, match_count, matched_tags, min(r.price) AS min_price
         RETURN h.hotel_id AS hotel_id, h.name AS name, h.city AS city,
                h.star_rating AS star_rating, h.review_score AS review_score,
-               min_price, match_count, matched_tags
+               h.review_count AS review_count, min_price, match_count, matched_tags
         ORDER BY match_count DESC, h.review_score DESC
         LIMIT $limit
         """,
@@ -112,7 +112,8 @@ def get_candidates_for_hotels(user_id: str, hotel_ids: list[int]) -> list[dict]:
         WITH h, matched_tags, min(r.price) AS min_price
         RETURN h.hotel_id AS hotel_id, h.name AS name, h.city AS city,
                h.star_rating AS star_rating, h.review_score AS review_score,
-               min_price, size(matched_tags) AS match_count, matched_tags
+               h.review_count AS review_count, min_price,
+               size(matched_tags) AS match_count, matched_tags
         ORDER BY match_count DESC, h.review_score DESC
         """,
         {"uid": user_id, "ids": hotel_ids},
@@ -260,6 +261,7 @@ def recommend(user_id: str, query: str | None = None, top_k: int = 5) -> dict:
             "city": cand.get("city"),
             "star_rating": cand.get("star_rating"),
             "review_score": cand.get("review_score"),
+            "review_count": cand.get("review_count"),
             "min_price": cand.get("min_price"),
             "reason": rec["reason"],
         })
