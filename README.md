@@ -30,7 +30,9 @@ ota_ai_assitant/
     │   ├── search.py        # NL -> Cypher -> kết quả (generate_cypher, run_plan, search)
     │   └── recommender.py   # gợi ý cá nhân hóa (recommend)
     └── cli/
-        └── interface.py     # CLI tương tác (rich)
+        ├── format.py        # hàm định dạng dùng chung
+        ├── interface.py     # CLI chính: GỢI Ý cá nhân hóa (python main.py)
+        └── search_cli.py    # CLI tìm kiếm (python -m app.cli.search_cli)
 ```
 
 ## Cài đặt
@@ -45,14 +47,20 @@ Biến môi trường (xem `.env.example`):
 
 ## Sử dụng
 
-### CLI
+### CLI gợi ý cá nhân hóa (chính)
 ```bash
 python main.py
 ```
-- Tìm kiếm: `khách sạn ở Đà Nẵng có view biển`
-- Gợi ý: `goiy user_141`
-- Gợi ý kèm điều kiện: `goiy user_141 khách sạn ở Nha Trang có view biển`
-- Thoát: `thoát`
+- Nhập `user_id` (vd `user_141`) → top 5 gợi ý + lý do.
+- Bước sau có thể nhập yêu cầu cụ thể (vd `ở Nha Trang có view biển`), Enter để bỏ qua.
+- Thoát: `thoát`.
+
+### CLI tìm kiếm (file riêng)
+```bash
+python -m app.cli.search_cli
+```
+- Gõ câu hỏi: `khách sạn ở Đà Nẵng có view biển` / `địa điểm gần khách sạn X` / `phòng ...`
+- Thoát: `thoát`.
 
 ### Dùng như thư viện
 ```python
