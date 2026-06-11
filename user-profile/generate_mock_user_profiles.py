@@ -30,6 +30,7 @@ TRIP_TYPES = [
     "Khách du lịch một mình",
     "Gia đình có trẻ nhỏ",
     "Gia đình có thanh thiếu niên",
+    "Gia đình có người già",
     "Khách đi công tác",
 ]
 BUDGET_LEVELS = ["low", "medium", "high"]
@@ -159,15 +160,6 @@ LONG_TERM_ENOUGH_FIELDS = [
     "nationality",
     "age_group",
     "current_workplace",
-]
-
-SESSION_ENOUGH_FIELDS = [
-    "destination",
-    "current_location",
-    "nearby_place",
-    "number_of_guests",
-    "check_in",
-    "check_out",
 ]
 
 AVOID_PREFERENCE_HABITS = [
@@ -850,12 +842,13 @@ def maybe_null(value, probability=0.06):
     return None if random.random() < probability else value
 
 
-def signal_count(min_count=1, max_count=30):
+def signal_count(min_count=1, max_count=10):
     return random.randint(min_count, max_count)
 
 
 def signal(count=None):
     count = count if count is not None else signal_count()
+    count = max(1, min(int(count), 10))
     return {
         "count": count,
         "last_interaction": SESSION_CURRENT_DATE.isoformat(),
@@ -904,9 +897,7 @@ def fields_are_enough(container, required_fields):
 
 def refresh_is_enough(profile):
     long_term = profile["long_term_profile"]
-    session = profile["session_context"]
     long_term["is_enough"] = fields_are_enough(long_term, LONG_TERM_ENOUGH_FIELDS)
-    session["is_enough"] = fields_are_enough(session, SESSION_ENOUGH_FIELDS)
 
 
 def price_range(budget_levels):
@@ -963,6 +954,8 @@ def guest_count(trip_types):
         return random.choice([3, 4, 5, 6])
     if top_trip == "Gia đình có thanh thiếu niên":
         return random.choice([3, 4, 5])
+    if top_trip == "Gia đình có người già":
+        return random.choice([3, 4, 5, 6])
     if top_trip == "Nhóm du khách":
         return random.choice([4, 5, 6, 8])
     return random.choice([1, 2, 3])
@@ -1005,31 +998,6 @@ def cold_start_profile(index, name, nationality):
                 "avoid_locations": {},
             },
         },
-        "session_context": {
-            "destination": random.choice(DESTINATIONS),
-            "current_location": None,
-            "nearby_place": None,
-            "number_of_guests": None,
-            "has_pet": None,
-            "has_children": None,
-            "check_in": None,
-            "check_out": None,
-            "is_enough": False,
-            "session_trip_types": {},
-            "session_budget_levels": {},
-            "session_price_range": {"min": None, "max": None, "currency": None},
-            "session_preference_habits": {},
-            "session_hotel_types": {},
-            "session_room_views": {},
-            "session_amenities": {},
-            "session_negative_preferences": {
-                "avoid_hotel_types": {},
-                "avoid_amenities": {},
-                "avoid_preference_habits": {},
-                "avoid_nearby_places": {},
-                "avoid_locations": {},
-            },
-        },
     }
     refresh_is_enough(profile)
     return profile
@@ -1045,13 +1013,6 @@ def standard_profile(index, name, nationality):
     long_hotel_types = weighted_map(HOTEL_TYPES, 1, 4)
     long_room_views = weighted_map(ROOM_VIEWS, 1, 3)
     long_amenities = weighted_map(AMENITIES, 1, 5)
-    session_budget_levels = weighted_map(BUDGET_LEVELS, 1, 2, null_p=0.08, empty_p=0.08)
-    session_trip_types = weighted_map(TRIP_TYPES, 1, 2, null_p=0.05, empty_p=0.08)
-    check_in, check_out = date_pair()
-    guests = guest_count(session_trip_types)
-    top_session_trip = (
-        max(session_trip_types, key=lambda key: signal_rank(session_trip_types[key])) if session_trip_types else None
-    )
     long_term_profile = {
         "nationality": long_nationality,
         "age_group": age_group,
@@ -1068,34 +1029,10 @@ def standard_profile(index, name, nationality):
         "recommendation_clicks": recommendation_clicks(),
         "long_term_negative_preferences": negative_preferences(AMENITIES),
     }
-    session_context = {
-        "destination": random.choice(DESTINATIONS),
-        "current_location": random.choice(CURRENT_LOCATIONS),
-        "nearby_place": random.choice(NEARBY_PLACES),
-        "number_of_guests": guests,
-        "has_pet": True if random.random() < 0.12 else random.choice([False, False, None]),
-        "has_children": (
-            True
-            if top_session_trip in {"Gia đình có trẻ nhỏ", "Gia đình có thanh thiếu niên"} and random.random() < 0.7
-            else random.choice([False, False, None])
-        ),
-        "check_in": check_in,
-        "check_out": check_out,
-        "is_enough": False,
-        "session_trip_types": session_trip_types,
-        "session_budget_levels": session_budget_levels,
-        "session_price_range": price_range(session_budget_levels),
-        "session_preference_habits": weighted_map(PREFERENCE_SIGNALS, 1, 4),
-        "session_hotel_types": weighted_map(HOTEL_TYPES, 1, 3),
-        "session_room_views": weighted_map(ROOM_VIEWS, 1, 3),
-        "session_amenities": weighted_map(SESSION_AMENITIES, 1, 5),
-        "session_negative_preferences": negative_preferences(SESSION_AMENITIES),
-    }
     profile = {
         "user_id": f"user_{index:03d}",
         "name": maybe_null(name, 0.04),
         "long_term_profile": long_term_profile,
-        "session_context": session_context,
     }
     refresh_is_enough(profile)
     return profile
@@ -1130,31 +1067,6 @@ def apply_demo_overrides(profiles):
                 "avoid_locations": {"crowded_center": signal(14)},
             },
         },
-        "session_context": {
-            "destination": "Da Nang",
-            "current_location": "Ho Chi Minh City",
-            "nearby_place": "Bãi Biển",
-            "number_of_guests": 2,
-            "has_pet": False,
-            "has_children": False,
-            "check_in": None,
-            "check_out": None,
-            "is_enough": False,
-            "session_trip_types": {"Cặp đôi": signal(27)},
-            "session_budget_levels": {"low": signal(26)},
-            "session_price_range": {"min": 500000, "max": 1500000, "currency": "VND"},
-            "session_preference_habits": {"unique": signal(24), "vibrant": signal(18), "safety": signal(22)},
-            "session_hotel_types": {"Nhà dân": signal(25), "Nhà nghỉ ven đường": signal(21)},
-            "session_room_views": {"Hướng Biển": signal(25)},
-            "session_amenities": {"WiFi miễn phí": signal(29)},
-            "session_negative_preferences": {
-                "avoid_hotel_types": {},
-                "avoid_amenities": {},
-                "avoid_preference_habits": {"low_rating": signal(27)},
-                "avoid_nearby_places": {},
-                "avoid_locations": {},
-            },
-        },
     }
 
     profiles[4]["long_term_profile"].update(
@@ -1174,38 +1086,15 @@ def apply_demo_overrides(profiles):
             "recommendation_clicks": {"hotel": [2985143]},
         }
     )
-    profiles[4]["session_context"].update(
+    profiles[14]["long_term_profile"].update(
         {
-            "session_trip_types": {"Khách đi công tác": signal(28)},
-            "destination": "Ho Chi Minh City",
-            "nearby_place": "Cao Ốc Văn Phòng",
-            "number_of_guests": 1,
-            "session_room_views": {"Hướng Thành phố": signal(28)},
-            "session_amenities": {"WiFi miễn phí": signal(29), "Thiết bị phát dữ liệu di động": signal(24), "Cách âm": signal(26)},
-            "session_negative_preferences": {
-                "avoid_hotel_types": {"Nhà nghỉ": signal(27), "Nhà khách / Nhà nghỉ B&B": signal(18)},
-                "avoid_amenities": {"Cho phép hút thuốc": signal(15)},
-                "avoid_preference_habits": {"noisy": signal(29), "old_facility": signal(24), "low_rating": signal(27)},
-                "avoid_nearby_places": {"Chợ": signal(14)},
-                "avoid_locations": {"crowded_center": signal(20)},
-            },
-        }
-    )
-
-    profiles[14]["session_context"].update(
-        {
-            "session_trip_types": {"Gia đình có trẻ nhỏ": signal(29)},
-            "destination": "Phu Quoc",
-            "nearby_place": "Công Viên Giải Trí",
-            "number_of_guests": 4,
-            "has_children": True,
-            "has_pet": False,
-            "session_budget_levels": {"medium": signal(25)},
-            "session_price_range": {"min": 2000000, "max": 5000000, "currency": "VND"},
-            "session_preference_habits": {"comfort": signal(24), "safety": signal(27), "unique": signal(20)},
-            "session_hotel_types": {"Resort": signal(26), "Khách sạn": signal(15)},
-            "session_room_views": {"Hướng Bể bơi": signal(27), "Hướng Biển": signal(22)},
-            "session_amenities": {
+            "long_term_trip_types": {"Gia đình có trẻ nhỏ": signal(25), "Gia đình có người già": signal(29)},
+            "long_term_budget_levels": {"medium": signal(25)},
+            "long_term_price_range": {"min": 2000000, "max": 5000000, "currency": "VND"},
+            "long_term_preference_habits": {"comfort": signal(24), "safety": signal(27), "unique": signal(20)},
+            "long_term_hotel_types": {"Resort": signal(26), "Khách sạn": signal(15)},
+            "long_term_room_views": {"Hướng Bể bơi": signal(27), "Hướng Biển": signal(22)},
+            "long_term_amenities": {
                 "Bể bơi": signal(23),
                 "Tiện nghi cho em bé theo yêu cầu": signal(29),
                 "Máy pha trà cà phê": signal(20),
@@ -1266,7 +1155,6 @@ def validate_signal_map(name, value, allowed_keys=None):
 
 def validate_profile(profile):
     long_term = profile["long_term_profile"]
-    session = profile["session_context"]
 
     if "is_enough" not in long_term:
         raise ValueError("long_term_profile.is_enough is required")
@@ -1276,14 +1164,6 @@ def validate_profile(profile):
     if long_term["is_enough"] != expected_long_term_is_enough:
         raise ValueError("long_term_profile.is_enough does not match LONG_TERM_ENOUGH_FIELDS")
 
-    if "is_enough" not in session:
-        raise ValueError("session_context.is_enough is required")
-    if not isinstance(session["is_enough"], bool):
-        raise TypeError("session_context.is_enough must be boolean")
-    expected_session_is_enough = fields_are_enough(session, SESSION_ENOUGH_FIELDS)
-    if session["is_enough"] != expected_session_is_enough:
-        raise ValueError("session_context.is_enough does not match SESSION_ENOUGH_FIELDS")
-
     validate_signal_map("traveler_type", long_term["traveler_type"], TRAVELER_TYPES)
     validate_signal_map("long_term_trip_types", long_term["long_term_trip_types"], TRIP_TYPES)
     validate_signal_map("long_term_budget_levels", long_term["long_term_budget_levels"], BUDGET_LEVELS)
@@ -1292,16 +1172,8 @@ def validate_profile(profile):
     validate_signal_map("long_term_room_views", long_term["long_term_room_views"], ROOM_VIEWS)
     validate_signal_map("long_term_amenities", long_term["long_term_amenities"], AMENITIES)
 
-    validate_signal_map("session_trip_types", session["session_trip_types"], TRIP_TYPES)
-    validate_signal_map("session_budget_levels", session["session_budget_levels"], BUDGET_LEVELS)
-    validate_signal_map("session_preference_habits", session["session_preference_habits"], PREFERENCE_SIGNALS)
-    validate_signal_map("session_hotel_types", session["session_hotel_types"], HOTEL_TYPES)
-    validate_signal_map("session_room_views", session["session_room_views"], ROOM_VIEWS)
-    validate_signal_map("session_amenities", session["session_amenities"], SESSION_AMENITIES)
-
     for container_name, container in [
         ("long_term_negative_preferences", long_term["long_term_negative_preferences"]),
-        ("session_negative_preferences", session["session_negative_preferences"]),
     ]:
         for field_name, value in container.items():
             validate_signal_map(f"{container_name}.{field_name}", value)
@@ -1320,13 +1192,6 @@ def validate_profiles(profiles):
         validate_profile(profile)
 
 
-def validate_ascii_only(path):
-    raw = Path(path).read_text(encoding="utf-8")
-    non_ascii = sorted(set(ch for ch in raw if ord(ch) > 127))
-    if non_ascii:
-        raise ValueError(f"Generated file contains non-ASCII characters: {non_ascii[:10]}")
-
-
 def main():
     profiles = generate_profiles(USER_COUNT)
     validate_profiles(profiles)
@@ -1338,13 +1203,12 @@ def main():
         "users": profiles,
     }
 
-    OUTPUT_FILE.write_text(json.dumps(output, ensure_ascii=True, indent=2), encoding="utf-8")
-    validate_ascii_only(OUTPUT_FILE)
+    OUTPUT_FILE.write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
 
     print(f"Created {OUTPUT_FILE.resolve()}")
     print(f"Users: {len(profiles)}")
     print("Schema alignment: passed")
-    print("ASCII validation: passed")
+    print("UTF-8 Vietnamese labels: preserved")
 
 
 if __name__ == "__main__":
