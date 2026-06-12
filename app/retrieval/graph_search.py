@@ -1,4 +1,7 @@
-"""Tìm kiếm: câu hỏi tiếng Việt -> Cypher (GPT-4o) -> kết quả nhiều loại node.
+"""Candidate retrieval bằng đồ thị: câu hỏi tiếng Việt -> Cypher (GPT-4o) -> node.
+
+Đây là MỘT phương pháp truy hồi ứng viên (graph-based). Các phương pháp khác
+(vector, BM25, hybrid...) có thể đặt cạnh trong package app.retrieval.
 
 Pipeline:
     user_query -> [get_schema] -> [generate_cypher] -> [validate read-only]
@@ -16,7 +19,7 @@ from neo4j.exceptions import Neo4jError
 
 from app.core.llm_client import OPENAI_MODEL, get_openai
 from app.core.neo4j_client import run_cypher_nodes
-from app.services.schema import get_schema
+from app.retrieval.schema import get_schema
 
 # Các từ khoá Cypher gây ghi/đổi dữ liệu -> tool sẽ từ chối thực thi.
 _WRITE_KEYWORDS = re.compile(

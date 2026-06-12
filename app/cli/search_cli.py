@@ -19,7 +19,7 @@ from rich.table import Table
 
 from app.cli.format import money, score, stars, txt
 from app.core.neo4j_client import close
-from app.services.search import generate_cypher, run_plan
+from app.retrieval.graph_search import generate_cypher, run_plan
 
 console = Console()
 

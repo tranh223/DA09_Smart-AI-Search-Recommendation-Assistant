@@ -16,7 +16,7 @@ import json
 from app.config import CANDIDATE_LIMIT
 from app.core.llm_client import OPENAI_MODEL, get_openai
 from app.core.neo4j_client import run_cypher
-from app.services.search import search
+from app.retrieval.graph_search import search
 
 
 # --------------------------------------------------------------------------- #

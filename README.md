@@ -25,10 +25,13 @@ ota_ai_assitant/
     ├── core/                # tầng hạ tầng
     │   ├── neo4j_client.py  # driver + run_cypher / run_cypher_nodes / close
     │   └── llm_client.py    # OpenAI client + model
-    ├── services/            # tầng nghiệp vụ
+    ├── retrieval/           # tầng candidate retrieval (nhiều phương pháp)
     │   ├── schema.py        # introspect schema + danh mục City/Tag
-    │   ├── search.py        # NL -> Cypher -> kết quả (generate_cypher, run_plan, search)
-    │   └── recommender.py   # gợi ý cá nhân hóa (recommend)
+    │   └── graph_search.py  # graph-based: NL -> Cypher (generate_cypher, run_plan, search)
+    │   #                      (sau có thể thêm: vector_search.py, bm25_search.py, hybrid...)
+    ├── services/            # tầng nghiệp vụ
+    │   ├── recommender.py   # gợi ý cá nhân hóa (recommend)
+    │   └── chat.py          # hội thoại có ngữ cảnh theo session (condense)
     ├── api/                 # tầng API (FastAPI) cho web
     │   ├── schemas.py       # Pydantic (khớp frontend/src/types.ts)
     │   └── server.py        # POST /chat (SSE) -> gợi ý
@@ -86,7 +89,7 @@ Mở trình duyệt → **nhập user_id** (vd `user_141`) để "đăng nhập"
 
 ### Dùng như thư viện
 ```python
-from app.services.search import search
+from app.retrieval.graph_search import search
 from app.services.recommender import recommend
 from app.core.neo4j_client import close
 
