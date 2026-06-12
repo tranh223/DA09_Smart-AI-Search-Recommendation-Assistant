@@ -1,0 +1,252 @@
+{
+  "timestamp": "2026-06-12T09:44:18.866182",
+  "summary": {
+    "total_cases": 20,
+    "latency_avg_ms": 3642.6883935928345,
+    "latency_min_ms": 1256.0505867004395,
+    "latency_max_ms": 41282.10544586182,
+    "latency_p95_ms": 41282.10544586182,
+    "accuracy_avg": 0.2125,
+    "accuracy_min": 0.2,
+    "accuracy_max": 0.45,
+    "category_breakdown": {
+      "factual": {
+        "count": 3,
+        "avg_latency_ms": 14854.12335395813,
+        "avg_accuracy": 0.2833333333333334
+      },
+      "personalized": {
+        "count": 3,
+        "avg_latency_ms": 2180.336316426595,
+        "avg_accuracy": 0.20000000000000004
+      },
+      "complex": {
+        "count": 3,
+        "avg_latency_ms": 1402.4856090545654,
+        "avg_accuracy": 0.20000000000000004
+      },
+      "constraint": {
+        "count": 3,
+        "avg_latency_ms": 1458.7894280751545,
+        "avg_accuracy": 0.20000000000000004
+      },
+      "preference": {
+        "count": 3,
+        "avg_latency_ms": 1885.9923680623372,
+        "avg_accuracy": 0.20000000000000004
+      },
+      "context": {
+        "count": 3,
+        "avg_latency_ms": 1576.2503147125244,
+        "avg_accuracy": 0.20000000000000004
+      },
+      "reasoning": {
+        "count": 2,
+        "avg_latency_ms": 1389.9178504943848,
+        "avg_accuracy": 0.2
+      }
+    }
+  },
+  "detailed_results": [
+    {
+      "use_case_id": "UC01",
+      "use_case_name": "Simple destination info",
+      "category": "factual",
+      "query": "What are the best beaches in Da Nang?",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 41282.10544586182,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:43:47.279794"
+    },
+    {
+      "use_case_id": "UC02",
+      "use_case_name": "Hotel search",
+      "category": "factual",
+      "query": "Find budget-friendly hotels near My Khe Beach",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 1821.4657306671143,
+      "accuracy_score": 0.45,
+      "timestamp": "2026-06-12T09:43:49.101649"
+    },
+    {
+      "use_case_id": "UC03",
+      "use_case_name": "Activity recommendation",
+      "category": "factual",
+      "query": "What activities are available in Ho Chi Minh City?",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 1458.798885345459,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:43:50.561064"
+    },
+    {
+      "use_case_id": "UC04",
+      "use_case_name": "Personalized recommendation for user_001",
+      "category": "personalized",
+      "query": "Find accommodation for user_001 in Da Nang",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 1609.27152633667,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:43:52.170831"
+    },
+    {
+      "use_case_id": "UC05",
+      "use_case_name": "Budget-constrained search",
+      "category": "personalized",
+      "query": "Show me budget hotels under 1,500,000 VND",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 3543.797731399536,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:43:55.715088"
+    },
+    {
+      "use_case_id": "UC06",
+      "use_case_name": "Traveler type matching",
+      "category": "personalized",
+      "query": "Recommend unique and lively destinations for explorers",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 1387.939691543579,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:43:57.103637"
+    },
+    {
+      "use_case_id": "UC07",
+      "use_case_name": "Multi-criteria search",
+      "category": "complex",
+      "query": "Find a homestay in Da Nang with WiFi, breakfast, unique vibe, and under 1.5M VND",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 1256.0505867004395,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:43:58.359931"
+    },
+    {
+      "use_case_id": "UC08",
+      "use_case_name": "Comparison request",
+      "category": "complex",
+      "query": "Compare budget hotels vs hostels in Da Nang",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 1470.310926437378,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:43:59.830447"
+    },
+    {
+      "use_case_id": "UC09",
+      "use_case_name": "Planning query",
+      "category": "complex",
+      "query": "Plan a 3-day trip to Da Nang with activities and accommodation",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 1481.095314025879,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:44:01.311705"
+    },
+    {
+      "use_case_id": "UC10",
+      "use_case_name": "Group travel planning",
+      "category": "constraint",
+      "query": "Find accommodations for a group of 4 with budget constraints in Nha Trang",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 1624.8366832733154,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:44:02.936774"
+    },
+    {
+      "use_case_id": "UC11",
+      "use_case_name": "Pet-friendly search",
+      "category": "constraint",
+      "query": "Find pet-friendly hotels in Ho Chi Minh City",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 1432.145595550537,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:44:04.371478"
+    },
+    {
+      "use_case_id": "UC12",
+      "use_case_name": "Family travel",
+      "category": "constraint",
+      "query": "Best family-friendly hotels with children facilities",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 1319.3860054016113,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:44:05.691046"
+    },
+    {
+      "use_case_id": "UC13",
+      "use_case_name": "Negative preference handling",
+      "category": "preference",
+      "query": "Find hotels in Da Nang but avoid luxury and crowded areas",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 2599.749803543091,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:44:08.290959"
+    },
+    {
+      "use_case_id": "UC14",
+      "use_case_name": "Safety-focused search",
+      "category": "preference",
+      "query": "Show me safe neighborhoods and low-crime areas in Ho Chi Minh City",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 1468.4875011444092,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:44:09.759629"
+    },
+    {
+      "use_case_id": "UC15",
+      "use_case_name": "Amenity-focused",
+      "category": "preference",
+      "query": "Hotels with strong WiFi and breakfast included",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 1589.7397994995117,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:44:11.349595"
+    },
+    {
+      "use_case_id": "UC16",
+      "use_case_name": "Real estate + travel mix",
+      "category": "context",
+      "query": "Find vacation rentals near tech hubs in Ho Chi Minh",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 1529.8388004302979,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:44:12.880304"
+    },
+    {
+      "use_case_id": "UC17",
+      "use_case_name": "Seasonal planning",
+      "category": "context",
+      "query": "Best time to visit Da Nang and recommended accommodations",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 1663.7814044952393,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:44:14.544353"
+    },
+    {
+      "use_case_id": "UC18",
+      "use_case_name": "Transportation integration",
+      "category": "context",
+      "query": "Hotels near major transport hubs in Da Nang with good connectivity",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 1535.1307392120361,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:44:16.083938"
+    },
+    {
+      "use_case_id": "UC19",
+      "use_case_name": "Cross-destination comparison",
+      "category": "reasoning",
+      "query": "Which is better: Da Nang or Nha Trang for a budget traveler?",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 1404.9415588378906,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:44:17.489058"
+    },
+    {
+      "use_case_id": "UC20",
+      "use_case_name": "Long-tail discovery",
+      "category": "reasoning",
+      "query": "Hidden gems and off-the-beaten-path accommodations in central Vietnam",
+      "response_preview": "Xin lỗi, có lỗi xảy ra: aggregate_information() got an unexpected keyword argument 'hotel_sql_results'",
+      "latency_ms": 1374.894142150879,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:44:18.864191"
+    }
+  ]
+}

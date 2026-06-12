@@ -6,6 +6,7 @@ Dạng API cho hệ thống RAG
 from rag_system import chatbot, get_chatbot
 
 
+
 class ChatbotAPI:
     """API wrapper cho Chatbot"""
     

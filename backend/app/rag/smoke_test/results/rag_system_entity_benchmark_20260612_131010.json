@@ -1,0 +1,22 @@
+{
+  "summary": {
+    "timestamp": "2026-06-12T13:10:10.728305",
+    "total_cases": 2,
+    "avg_latency_ms": null,
+    "avg_keyword_coverage": null
+  },
+  "results": [
+    {
+      "case_id": "ES_01",
+      "case_name": "Hotel near beach - Da Nang",
+      "query": "cho tôi các khách sạn gần biển ở Đà Nẵng",
+      "error": "chatbot.process() got an unexpected keyword argument 'enable_short_term_memory'"
+    },
+    {
+      "case_id": "ES_02",
+      "case_name": "Activity/Policy oriented - Da Nang",
+      "query": "ở Đà Nẵng khách sạn có những hoạt động gì cho gia đình",
+      "error": "chatbot.process() got an unexpected keyword argument 'enable_short_term_memory'"
+    }
+  ]
+}

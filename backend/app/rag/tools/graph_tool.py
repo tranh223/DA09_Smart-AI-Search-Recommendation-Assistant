@@ -12,6 +12,7 @@ import requests
 from dotenv import load_dotenv
 
 from utils.logger import get_logger
+from utils.langsmith_tracer import tracer
 
 load_dotenv()
 
@@ -205,6 +206,7 @@ def _build_search_cypher(query: str) -> str:
     """
 
 
+@tracer.trace("tool_graph_search")
 def search_graph(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
     """
     Search the Neo4j knowledge graph for nodes whose properties match query text.

@@ -2,19 +2,21 @@
 Generation Module
 Tạo kết quả cuối cùng dựa trên thông tin tổng hợp
 """
+import os
 from utils.llm_client import llm_client
+
 from utils.langsmith_tracer import tracer
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-GENERATION_SYSTEM_PROMPT = """Bạn là một trợ lý AI thông minh.
-Dựa trên thông tin được cung cấp, hãy tạo một phản hồi:
-1. Rõ ràng và dễ hiểu
-2. Trích dẫn nguồn thông tin
-3. Cung cấp giải thích chi tiết
-4. Đề cập đến bất kỳ sự không chắc chắn hay hạn chế nào
-5. Cung cấp các đề xuất hoặc bước tiếp theo nếu thích hợp
+GENERATION_SYSTEM_PROMPT = """You are a smart AI assistant.
+Based on the provided information, generate a response:
+1. Clear and easy to understand
+2. Cite the information sources when possible
+3. Provide detailed explanations
+4. Mention any uncertainties or limitations
+5. Provide suggestions or next steps when appropriate
 """
 
 @tracer.trace("generate_response")
@@ -57,7 +59,8 @@ Vui lòng trả lời query dựa trên thông tin được cung cấp."""
     try:
         response = llm_client.call(
             messages,
-            system_prompt=GENERATION_SYSTEM_PROMPT
+            system_prompt=GENERATION_SYSTEM_PROMPT,
+            provider=os.getenv("LLM_PROVIDER", "openai"),
         )
         logger.info("Response generation successful")
         return response
