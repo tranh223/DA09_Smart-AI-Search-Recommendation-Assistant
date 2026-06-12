@@ -78,6 +78,63 @@ def get_candidates(user_id: str, limit: int = CANDIDATE_LIMIT) -> list[dict]:
     )
 
 
+def get_candidates_collaborative(
+    user_id: str, cities: list[str] | None = None, limit: int = CANDIDATE_LIMIT
+) -> list[dict]:
+    """Retrieval theo Collaborative Filtering (user-based, qua co-booking).
+
+    Ý tưởng: tìm "hàng xóm cùng gu" — những user khác từng đặt TRÙNG khách sạn với
+    user mục tiêu — rồi lấy các khách sạn họ đã đặt mà user CHƯA từng đặt làm ứng viên::
+
+        (u)-[:BOOKED]->(sharedHotel)<-[:BOOKED]-(other)-[:BOOKED]->(h)
+
+    `cities`: nếu truyền, CHỈ giữ ứng viên thuộc các thành phố này (vd khi khách yêu cầu
+    "Đà Nẵng"). Bản thân CF không biết địa điểm — nó đi theo hành vi đặt phòng nên có thể
+    trả khách sạn ở mọi nơi; tham số này áp ràng buộc địa điểm lên kết quả. None = không lọc.
+
+    Tín hiệu CF cho mỗi ứng viên `h`:
+        · neighbor_count — số hàng xóm KHÁC NHAU cùng đặt h (càng nhiều càng đáng tin)
+        · overlap_count  — số khách sạn lịch sử trùng nhau dẫn tới h (độ "đồng điệu")
+        · cf_score       — overlap_count / (overlap_count + 2) ∈ [0,1), làm trơn như
+                           hệ số trong truy vấn tổng hợp (tránh thiên vị user ít dữ liệu)
+
+    Trả về cùng bộ field như get_candidates() (kèm matched_tags/min_price để tương
+    thích bước format + LLM), cộng thêm các tín hiệu CF ở trên.
+    Rỗng nếu user chưa từng đặt phòng (không có cơ sở để CF).
+    """
+    return run_cypher(
+        """
+        MATCH (u:User {user_id: $uid})
+        OPTIONAL MATCH (u)-[:INTERESTED_IN]->(it:Tag)
+        WITH u, collect(DISTINCT it.name) AS interests
+
+        // Hàng xóm cùng gu: user khác từng đặt CHUNG khách sạn với u
+        MATCH (u)-[:BOOKED]->(sharedHotel:Hotel)<-[:BOOKED]-(other:User)-[:BOOKED]->(h:Hotel)
+        WHERE other <> u AND NOT (u)-[:BOOKED]->(h)
+              // Ràng buộc địa điểm (nếu có): chỉ giữ KS trong các city yêu cầu
+              AND ($cities IS NULL OR h.city IN $cities)
+        WITH u, interests, h,
+             count(DISTINCT other) AS neighbor_count,
+             count(DISTINCT sharedHotel) AS overlap_count
+
+        // Gắn tag khớp sở thích (cá nhân hóa + tương thích _format_candidates)
+        OPTIONAL MATCH (h)-[:HAS_TAG]->(t:Tag) WHERE t.name IN interests
+        WITH h, neighbor_count, overlap_count, collect(DISTINCT t.name) AS matched_tags
+        OPTIONAL MATCH (h)-[:HAS_ROOM]->(r:Room) WHERE r.price IS NOT NULL
+        WITH h, neighbor_count, overlap_count, matched_tags, min(r.price) AS min_price
+        RETURN h.hotel_id AS hotel_id, h.name AS name, h.city AS city,
+               h.star_rating AS star_rating, h.review_score AS review_score,
+               h.review_count AS review_count, min_price,
+               neighbor_count, overlap_count,
+               1.0 * overlap_count / (overlap_count + 2.0) AS cf_score,
+               size(matched_tags) AS match_count, matched_tags
+        ORDER BY neighbor_count DESC, cf_score DESC, h.review_score DESC
+        LIMIT $limit
+        """,
+        {"uid": user_id, "cities": cities or None, "limit": limit},
+    )
+
+
 def _candidates_from_query(user_id: str, query: str) -> list[dict]:
     """Lọc CỨNG khách sạn theo điều kiện (vd 'Nha Trang có view biển') qua search,
     rồi gắn thông tin cá nhân hóa (tag khớp sở thích, giá) để xếp hạng.
@@ -91,7 +148,21 @@ def _candidates_from_query(user_id: str, query: str) -> list[dict]:
     ]
     if not hotel_ids:
         return []
-    return get_candidates_for_hotels(user_id, hotel_ids)
+    hard = get_candidates_for_hotels(user_id, hotel_ids)
+
+    # Bổ sung tín hiệu Collaborative Filtering, NHƯNG khoá trong đúng (các) thành phố
+    # mà search đã lọc ra — vì bản thân CF không biết địa điểm. Khách sạn vừa khớp
+    # điều kiện cứng vừa được "hàng xóm cùng gu" đặt sẽ được _merge_candidates đẩy lên đầu.
+    cities = sorted({c["city"] for c in hard if c.get("city")})
+    cf = get_candidates_collaborative(user_id, cities=cities) if cities else []
+    merged = _merge_candidates(hard, cf)
+
+    # Đánh dấu nguồn: _strict=True nếu KS qua được lọc CỨNG (thỏa MỌI điều kiện query);
+    # False = chỉ là gợi ý CF cùng thành phố (có thể chưa khớp điều kiện chi tiết).
+    hard_ids = {c["hotel_id"] for c in hard}
+    for c in merged:
+        c["_strict"] = c["hotel_id"] in hard_ids
+    return merged
 
 
 def get_candidates_for_hotels(user_id: str, hotel_ids: list[int]) -> list[dict]:
@@ -120,6 +191,40 @@ def get_candidates_for_hotels(user_id: str, hotel_ids: list[int]) -> list[dict]:
     )
 
 
+def _merge_candidates(*lists: list[dict], limit: int = CANDIDATE_LIMIT) -> list[dict]:
+    """Hợp nhất nhiều nguồn ứng viên (interest + CF...) theo hotel_id, khử trùng lặp.
+
+    Khi một khách sạn xuất hiện ở nhiều nguồn, gộp field: giữ thông tin đã có và bù
+    các tín hiệu còn thiếu từ nguồn sau (vd interest cho matched_tags, CF cho cf_score).
+    Khách sạn được CẢ HAI nguồn đề xuất là tín hiệu mạnh nhất nên xếp lên đầu.
+    """
+    merged: dict[int, dict] = {}
+    sources: dict[int, int] = {}
+    for cands in lists:
+        for c in cands:
+            hid = c["hotel_id"]
+            if hid in merged:
+                for k, v in c.items():
+                    if merged[hid].get(k) in (None, [], 0) and v not in (None, [], 0):
+                        merged[hid][k] = v
+                sources[hid] += 1
+            else:
+                merged[hid] = dict(c)
+                sources[hid] = 1
+
+    def sort_key(c: dict) -> tuple:
+        hid = c["hotel_id"]
+        return (
+            sources[hid],                    # xuất hiện ở càng nhiều nguồn càng tốt
+            c.get("match_count") or 0,       # độ khớp sở thích
+            c.get("neighbor_count") or 0,    # số hàng xóm CF
+            c.get("cf_score") or 0.0,
+            c.get("review_score") or 0.0,
+        )
+
+    return sorted(merged.values(), key=sort_key, reverse=True)[:limit]
+
+
 # --------------------------------------------------------------------------- #
 # Gọi GPT-4o chọn top 5 + giải thích
 # --------------------------------------------------------------------------- #
@@ -139,17 +244,25 @@ NGUYÊN TẮC CHỌN:
 
 CÁCH VIẾT "reason" (tiếng Việt, giọng chuyên gia, ấm áp, tự tin, 2-3 câu):
 - Mở đầu bằng một ĐIỂM NHẤN cá nhân hóa, gọi thẳng vào gu của khách (vd "Đúng gu yên tĩnh
-  và riêng tư của anh/chị:" hoặc "Nếu anh/chị mê không gian sang trọng ven biển:").
+  và riêng tư của bạn:" hoặc "Nếu bạn mê không gian sang trọng ven biển:").
 - Nêu 2-3 lý do CỤ THỂ, lấy TỪ DỮ LIỆU thật: tiện nghi khớp sở thích (dẫn đúng tên tag),
   mức giá so với ngân sách của khách, điểm đánh giá/hạng sao, hay nét tương đồng với nơi họ
   từng đặt. Biến mỗi dữ kiện thành LỢI ÍCH cho khách (vd không chỉ "có hồ bơi" mà "hồ bơi để
   thư giãn sau ngày dài").
 - Kết bằng một câu khơi gợi cảm giác trải nghiệm, ngắn gọn và tinh tế.
 
+CÁCH VIẾT "intro" (câu MỞ ĐẦU trước khi liệt kê, tiếng Việt, ấm áp, 2-3 câu):
+- Là lời dẫn tự nhiên như một concierge đang trò chuyện trực tiếp với khách, mời họ xem qua
+  các gợi ý phía dưới. Phải DÀI và có cảm xúc, không cụt lủn.
+- TUYỆT ĐỐI KHÔNG nhắc tới "hồ sơ", "dữ liệu", "hệ thống", "phân tích" hay bất kỳ cơ chế kỹ
+  thuật nào — chỉ nói chuyện như con người thật quan tâm tới chuyến đi của khách.
+- Có thể nhắc khéo tới mong muốn/điểm đến khách đang tìm để thấy được lắng nghe, rồi khơi gợi
+  sự háo hức trước những lựa chọn sắp giới thiệu. KHÔNG liệt kê tên khách sạn trong intro.
+
 VĂN PHONG:
 - Tự nhiên, sang trọng, đáng tin — như tư vấn viên thật, KHÔNG sáo rỗng, KHÔNG liệt kê khô khan.
 - Không dùng emoji, không markdown, không phóng đại quá mức; mọi khẳng định phải bám dữ liệu.
-- Xưng hô lịch sự, trung tính ("anh/chị" hoặc "bạn"), nhất quán trong cả 5 lý do.
+- Xưng hô DUY NHẤT bằng "bạn" (TUYỆT ĐỐI không dùng "anh/chị"), nhất quán trong intro và cả 5 lý do.
 """
 
 _RESPONSE_SCHEMA = {
@@ -158,6 +271,7 @@ _RESPONSE_SCHEMA = {
     "schema": {
         "type": "object",
         "properties": {
+            "intro": {"type": "string"},
             "recommendations": {
                 "type": "array",
                 "items": {
@@ -170,9 +284,9 @@ _RESPONSE_SCHEMA = {
                     "required": ["hotel_id", "name", "reason"],
                     "additionalProperties": False,
                 },
-            }
+            },
         },
-        "required": ["recommendations"],
+        "required": ["intro", "recommendations"],
         "additionalProperties": False,
     },
 }
@@ -198,10 +312,12 @@ def _format_candidates(candidates: list[dict]) -> str:
     for c in candidates:
         price = f"{int(c['min_price']):,}".replace(",", ".") + "đ" if c.get("min_price") else "?"
         matched = ", ".join(c.get("matched_tags", [])[:8])
+        # Nhãn nhóm: gợi ý CF cùng thành phố nhưng có thể chưa khớp hết điều kiện chi tiết.
+        tag = "" if c.get("_strict", True) else " | [GỢI Ý THÊM: khách cùng gu hay đặt, có thể chưa khớp đủ điều kiện]"
         lines.append(
             f"- id={c['hotel_id']} | {c['name']} | {c.get('city')} | "
             f"{c.get('star_rating')}★ | điểm {c.get('review_score')} | giá từ {price} | "
-            f"khớp {c['match_count']} sở thích: {matched}"
+            f"khớp {c['match_count']} sở thích: {matched}{tag}"
         )
     return "\n".join(lines)
 
@@ -235,15 +351,24 @@ def recommend(user_id: str, query: str | None = None, top_k: int = 5) -> dict:
         if not candidates:
             raise ValueError(f"Không có khách sạn nào khớp điều kiện '{query}'.")
     else:
-        candidates = get_candidates(user_id)
+        # Hợp nhất 2 nguồn retrieval: khớp sở thích (interest) + Collaborative Filtering.
+        # CF rỗng nếu user chưa từng đặt phòng -> rơi về interest-based như cũ.
+        candidates = _merge_candidates(
+            get_candidates(user_id),
+            get_candidates_collaborative(user_id),
+        )
         if not candidates:
             raise ValueError(f"Không có khách sạn ứng viên phù hợp cho user '{user_id}'.")
 
     cand_by_id = {c["hotel_id"]: c for c in candidates}
 
     constraint_note = (
-        f"Tất cả khách sạn ứng viên dưới đây ĐÃ thỏa điều kiện người dùng yêu cầu: "
-        f'"{query}". Hãy xếp hạng theo độ phù hợp với HỒ SƠ và giải thích.\n\n'
+        f'Người dùng yêu cầu: "{query}".\n'
+        f"- Khách sạn KHÔNG có nhãn [GỢI Ý THÊM] đã thỏa ĐẦY ĐỦ điều kiện này — ưu tiên xếp lên trên.\n"
+        f"- Khách sạn có nhãn [GỢI Ý THÊM] chỉ cùng thành phố và được khách cùng gu hay đặt, "
+        f"CÓ THỂ chưa khớp hết điều kiện chi tiết: chỉ giới thiệu như lựa chọn THÊM, và TUYỆT ĐỐI "
+        f"không khẳng định nó có tiện nghi/đặc điểm mà dữ liệu không nêu.\n"
+        f"Hãy xếp hạng theo độ phù hợp với HỒ SƠ và giải thích.\n\n"
         if query else ""
     )
     user_content = (
@@ -280,4 +405,9 @@ def recommend(user_id: str, query: str | None = None, top_k: int = 5) -> dict:
             "reason": rec["reason"],
         })
 
-    return {"profile": profile, "query": query, "recommendations": recs}
+    return {
+        "profile": profile,
+        "query": query,
+        "intro": data.get("intro"),
+        "recommendations": recs,
+    }

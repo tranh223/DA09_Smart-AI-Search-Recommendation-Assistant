@@ -104,8 +104,8 @@ def _chat_stream(req: ChatRequest):
         })
         return
 
-    resolved = result.get("resolved_query") or message
-    intro = f"Dựa trên hồ sơ của bạn và yêu cầu “{resolved}”, đây là {len(cards)} gợi ý phù hợp nhất:"
+    # Câu mở đầu do LLM sinh (concierge nói chuyện tự nhiên), không hardcode.
+    intro = result.get("intro") or "Đây là một vài gợi ý mình đã chọn lọc cho bạn:"
     for word in intro.split(" "):
         yield _sse("token", {"text": word + " "})
 
