@@ -85,7 +85,7 @@ def main():
         options={
             "top_k": 5,
             "return_debug": True,
-            "use_llm_rerank": True,
+            "use_llm_rerank": False,
         },
         trace=True,
     )

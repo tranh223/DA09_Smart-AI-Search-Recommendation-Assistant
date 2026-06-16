@@ -384,6 +384,8 @@ def rerank(
     llm_weight = llm_weight / weight_total
     diversify_recommendations = _bool_option(opts.get("diversify_recommendations"), False)
     diversity_strength = float(opts.get("diversity_strength", 0.15) or 0.15)
+    # control whether to write pretty debug JSON files (may be large)
+    debug_write = _bool_option(opts.get("write_debug_file"), True)
 
     candidate_items, api_source, api_debug = _enrich_candidates_from_hotel_api(candidate_items or [], settings, opts)
     candidate_items, post_source, post_debug = _enrich_candidates_from_postgres(candidate_items, settings, opts)
@@ -433,6 +435,9 @@ def rerank(
                 "name": item.get("name"),
                 "base_score": item["base_score"],
                 "feature_scores": item["feature_scores"],
+                "feature_contributions": result.feature_contributions,
+                "raw_base_before_penalty": round(sum(result.feature_contributions.values()), 6) if hasattr(result, "feature_contributions") else None,
+                "base_after_penalty": round(sum(result.feature_contributions.values()) - result.negative_penalty, 6) if hasattr(result, "feature_contributions") else None,
                 "negative_penalty": item["negative_penalty"],
                 "booking_signals": signal,
                 "price_range": {
@@ -513,6 +518,10 @@ def rerank(
         "scored_items": scored_debug_items,
         "normalized_session": profile.get("session"),
         "normalized_long_term": profile.get("long_term"),
+        # include raw and normalized candidate data for debugging
+        "raw_candidates": raw_candidates_by_id,
+        "normalized_candidates": candidates,
+        "booking_signals_all": signals,
         "llm_used": bool(llm_results),
         "fallback_used": fallback_used,
         "mock_mode": settings.mock_mode,
@@ -524,6 +533,8 @@ def rerank(
         "booking_source": booking_source,
         "llm_source": llm_source,
         "llm_debug": llm_debug,
+        "llm_candidates": [c["item_id"] for c in llm_candidates],
+        "llm_results": llm_results,
     }
     latency_ms = round((time.perf_counter() - started) * 1000, 2)
     write_rerank_log(
@@ -542,9 +553,16 @@ def rerank(
             "fallback_used": fallback_used,
             "candidate_source": candidate_source,
             "candidate_enrichment_debug": candidate_enrichment_debug,
+            # include detailed buckets
+            "raw_candidates": raw_candidates_by_id,
+            "normalized_candidates": candidates,
+            "booking_signals_all": signals,
+            "llm_candidates": [c["item_id"] for c in llm_candidates],
+            "llm_results": llm_results,
             "final_ranked_hotel_ids": [item["item_id"] for item in ranked],
             "ranked_hotel_summaries": [_hotel_log_summary(item) for item in ranked_hotels],
             "feature_scores": {item["item_id"]: item["feature_scores"] for item in ranked},
+            "feature_contributions": {item["item_id"]: item.get("feature_contributions") for item in ranked},
             "trend_score": {item["item_id"]: item["feature_scores"].get("trend", 0.0) for item in ranked},
             "normalized_profile_summary": {
                 "user_id": profile.get("user_id"),
@@ -553,6 +571,7 @@ def rerank(
             },
             "latency_ms": latency_ms,
         },
+        write_debug_file=debug_write,
     )
 
     output = {"ranked_items": ranked, "ranked_hotels": ranked_hotels}

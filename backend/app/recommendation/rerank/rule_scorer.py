@@ -22,6 +22,7 @@ class ScoreResult:
     item: dict[str, Any]
     base_score: float
     feature_scores: dict[str, float]
+    feature_contributions: dict[str, float]
     negative_penalty: float
     filtered: bool = False
     filter_reason: str | None = None
@@ -207,7 +208,7 @@ def negative_penalty(profile: dict[str, Any], hotel: dict[str, Any]) -> float:
 def score_candidate(profile: dict[str, Any], hotel: dict[str, Any], trend_signal: dict[str, Any] | None = None) -> ScoreResult:
     passed, reason = hard_filter(profile, hotel)
     if not passed:
-        return ScoreResult(hotel, 0.0, {}, 0.0, True, reason)
+        return ScoreResult(hotel, 0.0, {}, {}, 0.0, True, reason)
     trend = clamp(as_dict(trend_signal).get("trend_score", 0.0))
     features = {
         "keyword": clamp(hotel.get("keyword_score") if hotel.get("keyword_score") is not None else 0.5),
@@ -221,16 +222,31 @@ def score_candidate(profile: dict[str, Any], hotel: dict[str, Any], trend_signal
         "trend": trend,
     }
     penalty = negative_penalty(profile, hotel)
-    base = (
-        0.12 * features["keyword"]
-        + 0.10 * features["budget"]
-        + 0.14 * features["amenity"]
-        + 0.10 * features["room_view"]
-        + 0.10 * features["review"]
-        + 0.13 * features["availability"]
-        + 0.12 * features["personalization"]
-        + 0.09 * features["location"]
-        + 0.10 * features["trend"]
-        - penalty
+    # weights used for transparency
+    weights = {
+        "keyword": 0.12,
+        "budget": 0.09,
+        "amenity": 0.20,
+        "room_view": 0.09,
+        "review": 0.09,
+        "availability": 0.13,
+        "personalization": 0.11,
+        "location": 0.08,
+        "trend": 0.09,
+    }
+    contributions: dict[str, float] = {}
+    for k, v in features.items():
+        w = weights.get(k, 0.0)
+        contributions[k] = round(w * v, 6)
+
+    base_before_penalty = sum(contributions.values())
+    base_after_penalty = base_before_penalty - penalty
+    final_base = clamp(base_after_penalty)
+
+    return ScoreResult(
+        hotel,
+        round(final_base, 3),
+        {key: round(clamp(value), 3) for key, value in features.items()},
+        {key: float(contributions.get(key, 0.0)) for key in contributions},
+        round(penalty, 3),
     )
-    return ScoreResult(hotel, clamp(base), {key: round(clamp(value), 3) for key, value in features.items()}, round(penalty, 3))
