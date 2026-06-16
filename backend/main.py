@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 import threading
 from contextlib import asynccontextmanager
-from backend.app.analytics.logging.logger import start_log_listener
+from app.analytics.logging.logger import start_log_listener
 from app.api.routes.chat import router as chat_router
 
 @asynccontextmanager

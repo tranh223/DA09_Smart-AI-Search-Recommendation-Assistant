@@ -1,4 +1,4 @@
-from backend.app.db.mongo.mongo_client import get_collection
+from app.db.mongo.mongo_client import get_collection
 
 def analysis_by_day(month: int):
     '''

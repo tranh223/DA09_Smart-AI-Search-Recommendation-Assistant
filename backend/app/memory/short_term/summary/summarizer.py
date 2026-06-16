@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 from openai import OpenAI
-from backend.app.db.mongo.mongo_client import get_collection
+from app.db.mongo.mongo_client import get_collection
 import os
 from bson import ObjectId
 from pymongo.errors import PyMongoError
