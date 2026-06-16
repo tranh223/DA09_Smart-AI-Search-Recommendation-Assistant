@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 import threading
 from contextlib import asynccontextmanager
-from memory_log.conversation_logger import start_log_listener
+from backend.app.analytics.logging.logger import start_log_listener
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
