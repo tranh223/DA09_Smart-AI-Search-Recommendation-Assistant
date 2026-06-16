@@ -1,17 +1,14 @@
-from datetime import datetime
-from pymongo.errors import PyMongoError
-from mongo_client import get_collection
-from bson import ObjectId
-from openai import OpenAI
 import os
 from dotenv import load_dotenv
 import json
 from kafka import KafkaProducer, KafkaConsumer
-from memory_log.analytic_manager import evaluate_session
+from datetime import datetime
+from backend.app.db.mongo.mongo_client import get_collection
+from backend.app.utils.util import transform_id
+from bson import ObjectId
+from backend.app.analytics.metrics.evaluator import evaluate_session
 
 load_dotenv()
-
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv('BASE_URL'))
 
 KAFKA_URL = os.getenv('KAFKA_URL')
 producer = KafkaProducer(
@@ -19,94 +16,6 @@ producer = KafkaProducer(
     value_serializer=lambda v: json.dumps(v).encode('utf-8')
 )
 
-def transform_id(id: str or ObjectId):
-    _id = id
-    if isinstance(id, str) and ObjectId.is_valid(id):
-        _id = ObjectId(id)
-    return _id
-
-def summarize_chat(summary: str, history: list, user_id: str) -> tuple[str, list]:
-    '''
-    cần kiểm tra trước xem có cần summarize k, nếu summary thay đổi thì update summary trong mongodb
-    output: new_summary, new_history
-    '''
-    TRIGGER_THRESHOLD = 6
-    if len(history) < TRIGGER_THRESHOLD:
-        return summary, history    
-    # system_prompt = (
-    #     "Bạn là một trợ lý AI chuyên nghiệp có nhiệm vụ quản lý bộ nhớ hội thoại. "
-    #     "Hãy cập nhật đoạn tóm tắt (Summary) cũ bằng cách tích hợp thêm các thông tin quan trọng từ đoạn hội thoại mới (New Chat). "
-    #     "Yêu cầu: Chỉ giữ lại các thông tin cốt lõi về nhu cầu, sở thích, ngân sách, lưu ý đặc biệt của khách hàng. "
-    #     "Đoạn tóm tắt mới phải ngắn gọn, súc tích và viết bằng Tiếng Việt."
-    # )
-    system_prompt = (
-        "Bạn là một trợ lý AI chuyên nghiệp quản lý bộ nhớ hội thoại cho hệ thống OTA.\n"
-        "Nhiệm vụ của bạn là tổng hợp và cập nhật đoạn tóm tắt (Summary) cũ bằng cách tích hợp thêm các thông tin quan trọng từ đoạn hội thoại mới (History).\n\n"
-        
-        "QUY TẮC NÉN DỮ LIỆU:\n"
-        "- Chỉ giữ lại các thông tin cốt lõi như: nhu cầu, sở thích, thói quen, ngân sách, thời gian, lưu ý đặc biệt,... của khách hàng.\n"
-        "- Đoạn tóm tắt mới viết bằng tiếng Việt, tổng độ dài KHÔNG ĐƯỢC QUÁ 250 từ.\n"
-        "- Chỉ giữ lại dữ liệu thực tế, loại bỏ hoàn toàn lời chào hỏi, từ thừa.\n"
-        "- Nếu thông tin ở hội thoại mới phủ định thông tin cũ (ví dụ: khách đổi ý), hãy cập nhật lại thông tin mới nhất."
-    )
-    user_prompt = f"""
-    --- SUMMARY CŨ ---
-    {summary if summary else "Chưa có thông tin tóm tắt trước đó."}
-    
-    --- ĐOẠN HỘI THOẠI MỚI CẦN CẬP NHẬT ---
-    {history}
-    
-    Hãy trả ra đoạn Summary mới hoàn chỉnh sau khi đã gộp dữ liệu:
-    """
-
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            temperature=0.3
-        )
-        new_summary = response.choices[0].message.content.strip()        
-        if new_summary != summary:
-            db_status = update_summary(summary=new_summary, user_id=user_id)
-            if db_status:
-                print("✅ [summarize_chat] Đã cập nhật Summary mới vào MongoDB thành công.")
-            else:
-                print("❌ [summarize_chat] Hàm update_summary báo lỗi DB, nhưng vẫn trả về summary mới cho runtime.")        
-        new_history = [] 
-        return new_summary, new_history
-    except Exception as e:
-        print(f"❌ [summarize_chat] Lỗi khi gọi OpenAI API: {str(e)}")
-        return summary, history
-
-def update_summary(summary: str, user_id: str or ObjectId) -> bool:
-    '''
-    khi update lưu kèm timestamp
-    '''
-    try:
-        summaries_collection = get_collection("Summary")
-        db_user_id = user_id
-        if isinstance(user_id, str) and ObjectId.is_valid(user_id):
-            db_user_id = ObjectId(user_id)
-        filter_query = {"user_id": db_user_id}  
-        update_data = {
-            "$set": {
-                "content": summary,
-                "last_updated": datetime.now()
-            }
-        }
-        result = summaries_collection.update_one(filter_query, update_data, upsert=True)
-        if result.upserted_id:
-            print(f"🔹 [update_summary] Đã tạo mới Summary cho User ID: {user_id}")
-        else:
-            print(f"🔹 [update_summary] Đã cập nhật Summary cho User ID: {user_id}")
-        return True
-    except PyMongoError as e:
-        print(f"❌ [update_summary] Lỗi thao tác MongoDB với user {user_id}: {str(e)}")
-        return False
-    
 def producer_send(session_id: str, value):
     producer.send(
         topic='users-topic', 
@@ -269,17 +178,40 @@ def start_log_listener():
         except Exception as e:
             print(f"❌ [Log] Lỗi xử lý tin nhắn: {str(e)}")
 
-def ragas_at_deploy(golden_dataset: list) -> dict:
+def log_booking_for_graph(hotel_id, user_id, hotel_name):
     '''
-    chạy ragas trước khi deploy bằng golden dataset (hỏi DATA)
-    output: 4 metric ragas (đơn vị %)
+    lưu user bấm booking khách sạn nào (để tăng weight trong graphDB)
     '''
-    pass
+    bookings_collection = get_collection('Booking')
+    booking_data = {
+        "user_id": transform_id(user_id),
+        "hotel_id": hotel_id,
+        "hotel_name": hotel_name,
+        "booked_at": datetime.now()
+    }
+    try:
+        result = bookings_collection.insert_one(booking_data)
+        print(f"✅ [Mongo] Đã ghi nhận booking thành công. ID: {result.inserted_id}")
+        return result.inserted_id
+    except Exception as e:
+        print(f"❌ [Mongo] Lỗi khi log booking: {str(e)}")
+        return None
+    
 
-def ragas_at_weekend():
+def clear_log(session_id: str, collection):
     '''
-    chạy ragas mỗi cuối tuần bằng 5% random trong đống log chat (k vượt quá 30 bộ hỏi-đáp)
-    tính xong lưu luôn 4 metric ragas (đơn vị %) vào mongodb
-    * chỉ lấy random từ những session mà có end < now() và evaluated = true, chạy xong xóa session
+    xóa reaction, final reaction, latency, ttft, booking của phiên chat sau khi đánh giá
     '''
-    pass
+    collection.update_one(
+        {"_id": ObjectId(session_id)},
+        {
+            "$unset": {
+                "num_like": "",
+                "num_dislike": "",
+                "final_reaction": "",
+                "latency": "",
+                "ttft": "",
+                "booking": ""
+            }
+        }
+    )
