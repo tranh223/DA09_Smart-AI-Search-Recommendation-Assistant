@@ -54,3 +54,11 @@ def analysis_by_day(month: int):
         "ttft": ttft,
         "booking": booking
     }
+
+def analysis_by_month(year: int):
+    '''
+    lấy trong mongodb mọi kết quả đánh giá của năm hiện tại hoặc năm trước đó
+    tính toán và trả về số liệu thống kê theo từng tháng trong năm
+    output: gần giống của hàm analysis_by_day
+    '''
+    pass
