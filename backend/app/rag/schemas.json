@@ -3,6 +3,36 @@
   "title": "RAG Hotels System Schemas",
   "type": "object",
   "properties": {
+    "pipeline_input": {
+      "type": "object",
+      "properties": {
+        "intent_type": {
+          "enum": ["HOTEL_FEATURE_QA", "HOTEL_POLICY_QA", "HOTEL_COMPARISON_QA"]
+        },
+        "source": { "type": "string", "const": "RAG_SERVICE" },
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": { "type": "string", "minLength": 1 },
+            "features": {
+              "type": "object",
+              "properties": {
+                "hotel_name": { "type": ["string", "null"] },
+                "destination": { "type": ["string", "null"] },
+                "amenities": { "type": "array", "items": { "type": "string" } },
+                "expectations": { "type": "array", "items": { "type": "string" } }
+              },
+              "required": ["hotel_name", "destination", "amenities", "expectations"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["query", "features"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["intent_type", "source", "parameters"],
+      "additionalProperties": false
+    },
     "tool_schemas": {
       "type": "object",
       "properties": {
@@ -17,7 +47,12 @@
                   "minLength": 1,
                   "description": "Natural language query"
                 },
-                "top_k": { "type": "integer", "minimum": 1, "default": 5 }
+                "top_k": { "type": "integer", "minimum": 1, "default": 5 },
+                "filters": {
+                  "type": "object",
+                  "description": "Optional FAISS sidecar metadata filters",
+                  "additionalProperties": true
+                }
               },
               "required": ["query", "top_k"],
               "additionalProperties": false
@@ -54,23 +89,6 @@
                 "top_k": { "type": "integer", "minimum": 1, "default": 5 }
               },
               "required": ["query", "top_k"],
-              "additionalProperties": false
-            },
-            "response": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
-          },
-          "required": ["request", "response"],
-          "additionalProperties": false
-        },
-        "tools.user_profile_tool.search_user_profile": {
-          "type": "object",
-          "properties": {
-            "request": {
-              "type": "object",
-              "properties": {
-                "user_id": { "type": "string" },
-                "query": { "type": "string", "minLength": 1 }
-              },
-              "required": ["user_id", "query"],
               "additionalProperties": false
             },
             "response": { "type": "array", "items": { "type": "object", "additionalProperties": true } }

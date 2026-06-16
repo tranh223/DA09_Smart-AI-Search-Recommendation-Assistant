@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 AGGREGATION_SYSTEM_PROMPT = """Bạn là chuyên gia tổng hợp thông tin. Khi nhận được:
 - Query gốc
 - Phân tích của Planner
-- Kết quả từ RAG, Graph, Short-term Memory, và Hotel SQL
+- Kết quả từ RAG, Graph, và Hotel SQL
 hãy:
 1) Đọc mục tiêu chính và các bước xử lý do Planner đề xuất.
 2) Lọc và chỉ giữ phần thông tin liên quan nhất để trả lời query.
@@ -51,9 +51,8 @@ def aggregate_information(
     plan_result: dict = None,
     rag_results: dict = None,
     graph_results: dict = None,
-    user_profile_results: dict = None,
-    short_term_memory_results: dict = None,
     hotel_sql_results: dict = None,
+    single_pass: bool = False,
 ) -> dict:
     """Tổng hợp thông tin từ các nguồn khác nhau."""
 
@@ -68,9 +67,6 @@ def aggregate_information(
     if graph_results and graph_results.get("success"):
         sources_info.append(f"Graph: {graph_results.get('results', [])}")
 
-    if user_profile_results and user_profile_results.get("success"):
-        sources_info.append(f"User Profile: {user_profile_results.get('results', {})}")
-
     if plan_result:
         sources_info.append(f"Planner Context: {plan_result.get('context', '')}")
         sources_info.append(
@@ -78,11 +74,6 @@ def aggregate_information(
         )
         sources_info.append(f"Planner Main Object: {plan_result.get('main_object', '')}")
         sources_info.append(f"Planner Sub Objects: {plan_result.get('sub_objects', [])}")
-
-    if short_term_memory_results and short_term_memory_results.get("success"):
-        sources_info.append(
-            f"Short-term Memory: {short_term_memory_results.get('results', [])}"
-        )
 
     if hotel_sql_results and hotel_sql_results.get("success"):
         sources_info.append(f"Hotel SQL: {hotel_sql_results.get('results', None)}")
@@ -151,6 +142,24 @@ Hãy thực hiện các bước sau:
         return chunks
 
     chunks = _chunk_list(sources_info, chunk_chars=8000)
+
+    if single_pass:
+        try:
+            result = llm_client.call(messages, system_prompt=AGGREGATION_SYSTEM_PROMPT)
+            logger.info("Information aggregation successful (single-pass)")
+            return {
+                "success": True,
+                "aggregated_info": result,
+                "sources_count": len(sources_info),
+                "pass_count": 1,
+            }
+        except Exception as e:
+            logger.error(f"Error aggregating information: {str(e)}")
+            return {
+                "success": False,
+                "aggregated_info": None,
+                "error": str(e),
+            }
 
     # Gọi LLM nhiều lần theo từng cụm nguồn để hạn chế tràn token.
     partial_summaries: list[str] = []

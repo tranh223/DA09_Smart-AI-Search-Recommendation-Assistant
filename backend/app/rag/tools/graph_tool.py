@@ -139,9 +139,12 @@ def _build_search_cypher(query: str) -> str:
     if not query.strip():
         return """
         MATCH (n)
+        WHERE none(label IN labels(n) WHERE toLower(label) IN ['user', 'profile', 'userprofile'])
+          AND ($hotel_id IS NULL OR n.hotel_id = $hotel_id OR n.id = $hotel_id)
         CALL {
             WITH n
             OPTIONAL MATCH (n)-[r]-(m)
+            WHERE m IS NULL OR none(label IN labels(m) WHERE toLower(label) IN ['user', 'profile', 'userprofile'])
             WITH n, r, m
             LIMIT $relationship_limit
             RETURN collect(
@@ -167,6 +170,8 @@ def _build_search_cypher(query: str) -> str:
 
     return """
     MATCH (n)
+    WHERE none(label IN labels(n) WHERE toLower(label) IN ['user', 'profile', 'userprofile'])
+      AND ($hotel_id IS NULL OR n.hotel_id = $hotel_id OR n.id = $hotel_id)
     WITH n, properties(n) AS props
     WITH n, props,
          [key IN keys(props)
@@ -181,6 +186,7 @@ def _build_search_cypher(query: str) -> str:
     CALL {
         WITH n
         OPTIONAL MATCH (n)-[r]-(m)
+        WHERE m IS NULL OR none(label IN labels(m) WHERE toLower(label) IN ['user', 'profile', 'userprofile'])
         WITH n, r, m
         LIMIT $relationship_limit
         RETURN collect(
@@ -207,7 +213,11 @@ def _build_search_cypher(query: str) -> str:
 
 
 @tracer.trace("tool_graph_search")
-def search_graph(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+def search_graph(
+    query: str,
+    top_k: int = 5,
+    hotel_id: Optional[int] = None,
+) -> List[Dict[str, Any]]:
     """
     Search the Neo4j knowledge graph for nodes whose properties match query text.
 
@@ -229,6 +239,7 @@ def search_graph(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
         "terms": _query_terms(query_text),
         "limit": safe_limit,
         "relationship_limit": DEFAULT_RELATIONSHIP_LIMIT,
+        "hotel_id": hotel_id,
     }
 
     try:
