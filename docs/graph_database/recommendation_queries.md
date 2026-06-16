@@ -70,7 +70,7 @@ LLM dùng Neo4j để xử lý các nghiệp vụ gợi ý cá nhân hóa, tìm 
 *   `(:Room)-[:HAS_TAG]->(:Tag)`
 *   `(:Place)-[:HAS_TAG]->(:Tag)`
 *   `(:Tag)-[:RELATED_TO]->(:Tag)`: Quan hệ tương đồng ngữ nghĩa giữa các Tag.
-    *   **Properties**: `score` (Float - Độ tương đồng ngữ nghĩa giữa hai Tag $[0.0, 1.0]$).
+    *   **Properties**: `score` (Float - Độ tương đồng ngữ nghĩa giữa hai Tag $[0.0, 1.0]$), `confidence` (Float - Độ tin cậy $[0.0, 1.0]$).
 
 ---
 
@@ -245,18 +245,126 @@ ORDER BY feature_match_score DESC, hotel.review_score DESC
 LIMIT $limit
 ```
 
-### 2.6 Gợi ý Mở rộng qua Độ tương đồng Tag (Tag Similarity Expansion via RELATED_TO)
+### 2.6 Tìm kiếm Khách sạn theo Ngữ cảnh kết hợp (View Biển, Yên tĩnh, Phù hợp Nhóm đông)
+*   **Mục đích**: Tìm kiếm các khách sạn thỏa mãn đồng thời 3 tiêu chí phức tạp ở các cấp độ khác nhau (Hotel, Room, và Tag):
+    1.  **Có view biển**: Khách sạn có các phòng hướng biển (`r.room_view = "Hướng Biển"`) hoặc được gắn các thẻ liên quan đến biển (`Bãi biển riêng`, `Bãi biển`, `Khu đối diện bãi biển`).
+    2.  **Yên tĩnh**: Khách sạn có phản hồi tốt từ khách hàng về mặt cách âm/yên tĩnh (trọng số của các `REVIEW_TAG` hoặc `HOTEL_AMENITY` như `Cách âm`, `Phòng cách âm` phải lớn hơn 0).
+    3.  **Phù hợp nhóm nhiều người**: Khách sạn có phòng rộng chứa được từ 4 người trở lên (`r.max_occupancy >= 4`) hoặc được gắn các nhãn đối tượng phù hợp (`Nhóm du khách`, `Gia đình`, `Phòng gia đình`, `Thích hợp cho gia đình trẻ em`).
+*   **Điểm số đề xuất (Match Score)**: Tính toán động bằng cách kết hợp có trọng số giữa điểm đánh giá trung bình của khách sạn (`review_score`), mức độ yên tĩnh (`quiet_score`), và mức độ cận/hướng biển.
+
+```cypher
+MATCH (c:City {name: $city})<-[:LOCATED_IN]-(hotel:Hotel)
+
+// 1. Kiểm tra phòng có hướng biển (Room View)
+OPTIONAL MATCH (hotel)-[:HAS_ROOM]->(r:Room)
+WHERE r.room_view = 'Hướng Biển'
+WITH hotel, count(r) AS ocean_view_rooms
+
+// 2. Kiểm tra các tag liên quan đến bãi biển ở cấp độ khách sạn
+OPTIONAL MATCH (hotel)-[hb:HAS_TAG]->(tb:Tag)
+WHERE tb.name IN ['Bãi biển riêng', 'Bãi biển', 'Khu đối diện bãi biển']
+WITH hotel, ocean_view_rooms, sum(coalesce(hb.weight, 0)) AS beach_tag_weight
+
+// 3. Đo lường mức độ yên tĩnh/cách âm từ đánh giá và tiện ích
+OPTIONAL MATCH (hotel)-[hq:HAS_TAG]->(tq:Tag)
+WHERE tq.name IN ['Cách âm', 'Phòng cách âm']
+WITH hotel, ocean_view_rooms, beach_tag_weight, max(coalesce(hq.weight, 0)) AS quiet_score
+
+// 4. Kiểm tra sự phù hợp cho nhóm/gia đình qua các thẻ phân loại
+OPTIONAL MATCH (hotel)-[hs:HAS_TAG]->(ts:Tag)
+WHERE ts.name IN ['Nhóm du khách', 'Gia đình', 'Phòng gia đình', 'Thích hợp cho gia đình trẻ em']
+
+// 5. Kiểm tra sự tồn tại của phòng có sức chứa lớn (max_occupancy >= 4)
+OPTIONAL MATCH (hotel)-[:HAS_ROOM]->(rg:Room)
+WHERE rg.max_occupancy >= 4
+
+WITH hotel, ocean_view_rooms, beach_tag_weight, quiet_score, 
+     collect(distinct ts.name) AS group_tags, 
+     count(distinct rg) AS large_room_count,
+     max(rg.max_occupancy) AS max_room_occupancy
+     
+// Điều kiện lọc nghiêm ngặt để đảm bảo thỏa mãn cả 3 tiêu chí:
+WHERE (ocean_view_rooms > 0 OR beach_tag_weight > 0) // Tiêu chí 1: Hướng biển/Cận biển
+  AND quiet_score > 0                              // Tiêu chí 2: Yên tĩnh/Cách âm
+  AND (size(group_tags) > 0 OR large_room_count > 0) // Tiêu chí 3: Phù hợp nhóm đông
+
+RETURN hotel.hotel_id AS hotel_id,
+       hotel.name AS name,
+       hotel.star_rating AS star_rating,
+       hotel.review_score AS review_score,
+       ocean_view_rooms,
+       max_room_occupancy,
+       group_tags,
+       // Tính toán điểm số tương thích tổng hợp (Match Score)
+       (hotel.review_score / 10.0) * 0.4 + 
+       (quiet_score) * 0.3 + 
+       (case when ocean_view_rooms > 0 then 1.0 else beach_tag_weight end) * 0.3 AS match_score
+ORDER BY match_score DESC, hotel.review_score DESC
+LIMIT $limit
+```
+
+### 2.7 Tìm kiếm Khách sạn lãng mạn cho Cặp đôi (View Biển, Nhiều Tiện ích)
+*   **Mục đích**: Gợi ý khách sạn lãng mạn và đầy đủ dịch vụ cho cặp đôi tại thành phố biển:
+    1.  **Dành cho cặp đôi**: Khách sạn có điểm số đánh giá hoặc đặc tả phù hợp cho cặp đôi lớn (`tc.name = "Cặp đôi"`).
+    2.  **View biển**: Có phòng hướng biển hoặc nằm trực diện biển.
+    3.  **Nhiều tiện ích**: Xếp hạng ưu tiên các khách sạn có đa dạng tiện nghi dịch vụ giải trí/thư giãn (đếm số lượng `HOTEL_AMENITY`).
+*   **Điểm số đề xuất (Match Score)**: Tính toán dựa trên độ hài lòng (`review_score`), độ lãng mạn (`couple_score`), yếu tố view biển, và độ phong phú tiện ích.
+
+```cypher
+MATCH (c:City {name: $city})<-[:LOCATED_IN]-(hotel:Hotel)
+
+// 1. Kiểm tra mức độ phù hợp cho cặp đôi (Tag "Cặp đôi" thuộc SUITABLE_FOR hoặc REVIEW_TAG)
+MATCH (hotel)-[hc:HAS_TAG]->(tc:Tag)
+WHERE tc.name = 'Cặp đôi' AND tc.category IN ['SUITABLE_FOR', 'REVIEW_TAG']
+WITH hotel, sum(hc.weight) AS couple_score
+
+// 2. Kiểm tra phòng có hướng biển (Room View)
+OPTIONAL MATCH (hotel)-[:HAS_ROOM]->(r:Room)
+WHERE r.room_view = 'Hướng Biển'
+WITH hotel, couple_score, count(r) AS ocean_view_rooms
+
+// 3. Kiểm tra các tag bãi biển ở cấp độ khách sạn
+OPTIONAL MATCH (hotel)-[hb:HAS_TAG]->(tb:Tag)
+WHERE tb.name IN ['Bãi biển riêng', 'Bãi biển', 'Khu đối diện bãi biển']
+WITH hotel, couple_score, ocean_view_rooms, sum(coalesce(hb.weight, 0)) AS beach_tag_weight
+
+// 4. Đếm số lượng tiện ích khách sạn (HOTEL_AMENITY) để đánh giá "nhiều tiện ích"
+OPTIONAL MATCH (hotel)-[ha:HAS_TAG]->(ta:Tag {category: 'HOTEL_AMENITY'})
+WITH hotel, couple_score, ocean_view_rooms, beach_tag_weight, count(distinct ta) AS amenity_count
+
+// Điều kiện lọc: Phải phù hợp cặp đôi và có yếu tố cận biển/hướng biển
+WHERE couple_score > 0
+  AND (ocean_view_rooms > 0 OR beach_tag_weight > 0)
+
+RETURN hotel.hotel_id AS hotel_id,
+       hotel.name AS name,
+       hotel.star_rating AS star_rating,
+       hotel.review_score AS review_score,
+       couple_score,
+       ocean_view_rooms,
+       amenity_count,
+       // Điểm số tương thích (Match Score) kết hợp độ hài lòng (review_score), độ lãng mạn (couple_score), 
+       // yếu tố view biển, và sự đa dạng tiện ích (chuẩn hóa trên thang 50 tiện ích).
+       (hotel.review_score / 10.0) * 0.3 + 
+       (couple_score) * 0.3 + 
+       (case when ocean_view_rooms > 0 then 1.0 else beach_tag_weight end) * 0.2 + 
+       (coalesce(amenity_count, 0) / 50.0) * 0.2 AS match_score
+ORDER BY match_score DESC, hotel.review_score DESC
+LIMIT $limit
+```
+
+### 2.8 Gợi ý Mở rộng qua Độ tương đồng Tag (Tag Similarity Expansion via RELATED_TO)
 *   **Mục đích**: Gợi ý các khách sạn có các tiện ích hoặc đối tượng phù hợp tương tự (nhưng không nhất thiết phải trùng khớp hoàn toàn từ khóa chính xác) với sở thích của người dùng bằng cách mở rộng các tag quan tâm qua quan hệ tương đồng ngữ nghĩa `RELATED_TO` (được sinh từ embedding). (Ví dụ: Người dùng thích "Bi-a" có thể được gợi ý khách sạn có "Phòng giải trí" hoặc "Bóng bàn").
-*   **Ý tưởng**: Từ các tag mà người dùng quan tâm (`INTERESTED_IN`), tìm các tag tương đồng qua quan hệ `RELATED_TO` (với score >= 0.7), sau đó tính toán điểm số phù hợp với khách sạn dựa trên tích: `user interest score` * `similarity score` * `hotel tag weight`.
+*   **Ý tưởng**: Từ các tag mà người dùng quan tâm (`INTERESTED_IN`), tìm các tag tương đồng qua quan hệ `RELATED_TO` (với score >= 0.7 và confidence >= 0.7), sau đó tính toán điểm số phù hợp với khách sạn dựa trên tích: `user interest score` * `similarity score` * `similarity confidence` * `hotel tag weight`.
 
 ```cypher
 MATCH (u:User {user_id: $user_id})-[i:INTERESTED_IN]->(t1:Tag)
 WITH t1, i.count * exp(-0.05 * duration.inDays(date(i.last_interaction), date()).days) AS userInterestScore
 // Tìm các tag tương đồng ngữ nghĩa qua RELATED_TO
 MATCH (t1)-[rel:RELATED_TO]-(t2:Tag)<-[h:HAS_TAG]-(hotel:Hotel)
-WHERE hotel.city = $city AND rel.score >= 0.7
+WHERE hotel.city = $city AND rel.score >= 0.7 AND rel.confidence >= 0.7
 WITH hotel, t2,
-     sum(userInterestScore * rel.score * h.weight) AS matchContribution,
+     sum(userInterestScore * rel.score * rel.confidence * h.weight) AS matchContribution,
      collect(distinct t1.name) AS originalTags,
      collect(distinct t2.name) AS expandedTags
 WITH hotel, sum(matchContribution) AS similarityMatchScore, originalTags, expandedTags
@@ -270,7 +378,6 @@ RETURN hotel.hotel_id AS hotel_id,
 ORDER BY similarity_match_score DESC, hotel.review_score DESC
 LIMIT $limit
 ```
-
 
 ---
 

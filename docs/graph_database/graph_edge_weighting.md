@@ -26,7 +26,9 @@ Tương tự: cụm bể bơi ← tag `Bể bơi` (73%), cụm bữa sáng ← t
 Nhờ vậy chỉ ~15–18 review tag là đủ "phủ" phần lớn 275 amenity, và mỗi amenity có
 trọng số **phản ánh chất lượng thật theo chủ đề** thay vì chỉ là presence.
 
-Baseline chung: $R_0(H) = \dfrac{\text{Hotel.review\_score}}{10} \in [0,1]$.
+Baseline chung: $R_0(H) = \dfrac{\text{Hotel.review\_score}}{10} \in [0,1]$ — **bản chống‑0**
+(thiếu `review_score` → $\tilde R_0$) và prior đầy đủ định nghĩa ở **§2.3**; các công thức
+§2.1–§2.2 dưới đây viết gọn theo $R_0$/`prior`, hiểu là prior §2.3.
 
 ---
 
@@ -42,25 +44,27 @@ S_j = \frac{p_j}{100}, \qquad
 c_j = \frac{m_j}{m_j + k}\ \ (k = 20)
 $$
 
-Điểm của một cụm (shrinkage về baseline khi ít lượt nhắc):
+Điểm của một cụm (shrinkage về **prior** khi ít lượt nhắc — `prior` theo §2.3, không
+phải $R_0$ trần, để không bao giờ về 0):
 
 $$
-w_j = c_j \cdot S_j + (1 - c_j)\cdot R_0(H)
+w_j = c_j \cdot S_j + (1 - c_j)\cdot \text{prior}_j(H)
 $$
 
 Trọng số amenity = trung bình các cụm của nó, **có trọng số theo độ tin cậy** $m_j$
-(nếu thuộc nhiều cụm); nếu không thuộc cụm nào / cụm không được review tại $H$ → $R_0$:
+(nếu thuộc nhiều cụm); nếu không thuộc cụm nào / cụm không được review tại $H$ →
+$\text{prior}(H,a)$ (§2.3):
 
 $$
 \boxed{\,w_{\text{amenity}}(H,a) =
 \begin{cases}
 \dfrac{\sum_{j \in \text{cl}(a)} m_j\, w_j}{\sum_{j \in \text{cl}(a)} m_j}, & \text{cl}(a) \neq \varnothing\\[3mm]
-R_0(H), & \text{ngược lại}
+\text{prior}(H,a), & \text{ngược lại}
 \end{cases}}
 $$
 
 - $S_j$ cao (khách khen) → đẩy cụm lên; thấp (khách chê) → kéo cụm xuống.
-- $m_j$ nhỏ → $c_j$ nhỏ → cụm co về $R_0$ (chưa đủ bằng chứng để lệch).
+- $m_j$ nhỏ → $c_j$ nhỏ → cụm co về `prior` (chưa đủ bằng chứng để lệch).
 
 ### 2.2 Cạnh SUITABLE_FOR — theo `demographics`
 
@@ -69,10 +73,79 @@ Mỗi nhóm khách trong `demographics[]` có `count` và `score`. Gom bản ghi
 
 $$
 w_{\text{suitable}}(H,g) = c_d(g)\cdot \frac{\overline{score}(g)}{10}
-+ \big(1-c_d(g)\big)\cdot R_0(H),
++ \big(1-c_d(g)\big)\cdot \text{prior}(H,g),
 \qquad
 c_d(g) = \frac{\text{count}(g)}{\text{count}(g) + k_d}\ \ (k_d = 50)
 $$
+
+($g$ không thuộc cụm amenity → $\text{prior}(H,g)=R_0(H)$ bản chống‑0, §2.3.)
+
+### 2.3 Fallback prior — khi tag CÓ mặt nhưng thiếu bằng chứng review
+
+> **Phân biệt trước:** nếu khách sạn **không sở hữu** một tag thì trong graph
+> **không có cạnh `HAS_TAG`** tới tag đó (vắng mặt = không có cạnh, *không phải*
+> `weight = 0`). `MatchScore` chỉ cộng trên giao $T(U)\cap T(H)$ nên tag vắng mặt tự
+> động không tham gia — **không gán giá trị cho nó**. Phần này chỉ xử lý tag **thực sự
+> có mặt** (amenity trong `amenities[]`, demographic trong `demographics[]`, review tag
+> trong `reviews_detail.tags[]`) nhưng **không/ít được review** → tránh để $w$ rớt về 0.
+
+> **Lỗi gốc đã quan sát (dump 2026-06-15):** 162 cạnh `HOTEL_AMENITY` = 0, tập trung ở
+> **10 khách sạn không có review nào** (vd *Sofitel Plaza Hanoi, Mercure Hoi An, KS Bắc
+> Kạn*). Các KS này thiếu `review_score` → $R_0=0$, và không có cụm review nào → **mọi**
+> amenity fallback về 0. Phải sửa cả baseline ($R_0$ rỗng) lẫn cách chọn prior.
+
+**Bước 1 — baseline không-bao-giờ-0.** Sửa $R_0$ để dữ liệu thiếu không kéo về 0:
+
+$$
+R_0(H) = \begin{cases} \text{review\_score}/10 & \text{nếu có và } >0 \\[1mm]
+\tilde{R}_0 & \text{ngược lại} \end{cases}
+\qquad \tilde{R}_0 = \text{trung vị } \tfrac{\text{review\_score}}{10}\text{ toàn dataset}
+$$
+
+**Bước 2 — prior toàn cục theo cụm (shrunk, robust với cụm hiếm).** Pool toàn bộ review
+của cụm $t$ trên mọi khách sạn, kéo nhẹ về $\tilde{R}_0$ bằng pseudo-count $k_0$:
+
+$$
+\bar{w}_t = \frac{\sum_{H'} m_{t,H'}\,S_{t,H'} + k_0\,\tilde{R}_0}{\sum_{H'} m_{t,H'} + k_0},
+\qquad k_0 = 50
+$$
+
+**Bước 3 — prior 2 thành phần (empirical-Bayes: hotel × cụm).** Khi thiếu bằng chứng
+cục bộ, prior kết hợp *chất lượng tổng thể của khách sạn* và *chất lượng điển hình của
+loại tiện ích*:
+
+$$
+\boxed{\ \text{prior}_t(H) = \alpha\,R_0(H) + (1-\alpha)\,\bar{w}_t\ }, \qquad \alpha = 0.5
+$$
+
+(amenity không thuộc cụm nào → không có $\bar{w}_t$ → prior $= R_0(H)$.)
+
+**Bước 4 — trọng số cuối** (shrink local về prior, có sàn):
+
+$$
+w_t(H) = \max\!\Big(\, c\cdot S_t + (1-c)\,\text{prior}_t(H),\ \varepsilon \,\Big),
+\qquad c=\frac{m}{m+k},\ \ \varepsilon = 0.05
+$$
+
+- $m$ lớn → bám điểm review thật $S_t$.
+- $m=0$ nhưng KS có điểm → prior phân biệt theo **cả** $R_0(H)$ **và** $\bar{w}_t$.
+- KS **không review** ($R_0=\tilde{R}_0$) → prior $=0.5\tilde{R}_0+0.5\bar{w}_t$, vẫn phân
+  hoá theo loại amenity → **hết 0**. Bị chê mạnh ($p$ thấp, $m$ cao) → $w_t$ thấp thật.
+
+Sàn $\varepsilon$ giữ cho "có sở hữu" vẫn được tính chút trong cosine (tag $w=0$ đóng góp
+0 vào cả tử số lẫn chuẩn → bị bỏ qua y như vắng mặt).
+
+### 2.4 Coverage: review tag trừu tượng
+
+Một số review tag **không phải amenity, không phải demographic** (vd *Địa điểm, Đáng
+tiền, Độ thoải mái của phòng, Không khí, Kích thước phòng, Hướng nhìn từ phòng, Thiết kế
+phòng, Bộ đồ giường, Khả năng đi bộ thuận tiện…*) hiện không có cụm → nếu không tạo cạnh,
+user quan tâm chúng sẽ không khớp khách sạn nào. Tạo cạnh **trực tiếp**
+`(Hotel)-[:HAS_TAG {weight}]->(Tag)` với $w = w_t$ theo công thức §2.3 (chúng đã có sẵn
+`mentioned` + `positive_pct`).
+
+> Khi review tag trừu tượng có mặt nhưng $m$ nhỏ, prior của nó $=R_0(H)$ (không có cụm
+> amenity) hoặc $\bar w_t$ riêng nếu pool đủ lượt nhắc cùng tag — vẫn theo §2.3.
 
 ---
 
@@ -112,26 +185,49 @@ catch‑all cho amenity tiện ích chung chưa rơi vào cụm nào.
 ## 4. Pipeline xử lý dữ liệu
 
 ```text
+# --- PRECOMPUTE (1 lượt qua toàn dataset) ---
+R0_median = median(h.review_score/10 for h in hotels if h.review_score)   # = R̃0
+# w̄_t: prior cụm shrunk theo pool toàn cục (k0=50), kéo về R̃0
+num = defaultdict(float); den = defaultdict(float)
+for hotel H, tag t in tất cả review:
+    num[t] += t.mentioned * (t.positive_pct/100); den[t] += t.mentioned
+wbar = { t: (num[t] + 50*R0_median) / (den[t] + 50) for t in den }
+
+ALPHA = 0.5
+def R0(H):                              # baseline không-bao-giờ-0
+    return H.review_score/10 if H.review_score else R0_median
+def prior(H, J):                        # empirical-Bayes: hotel × cụm
+    g = [wbar[j] for j in J if j in wbar]   # cụm toàn cục (kể cả chưa review tại H)
+    if g: return ALPHA*R0(H) + (1-ALPHA)*mean(g)
+    return R0(H)                        # không thuộc cụm nào → chỉ điểm KS
+
 for hotel H:
-    R0 = H.review_score / 10
     # build điểm cụm từ review tags của H
     for tag t in H.reviews_detail.tags:
         m, p = t.mentioned, t.positive_pct
         c = m / (m + 20)
-        w_cluster[t.tag] = c*(p/100) + (1-c)*R0
+        w_cluster[t.tag] = c*(p/100) + (1-c)*prior(H, [t.tag])
         mentions[t.tag]  = m
 
-    # --- HOTEL_AMENITY ---
+    # --- HOTEL_AMENITY ---  (amenity CÓ mặt trong H.amenities)
     for amenity a in H.amenities:
-        J = clusters_of(a)                       # theo bảng §3
-        J = [j for j in J if j in w_cluster]     # cụm có review tại H
-        nếu J rỗng:  w = R0
+        Jall = clusters_of(a)                    # tất cả cụm của a (theo bảng §3)
+        J = [j for j in Jall if j in w_cluster]  # cụm CÓ review tại H
+        nếu J rỗng:  w = prior(H, Jall)          # blend R0(H) × w̄ cụm → không còn = 0
         ngược lại:   w = Σ mentions[j]*w_cluster[j] / Σ mentions[j]
+        w = max(w, 0.05)                         # sàn ε
         (H)-[:HAS_TAG {weight:w}]->(a)
 
-    # --- SUITABLE_FOR ---
+    # --- REVIEW TAG trừu tượng ---  (§2.4: tag không phải amenity/demographic)
+    for tag t in H.reviews_detail.tags if t.tag không thuộc cụm amenity nào:
+        w = max(w_cluster[t.tag], 0.05)
+        (H)-[:HAS_TAG {weight:w}]->(t.tag)
+
+    # --- SUITABLE_FOR ---  (demographic CÓ mặt trong H.demographics)
     for nhóm g trong demographics (gom trùng tên):
-        w = c_d*(scorē/10) + (1-c_d)*R0,  c_d = count/(count+50)
+        c_d = count/(count+50)
+        w = c_d*(scorē/10) + (1-c_d)*prior(H, [g])   # g ∉ wbar → rơi về R0(H), không 0
+        w = max(w, 0.05)
         (H)-[:HAS_TAG {weight:w}]->(g)
 ```
 
@@ -168,7 +264,7 @@ for hotel H:
 | Nhận phòng [24 giờ] | Nhận phòng | **0.45** |
 | Quán bar cạnh bể bơi | Bar + Bể bơi *(trung bình theo m)* | **~0.75** |
 | Thang máy, Vườn, Wi-Fi | Tiện ích cơ sở (catch‑all) | **0.80** |
-| Spa, Mát-xa *(cụm Spa không được review tại Vinpearl)* | – | **0.87** (R₀) |
+| Spa, Mát-xa *(cụm Spa không được review tại Vinpearl)* | prior §2.3 = $0.5\,R_0+0.5\,\bar w_{\text{Spa}}$ | **≈0.86** |
 
 Tính tay cụm **Dịch vụ**: `c = 184/204 = 0.902`; `w = 0.902·0.69 + 0.098·0.87 = 0.71`.
 
@@ -177,12 +273,22 @@ trải nghiệm thật của khách.
 
 **SUITABLE_FOR** (`k_d = 50`): Cặp đôi → **0.90**, Gia đình có trẻ nhỏ → **0.88**.
 
+### Ví dụ KS không có review (sửa lỗi $w=0$)
+
+*KS Bắc Kạn* — không review tag, không demographic, `review_score` rỗng → $R_0=\tilde R_0$.
+Mọi amenity trước đây = 0; nay mỗi amenity nhận $\text{prior}=0.5\tilde R_0+0.5\bar w_{\text{cụm}}$,
+phân hoá theo loại: *Phòng xông ướt* ≈ 0.87, *Bể bơi ngoài trời* ≈ 0.79, *Nhà tắm riêng*
+≈ 0.72 — thay vì cùng = 0.
+
 ### Tham số
 
 | Tham số | Ý nghĩa | Đề xuất |
 | ------- | ------- | ------- |
 | `k` | smoothing điểm cụm (review tag) | 20 |
 | `k_d` | smoothing SUITABLE_FOR (demographics) | 50 |
+| `k₀` | shrink prior cụm toàn cục $\bar w_t$ về $\tilde R_0$ (§2.3) | 50 |
+| `α` | tỉ trọng hotel-vs-cụm trong prior (§2.3) | 0.5 |
+| `ε` | sàn cho cạnh có mặt (§2.3) | 0.05 |
 
 ---
 
@@ -275,8 +381,12 @@ ORDER BY score DESC LIMIT 10
 | Hạng mục | Kết quả |
 | -------- | ------- |
 | **Ý tưởng** | Gom amenity thành **cụm chủ đề**; mỗi cụm thừa hưởng điểm review tag (`positive_pct`) |
-| `HAS_TAG.weight` (amenity) | $w = \dfrac{\sum_j m_j w_j}{\sum_j m_j}$, với $w_j = c_j\frac{p_j}{100}+(1-c_j)R_0$, $c_j=\frac{m_j}{m_j+20}$ |
-| `HAS_TAG.weight` (suitable_for) | $w = c_d\frac{\overline{score}}{10}+(1-c_d)R_0$, $c_d=\frac{count}{count+50}$ |
+| `HAS_TAG.weight` (amenity) | $w = \max\!\big(\frac{\sum_j m_j w_j}{\sum_j m_j},\varepsilon\big)$, với $w_j = c_j\frac{p_j}{100}+(1-c_j)\,\text{prior}_j$, $c_j=\frac{m_j}{m_j+20}$ |
+| `HAS_TAG.weight` (suitable_for) | $w = \max\!\big(c_d\frac{\overline{score}}{10}+(1-c_d)\,\text{prior},\varepsilon\big)$, $c_d=\frac{count}{count+50}$ |
+| `prior` (§2.3) | $\alpha R_0(H)+(1-\alpha)\bar w_t$; $R_0$ rỗng → $\tilde R_0$; $\bar w_t=\frac{\sum m S+k_0\tilde R_0}{\sum m+k_0}$ |
+| Vắng mặt vs thiếu review | KS không có tag → **không có cạnh** (không phải $w=0$). Tag có mặt nhưng thiếu review → prior 2 thành phần $\alpha R_0(H)+(1-\alpha)\bar w_t$, $R_0$ rỗng dùng $\tilde R_0$, sàn $\varepsilon$ → **không bao giờ 0** |
+| Lỗi gốc đã sửa | 162 cạnh `HOTEL_AMENITY=0` ở 10 KS không-review (R₀=0) — nay nhận prior phân hoá theo cụm |
+| Coverage | Review tag trừu tượng (Địa điểm, Đáng tiền, Không khí…) tạo cạnh trực tiếp $w=w_t$ |
 | Nguồn | `reviews_detail.tags` (cụm), `reviews_detail.demographics`, `Hotel.review_score`. **Không** amenity_groups / grades |
-| Tham số | `k=20`, `k_d=50` |
+| Tham số | `k=20`, `k_d=50`, `k₀=50`, `α=0.5`, `ε=0.05` |
 | Nối User–Hotel | $\sum userScore\cdot weight$, chuẩn hoá cosine, time-decay. MVP on-query |
