@@ -25,10 +25,12 @@ SEARCH TRENDING      (Neo4j unified template)
 
 from __future__ import annotations
 import logging
+from typing import Any
 
-from app.recommendation.models import RecommendInput, MergedCandidate
+from app.recommendation.models import MergedCandidate, RecommendInput
 from app.recommendation.candidate_generation.orchestrator import generate_candidates
 from app.recommendation.merge.merger import merge_candidates
+from app.recommendation.rerank.reranker import rerank as rerank_candidates
 from app.recommendation.trace import RecommendTrace, trace_intent_input
 
 logger = logging.getLogger(__name__)
@@ -73,3 +75,47 @@ def run_candidate_pipeline(
         tracer.merged(merged)
 
     return merged
+
+
+def _build_rerank_candidate_items(merged_candidates: list[MergedCandidate]) -> list[dict[str, Any]]:
+    items: list[dict[str, Any]] = []
+    for candidate in merged_candidates:
+        item: dict[str, Any] = {
+            "item_id": str(candidate.hotel_id),
+            "hotel_id": candidate.hotel_id,
+        }
+        if candidate.hotel_name is not None:
+            item["name"] = candidate.hotel_name
+        item["search_score"] = candidate.pre_rank_score
+        item.update(candidate.metadata or {})
+        if candidate.sources:
+            item["sources"] = candidate.sources
+        items.append(item)
+    return items
+
+
+def run_recommend_and_rerank(
+    inp: RecommendInput,
+    options: dict[str, Any] | None = None,
+    trace: bool = False,
+) -> dict[str, Any]:
+    """Chạy end-to-end: candidate generation, merge và rerank."""
+    merged = run_candidate_pipeline(inp, trace=trace)
+    candidate_items = _build_rerank_candidate_items(merged)
+    opts = dict(options or {})
+    if "session_context" not in opts:
+        opts["session_context"] = inp.session_context.model_dump()
+    opts.setdefault("top_k", inp.limit_per_source or 5)
+
+    user_context = {
+        "session_context": inp.session_context.model_dump(),
+        "long_term_profile": inp.profile.model_dump(),
+    }
+
+    return rerank_candidates(
+        user_id=inp.user_id,
+        user_context=user_context,
+        candidate_items=candidate_items,
+        query=inp.original_query,
+        options=opts,
+    )

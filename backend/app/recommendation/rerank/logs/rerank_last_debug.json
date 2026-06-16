@@ -1,0 +1,3306 @@
+{
+  "timestamp": "2026-06-16T07:59:41.827703+00:00",
+  "user_id": "user_001",
+  "query": "tìm khách sạn gia đình Đà Lạt",
+  "total_candidates": 16,
+  "after_hard_filter": 16,
+  "filtered_count": 0,
+  "filtered_items": [],
+  "scored_items": [
+    {
+      "item_id": "15896111",
+      "name": "New Hampton Suits- Khách sạn trung tâm Tầm Xuân (New Hampton Suits-Tam Xuan Centre Hotel)",
+      "base_score": 0.379,
+      "feature_scores": {
+        "keyword": 0.7,
+        "budget": 0.5,
+        "amenity": 0.5,
+        "room_view": 0.0,
+        "review": 0.733,
+        "availability": 0.0,
+        "personalization": 0.35,
+        "location": 0.45,
+        "trend": 0.1
+      },
+      "feature_contributions": {
+        "keyword": 0.084009,
+        "budget": 0.045,
+        "amenity": 0.1,
+        "room_view": 0.0,
+        "review": 0.066015,
+        "availability": 0.0,
+        "personalization": 0.0385,
+        "location": 0.036,
+        "trend": 0.009
+      },
+      "raw_base_before_penalty": 0.378524,
+      "base_after_penalty": 0.378524,
+      "negative_penalty": 0.0,
+      "booking_signals": {
+        "booking_count_7d": 0,
+        "booking_count_30d": 3,
+        "booking_growth_7d_vs_30d": 0.0,
+        "user_booked_before": false,
+        "same_destination_booking_count": 0,
+        "trend_score": 0.1
+      },
+      "price_range": {
+        "min": null,
+        "max": null,
+        "currency": "VND"
+      },
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'REVIEW_TAG::Địa điểm', 'weight': 0.9212}",
+        "{'tag_id': 'SUITABLE_FOR::Khách đi công tác', 'weight': 0.9023}",
+        "{'tag_id': 'SUITABLE_FOR::Cặp đôi', 'weight': 0.8831}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng cách âm', 'weight': 0.8762}",
+        "{'tag_id': 'HOTEL_AMENITY::Giao hàng tạp hóa', 'weight': 0.8762}",
+        "{'tag_id': 'HOTEL_AMENITY::Đưa đón sân bay', 'weight': 0.8762}",
+        "{'tag_id': 'REVIEW_TAG::Kích thước phòng', 'weight': 0.8731}",
+        "{'tag_id': 'HOTEL_AMENITY::Tính năng an toàn cho trẻ em', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng gia đình', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::WiFi miễn phí', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ vé', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Thích hợp cho gia đình trẻ em', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng không hút thuốc', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Bảo vệ 24 giờ', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Tiện nghi cho khách khuyết tật', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Hoàn toàn không hút thuốc', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Tiếng Anh', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng không gây dị ứng', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Phù hợp cho xe lăn', 'weight': 0.87}"
+      ],
+      "nearby_places": []
+    },
+    {
+      "item_id": "49385769",
+      "name": "CALYSSA HOTELS & VILLAGE",
+      "base_score": 0.351,
+      "feature_scores": {
+        "keyword": 0.5,
+        "budget": 0.5,
+        "amenity": 0.5,
+        "room_view": 0.0,
+        "review": 0.795,
+        "availability": 0.0,
+        "personalization": 0.35,
+        "location": 0.45,
+        "trend": 0.0
+      },
+      "feature_contributions": {
+        "keyword": 0.06,
+        "budget": 0.045,
+        "amenity": 0.1,
+        "room_view": 0.0,
+        "review": 0.07155,
+        "availability": 0.0,
+        "personalization": 0.0385,
+        "location": 0.036,
+        "trend": 0.0
+      },
+      "raw_base_before_penalty": 0.35105,
+      "base_after_penalty": 0.35105,
+      "negative_penalty": 0.0,
+      "booking_signals": {
+        "booking_count_7d": 0,
+        "booking_count_30d": 0,
+        "booking_growth_7d_vs_30d": 0.0,
+        "user_booked_before": false,
+        "same_destination_booking_count": 0,
+        "trend_score": 0.0
+      },
+      "price_range": {
+        "min": null,
+        "max": null,
+        "currency": "VND"
+      },
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [],
+      "nearby_places": []
+    },
+    {
+      "item_id": "31642453",
+      "name": "Mercure Đà Lạt Resort (Mercure Dalat Resort)",
+      "base_score": 0.327,
+      "feature_scores": {
+        "keyword": 0.329,
+        "budget": 0.5,
+        "amenity": 0.5,
+        "room_view": 0.0,
+        "review": 0.754,
+        "availability": 0.0,
+        "personalization": 0.35,
+        "location": 0.45,
+        "trend": 0.0
+      },
+      "feature_contributions": {
+        "keyword": 0.039497,
+        "budget": 0.045,
+        "amenity": 0.1,
+        "room_view": 0.0,
+        "review": 0.06786,
+        "availability": 0.0,
+        "personalization": 0.0385,
+        "location": 0.036,
+        "trend": 0.0
+      },
+      "raw_base_before_penalty": 0.326857,
+      "base_after_penalty": 0.326857,
+      "negative_penalty": 0.0,
+      "booking_signals": {
+        "booking_count_7d": 0,
+        "booking_count_30d": 0,
+        "booking_growth_7d_vs_30d": 0.0,
+        "user_booked_before": false,
+        "same_destination_booking_count": 0,
+        "trend_score": 0.0
+      },
+      "price_range": {
+        "min": null,
+        "max": null,
+        "currency": "VND"
+      },
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'REVIEW_TAG::Thiết kế phòng', 'weight': 0.9368}",
+        "{'tag_id': 'SUITABLE_FOR::Cặp đôi', 'weight': 0.9231}",
+        "{'tag_id': 'SUITABLE_FOR::Gia đình có thanh thiếu niên', 'weight': 0.9121}",
+        "{'tag_id': 'REVIEW_TAG::Nhiều lựa chọn nhà hàng', 'weight': 0.904}",
+        "{'tag_id': 'HOTEL_AMENITY::Nhà hàng phục vụ món tự chọn', 'weight': 0.904}",
+        "{'tag_id': 'HOTEL_AMENITY::Nhà hàng ẩm thực phương tây', 'weight': 0.904}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng thiết kế theo phong cách quán cà phê', 'weight': 0.904}",
+        "{'tag_id': 'HOTEL_AMENITY::Nhà hàng ẩm thực trung quốc', 'weight': 0.904}",
+        "{'tag_id': 'HOTEL_AMENITY::Tiện nghi nấu nướng ngoài trời', 'weight': 0.904}",
+        "{'tag_id': 'HOTEL_AMENITY::Nhà hàng ẩm thực châu á', 'weight': 0.904}",
+        "{'tag_id': 'HOTEL_AMENITY::Quán cà phê', 'weight': 0.904}",
+        "{'tag_id': 'HOTEL_AMENITY::Nhà hàng', 'weight': 0.904}",
+        "{'tag_id': 'HOTEL_AMENITY::Giờ giảm giá đồ uống', 'weight': 0.904}",
+        "{'tag_id': 'SUITABLE_FOR::Gia đình có trẻ nhỏ', 'weight': 0.9014}",
+        "{'tag_id': 'REVIEW_TAG::Không khí', 'weight': 0.901}",
+        "{'tag_id': 'SUITABLE_FOR::Khách đi công tác', 'weight': 0.8979}",
+        "{'tag_id': 'REVIEW_TAG::Gia đình', 'weight': 0.8965}",
+        "{'tag_id': 'SUITABLE_FOR::Khách du lịch một mình', 'weight': 0.8953}",
+        "{'tag_id': 'SUITABLE_FOR::Nhóm du khách', 'weight': 0.8915}"
+      ],
+      "nearby_places": []
+    },
+    {
+      "item_id": "55256505",
+      "name": "Khách sạn Greenview City (Greenview City Hotel)",
+      "base_score": 0.313,
+      "feature_scores": {
+        "keyword": 0.2,
+        "budget": 0.5,
+        "amenity": 0.5,
+        "room_view": 0.0,
+        "review": 0.775,
+        "availability": 0.0,
+        "personalization": 0.35,
+        "location": 0.45,
+        "trend": 0.0
+      },
+      "feature_contributions": {
+        "keyword": 0.02404,
+        "budget": 0.045,
+        "amenity": 0.1,
+        "room_view": 0.0,
+        "review": 0.069705,
+        "availability": 0.0,
+        "personalization": 0.0385,
+        "location": 0.036,
+        "trend": 0.0
+      },
+      "raw_base_before_penalty": 0.313245,
+      "base_after_penalty": 0.313245,
+      "negative_penalty": 0.0,
+      "booking_signals": {
+        "booking_count_7d": 0,
+        "booking_count_30d": 0,
+        "booking_growth_7d_vs_30d": 0.0,
+        "user_booked_before": false,
+        "same_destination_booking_count": 0,
+        "trend_score": 0.0
+      },
+      "price_range": {
+        "min": null,
+        "max": null,
+        "currency": "VND"
+      },
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'REVIEW_TAG::Bãi đỗ xe', 'weight': 0.9214}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe miễn phí', 'weight': 0.9214}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe gần bên', 'weight': 0.9214}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe tại chỗ', 'weight': 0.9214}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe có nhân viên', 'weight': 0.9214}",
+        "{'tag_id': 'REVIEW_TAG::Gia đình', 'weight': 0.912}",
+        "{'tag_id': 'REVIEW_TAG::Đáng tiền', 'weight': 0.903}",
+        "{'tag_id': 'SUITABLE_FOR::Gia đình có thanh thiếu niên', 'weight': 0.9}",
+        "{'tag_id': 'SUITABLE_FOR::Cặp đôi', 'weight': 0.8981}",
+        "{'tag_id': 'SUITABLE_FOR::Khách đi công tác', 'weight': 0.8964}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng gia đình', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::Bảo vệ 24 giờ', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::Thích hợp cho gia đình trẻ em', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::Tính năng an toàn cho trẻ em', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ taxi', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ đưa đón', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::CCTV trong khu vực chung', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::Đưa đón sân bay', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::Bồn tắm nước nóng', 'weight': 0.89}"
+      ],
+      "nearby_places": []
+    },
+    {
+      "item_id": "74577726",
+      "name": "Khách sạn Amory Đà Lạt (Amory Dalat Hotel)",
+      "base_score": 0.308,
+      "feature_scores": {
+        "keyword": 0.216,
+        "budget": 0.5,
+        "amenity": 0.5,
+        "room_view": 0.0,
+        "review": 0.693,
+        "availability": 0.0,
+        "personalization": 0.35,
+        "location": 0.45,
+        "trend": 0.0
+      },
+      "feature_contributions": {
+        "keyword": 0.025932,
+        "budget": 0.045,
+        "amenity": 0.1,
+        "room_view": 0.0,
+        "review": 0.062325,
+        "availability": 0.0,
+        "personalization": 0.0385,
+        "location": 0.036,
+        "trend": 0.0
+      },
+      "raw_base_before_penalty": 0.307757,
+      "base_after_penalty": 0.307757,
+      "negative_penalty": 0.0,
+      "booking_signals": {
+        "booking_count_7d": 0,
+        "booking_count_30d": 0,
+        "booking_growth_7d_vs_30d": 0.0,
+        "user_booked_before": false,
+        "same_destination_booking_count": 0,
+        "trend_score": 0.0
+      },
+      "price_range": {
+        "min": null,
+        "max": null,
+        "currency": "VND"
+      },
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'REVIEW_TAG::Hướng nhìn từ phòng', 'weight': 0.8667}",
+        "{'tag_id': 'SUITABLE_FOR::Gia đình có thanh thiếu niên', 'weight': 0.8581}",
+        "{'tag_id': 'HOTEL_AMENITY::WiFi miễn phí', 'weight': 0.8571}",
+        "{'tag_id': 'HOTEL_AMENITY::Khu vực hút thuốc', 'weight': 0.8571}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng chờ chung khu vực tv', 'weight': 0.8571}",
+        "{'tag_id': 'HOTEL_AMENITY::Thang máy', 'weight': 0.8571}",
+        "{'tag_id': 'HOTEL_AMENITY::Tiếng Anh', 'weight': 0.8571}",
+        "{'tag_id': 'HOTEL_AMENITY::Lối đi riêng', 'weight': 0.8571}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ vé', 'weight': 0.8571}",
+        "{'tag_id': 'HOTEL_AMENITY::Hoàn toàn không hút thuốc', 'weight': 0.8571}",
+        "{'tag_id': 'HOTEL_AMENITY::Cửa sổ có thể mở ra', 'weight': 0.8571}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng không hút thuốc', 'weight': 0.8571}",
+        "{'tag_id': 'SUITABLE_FOR::Khách du lịch một mình', 'weight': 0.8559}",
+        "{'tag_id': 'REVIEW_TAG::Độ thoải mái của phòng', 'weight': 0.8557}",
+        "{'tag_id': 'SUITABLE_FOR::Khách đi công tác', 'weight': 0.8552}",
+        "{'tag_id': 'SUITABLE_FOR::Cặp đôi', 'weight': 0.8523}",
+        "{'tag_id': 'REVIEW_TAG::Thiết kế phòng', 'weight': 0.85}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng theo chủ đề', 'weight': 0.85}",
+        "{'tag_id': 'HOTEL_AMENITY::CCTV bên ngoài chỗ nghỉ', 'weight': 0.85}"
+      ],
+      "nearby_places": []
+    },
+    {
+      "item_id": "78233733",
+      "name": "COCO HOUSE Đà Lạt (COCO HOUSE Đa Lat)",
+      "base_score": 0.302,
+      "feature_scores": {
+        "keyword": 0.199,
+        "budget": 0.5,
+        "amenity": 0.5,
+        "room_view": 0.0,
+        "review": 0.652,
+        "availability": 0.0,
+        "personalization": 0.35,
+        "location": 0.45,
+        "trend": 0.0
+      },
+      "feature_contributions": {
+        "keyword": 0.023924,
+        "budget": 0.045,
+        "amenity": 0.1,
+        "room_view": 0.0,
+        "review": 0.058635,
+        "availability": 0.0,
+        "personalization": 0.0385,
+        "location": 0.036,
+        "trend": 0.0
+      },
+      "raw_base_before_penalty": 0.302059,
+      "base_after_penalty": 0.302059,
+      "negative_penalty": 0.0,
+      "booking_signals": {
+        "booking_count_7d": 0,
+        "booking_count_30d": 0,
+        "booking_growth_7d_vs_30d": 0.0,
+        "user_booked_before": false,
+        "same_destination_booking_count": 0,
+        "trend_score": 0.0
+      },
+      "price_range": {
+        "min": null,
+        "max": null,
+        "currency": "VND"
+      },
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ làm đẹp', 'weight': 0.8583}",
+        "{'tag_id': 'HOTEL_AMENITY::Bàn tiếp tân 24 giờ', 'weight': 0.8583}",
+        "{'tag_id': 'HOTEL_AMENITY::Giữ hành lý', 'weight': 0.8583}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ giặt là', 'weight': 0.8583}",
+        "{'tag_id': 'HOTEL_AMENITY::Nhận trả phòng nhanh', 'weight': 0.8583}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ phòng', 'weight': 0.8583}",
+        "{'tag_id': 'HOTEL_AMENITY::Bếp', 'weight': 0.8381}",
+        "{'tag_id': 'SUITABLE_FOR::Gia đình có trẻ nhỏ', 'weight': 0.8324}",
+        "{'tag_id': 'HOTEL_AMENITY::Tiếng Anh', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::WiFi miễn phí', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe miễn phí', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng không hút thuốc', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::Giải trí', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::Khu vực hút thuốc', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::Hoàn toàn không hút thuốc', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::Thang máy', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::Được phép đưa thú nuôi vào', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng không gây dị ứng', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::Thích hợp cho gia đình trẻ em', 'weight': 0.83}"
+      ],
+      "nearby_places": []
+    },
+    {
+      "item_id": "47218637",
+      "name": "Nhà Sun (The Sun House)",
+      "base_score": 0.3,
+      "feature_scores": {
+        "keyword": 0.117,
+        "budget": 0.5,
+        "amenity": 0.5,
+        "room_view": 0.0,
+        "review": 0.733,
+        "availability": 0.0,
+        "personalization": 0.35,
+        "location": 0.45,
+        "trend": 0.0
+      },
+      "feature_contributions": {
+        "keyword": 0.014038,
+        "budget": 0.045,
+        "amenity": 0.1,
+        "room_view": 0.0,
+        "review": 0.066015,
+        "availability": 0.0,
+        "personalization": 0.0385,
+        "location": 0.036,
+        "trend": 0.0
+      },
+      "raw_base_before_penalty": 0.299553,
+      "base_after_penalty": 0.299553,
+      "negative_penalty": 0.0,
+      "booking_signals": {
+        "booking_count_7d": 0,
+        "booking_count_30d": 0,
+        "booking_growth_7d_vs_30d": 0.0,
+        "user_booked_before": false,
+        "same_destination_booking_count": 0,
+        "trend_score": 0.0
+      },
+      "price_range": {
+        "min": null,
+        "max": null,
+        "currency": "VND"
+      },
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [],
+      "nearby_places": []
+    },
+    {
+      "item_id": "14626926",
+      "name": "Sunshine - Tia Nắng Mới (Sunshine - Tia Nang Moi)",
+      "base_score": 0.292,
+      "feature_scores": {
+        "keyword": 0.111,
+        "budget": 0.5,
+        "amenity": 0.5,
+        "room_view": 0.0,
+        "review": 0.652,
+        "availability": 0.0,
+        "personalization": 0.35,
+        "location": 0.45,
+        "trend": 0.0
+      },
+      "feature_contributions": {
+        "keyword": 0.01337,
+        "budget": 0.045,
+        "amenity": 0.1,
+        "room_view": 0.0,
+        "review": 0.058635,
+        "availability": 0.0,
+        "personalization": 0.0385,
+        "location": 0.036,
+        "trend": 0.0
+      },
+      "raw_base_before_penalty": 0.291505,
+      "base_after_penalty": 0.291505,
+      "negative_penalty": 0.0,
+      "booking_signals": {
+        "booking_count_7d": 0,
+        "booking_count_30d": 0,
+        "booking_growth_7d_vs_30d": 0.0,
+        "user_booked_before": false,
+        "same_destination_booking_count": 0,
+        "trend_score": 0.0
+      },
+      "price_range": {
+        "min": null,
+        "max": null,
+        "currency": "VND"
+      },
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [],
+      "nearby_places": []
+    },
+    {
+      "item_id": "21978371",
+      "name": "NGÔI LÀNG CỔ 77 HOÀNG DIỆU (NGOI LANG CO 77 HOANG DIEU)",
+      "base_score": 0.276,
+      "feature_scores": {
+        "keyword": 0.0,
+        "budget": 0.5,
+        "amenity": 0.5,
+        "room_view": 0.0,
+        "review": 0.631,
+        "availability": 0.0,
+        "personalization": 0.35,
+        "location": 0.45,
+        "trend": 0.0
+      },
+      "feature_contributions": {
+        "keyword": 1.1e-05,
+        "budget": 0.045,
+        "amenity": 0.1,
+        "room_view": 0.0,
+        "review": 0.05679,
+        "availability": 0.0,
+        "personalization": 0.0385,
+        "location": 0.036,
+        "trend": 0.0
+      },
+      "raw_base_before_penalty": 0.276301,
+      "base_after_penalty": 0.276301,
+      "negative_penalty": 0.0,
+      "booking_signals": {
+        "booking_count_7d": 0,
+        "booking_count_30d": 0,
+        "booking_growth_7d_vs_30d": 0.0,
+        "user_booked_before": false,
+        "same_destination_booking_count": 0,
+        "trend_score": 0.0
+      },
+      "price_range": {
+        "min": null,
+        "max": null,
+        "currency": "VND"
+      },
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [],
+      "nearby_places": []
+    },
+    {
+      "item_id": "1984283",
+      "name": "Khách sạn Nam Xuân premium (Nam Xuan premium Hotel)",
+      "base_score": 0.274,
+      "feature_scores": {
+        "keyword": 0.0,
+        "budget": 0.5,
+        "amenity": 0.5,
+        "room_view": 0.0,
+        "review": 0.61,
+        "availability": 0.0,
+        "personalization": 0.35,
+        "location": 0.45,
+        "trend": 0.0
+      },
+      "feature_contributions": {
+        "keyword": 1.2e-05,
+        "budget": 0.045,
+        "amenity": 0.1,
+        "room_view": 0.0,
+        "review": 0.054945,
+        "availability": 0.0,
+        "personalization": 0.0385,
+        "location": 0.036,
+        "trend": 0.0
+      },
+      "raw_base_before_penalty": 0.274457,
+      "base_after_penalty": 0.274457,
+      "negative_penalty": 0.0,
+      "booking_signals": {
+        "booking_count_7d": 0,
+        "booking_count_30d": 0,
+        "booking_growth_7d_vs_30d": 0.0,
+        "user_booked_before": false,
+        "same_destination_booking_count": 0,
+        "trend_score": 0.0
+      },
+      "price_range": {
+        "min": null,
+        "max": null,
+        "currency": "VND"
+      },
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [],
+      "nearby_places": []
+    },
+    {
+      "item_id": "42109640",
+      "name": "Khách sạn MerPerle Đà Lạt (MerPerle Dalat Hotel)",
+      "base_score": 0.255,
+      "feature_scores": {
+        "keyword": 0.296,
+        "budget": 0.5,
+        "amenity": 0.5,
+        "room_view": 0.0,
+        "review": 0.0,
+        "availability": 0.0,
+        "personalization": 0.35,
+        "location": 0.45,
+        "trend": 0.0
+      },
+      "feature_contributions": {
+        "keyword": 0.035486,
+        "budget": 0.045,
+        "amenity": 0.1,
+        "room_view": 0.0,
+        "review": 0.0,
+        "availability": 0.0,
+        "personalization": 0.0385,
+        "location": 0.036,
+        "trend": 0.0
+      },
+      "raw_base_before_penalty": 0.254986,
+      "base_after_penalty": 0.254986,
+      "negative_penalty": 0.0,
+      "booking_signals": {
+        "booking_count_7d": 0,
+        "booking_count_30d": 0,
+        "booking_growth_7d_vs_30d": 0.0,
+        "user_booked_before": false,
+        "same_destination_booking_count": 0,
+        "trend_score": 0.0
+      },
+      "price_range": {
+        "min": null,
+        "max": null,
+        "currency": "VND"
+      },
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'REVIEW_TAG::Bãi đỗ xe', 'weight': 0.9371}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe tại chỗ', 'weight': 0.9371}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe miễn phí', 'weight': 0.9371}",
+        "{'tag_id': 'REVIEW_TAG::Cơ sở vật chất cho trẻ em', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng gia đình', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Thích hợp cho gia đình trẻ em', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Bữa ăn cho trẻ', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Cơ sở vật chất cho trẻ em', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::CLB trẻ em', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Sân chơi', 'weight': 0.92}",
+        "{'tag_id': 'SUITABLE_FOR::Gia đình có trẻ nhỏ', 'weight': 0.9102}",
+        "{'tag_id': 'SUITABLE_FOR::Gia đình có thanh thiếu niên', 'weight': 0.9038}",
+        "{'tag_id': 'REVIEW_TAG::Gia đình', 'weight': 0.9007}",
+        "{'tag_id': 'HOTEL_AMENITY::Bể bơi trẻ em', 'weight': 0.9005}",
+        "{'tag_id': 'SUITABLE_FOR::Khách du lịch một mình', 'weight': 0.893}",
+        "{'tag_id': 'SUITABLE_FOR::Cặp đôi', 'weight': 0.89}",
+        "{'tag_id': 'REVIEW_TAG::Bể bơi', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng tập', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::Đưa đón sân bay', 'weight': 0.89}"
+      ],
+      "nearby_places": []
+    },
+    {
+      "item_id": "16784780",
+      "name": "Khách Sạn Be U City View (Be U Hotel City View)",
+      "base_score": 0.243,
+      "feature_scores": {
+        "keyword": 0.193,
+        "budget": 0.5,
+        "amenity": 0.5,
+        "room_view": 0.0,
+        "review": 0.0,
+        "availability": 0.0,
+        "personalization": 0.35,
+        "location": 0.45,
+        "trend": 0.0
+      },
+      "feature_contributions": {
+        "keyword": 0.023198,
+        "budget": 0.045,
+        "amenity": 0.1,
+        "room_view": 0.0,
+        "review": 0.0,
+        "availability": 0.0,
+        "personalization": 0.0385,
+        "location": 0.036,
+        "trend": 0.0
+      },
+      "raw_base_before_penalty": 0.242698,
+      "base_after_penalty": 0.242698,
+      "negative_penalty": 0.0,
+      "booking_signals": {
+        "booking_count_7d": 0,
+        "booking_count_30d": 0,
+        "booking_growth_7d_vs_30d": 0.0,
+        "user_booked_before": false,
+        "same_destination_booking_count": 0,
+        "trend_score": 0.0
+      },
+      "price_range": {
+        "min": null,
+        "max": null,
+        "currency": "VND"
+      },
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'REVIEW_TAG::Địa điểm', 'weight': 0.8967}",
+        "{'tag_id': 'REVIEW_TAG::Bãi đỗ xe', 'weight': 0.8715}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe có nhân viên', 'weight': 0.8715}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe tại chỗ', 'weight': 0.8715}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe gần bên', 'weight': 0.8715}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe miễn phí', 'weight': 0.8715}",
+        "{'tag_id': 'SUITABLE_FOR::Khách du lịch một mình', 'weight': 0.8709}",
+        "{'tag_id': 'SUITABLE_FOR::Cặp đôi', 'weight': 0.8682}",
+        "{'tag_id': 'REVIEW_TAG::Đáng tiền', 'weight': 0.8529}",
+        "{'tag_id': 'SUITABLE_FOR::Nhóm du khách', 'weight': 0.849}",
+        "{'tag_id': 'REVIEW_TAG::Không khí', 'weight': 0.8486}",
+        "{'tag_id': 'REVIEW_TAG::Khả năng đi bộ thuận tiện', 'weight': 0.8486}",
+        "{'tag_id': 'SUITABLE_FOR::Gia đình có trẻ nhỏ', 'weight': 0.8485}",
+        "{'tag_id': 'HOTEL_AMENITY::Bảo vệ 24 giờ', 'weight': 0.84}",
+        "{'tag_id': 'HOTEL_AMENITY::Tiếng Anh', 'weight': 0.84}",
+        "{'tag_id': 'HOTEL_AMENITY::WiFi miễn phí', 'weight': 0.84}",
+        "{'tag_id': 'HOTEL_AMENITY::Thích hợp cho gia đình trẻ em', 'weight': 0.84}",
+        "{'tag_id': 'HOTEL_AMENITY::Hoàn toàn không hút thuốc', 'weight': 0.84}",
+        "{'tag_id': 'HOTEL_AMENITY::CCTV bên ngoài chỗ nghỉ', 'weight': 0.84}"
+      ],
+      "nearby_places": []
+    },
+    {
+      "item_id": "50138938",
+      "name": "Khách sạn Savio Triệu Việt Vương Đà Lạt (Savio Hotel Trieu Viet Vuong)",
+      "base_score": 0.24,
+      "feature_scores": {
+        "keyword": 0.168,
+        "budget": 0.5,
+        "amenity": 0.5,
+        "room_view": 0.0,
+        "review": 0.0,
+        "availability": 0.0,
+        "personalization": 0.35,
+        "location": 0.45,
+        "trend": 0.0
+      },
+      "feature_contributions": {
+        "keyword": 0.020153,
+        "budget": 0.045,
+        "amenity": 0.1,
+        "room_view": 0.0,
+        "review": 0.0,
+        "availability": 0.0,
+        "personalization": 0.0385,
+        "location": 0.036,
+        "trend": 0.0
+      },
+      "raw_base_before_penalty": 0.239653,
+      "base_after_penalty": 0.239653,
+      "negative_penalty": 0.0,
+      "booking_signals": {
+        "booking_count_7d": 0,
+        "booking_count_30d": 0,
+        "booking_growth_7d_vs_30d": 0.0,
+        "user_booked_before": false,
+        "same_destination_booking_count": 0,
+        "trend_score": 0.0
+      },
+      "price_range": {
+        "min": null,
+        "max": null,
+        "currency": "VND"
+      },
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'REVIEW_TAG::Địa điểm', 'weight': 0.9488}",
+        "{'tag_id': 'SUITABLE_FOR::Khách du lịch một mình', 'weight': 0.9067}",
+        "{'tag_id': 'HOTEL_AMENITY::WiFi miễn phí', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ vé', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Vườn', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng chờ chung khu vực tv', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Hoàn toàn không hút thuốc', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Ít gây dị ứng', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Không gian làm việc cho máy tính xách tay', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng không hút thuốc', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng không gây dị ứng', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Lối đi riêng', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Phù hợp cho xe lăn', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Thang máy', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Tiếng Anh', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Khu vực hút thuốc', 'weight': 0.9}",
+        "{'tag_id': 'SUITABLE_FOR::Cặp đôi', 'weight': 0.8979}",
+        "{'tag_id': 'SUITABLE_FOR::Gia đình có trẻ nhỏ', 'weight': 0.8958}",
+        "{'tag_id': 'REVIEW_TAG::Đáng tiền', 'weight': 0.8952}"
+      ],
+      "nearby_places": []
+    },
+    {
+      "item_id": "10954459",
+      "name": "Khách sạn Sài Gòn's Book Dalat ( Hồ Xuân Hương) (Saigon's Book Da Lat Hotel)",
+      "base_score": 0.235,
+      "feature_scores": {
+        "keyword": 0.127,
+        "budget": 0.5,
+        "amenity": 0.5,
+        "room_view": 0.0,
+        "review": 0.0,
+        "availability": 0.0,
+        "personalization": 0.35,
+        "location": 0.45,
+        "trend": 0.0
+      },
+      "feature_contributions": {
+        "keyword": 0.015256,
+        "budget": 0.045,
+        "amenity": 0.1,
+        "room_view": 0.0,
+        "review": 0.0,
+        "availability": 0.0,
+        "personalization": 0.0385,
+        "location": 0.036,
+        "trend": 0.0
+      },
+      "raw_base_before_penalty": 0.234756,
+      "base_after_penalty": 0.234756,
+      "negative_penalty": 0.0,
+      "booking_signals": {
+        "booking_count_7d": 0,
+        "booking_count_30d": 0,
+        "booking_growth_7d_vs_30d": 0.0,
+        "user_booked_before": false,
+        "same_destination_booking_count": 0,
+        "trend_score": 0.0
+      },
+      "price_range": {
+        "min": null,
+        "max": null,
+        "currency": "VND"
+      },
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'REVIEW_TAG::Bãi đỗ xe', 'weight': 0.9172}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe miễn phí', 'weight': 0.9172}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe có nhân viên', 'weight': 0.9172}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe tại chỗ', 'weight': 0.9172}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe gần bên', 'weight': 0.9172}",
+        "{'tag_id': 'REVIEW_TAG::Đáng tiền', 'weight': 0.9111}",
+        "{'tag_id': 'REVIEW_TAG::Kích thước phòng', 'weight': 0.9092}",
+        "{'tag_id': 'REVIEW_TAG::Độ sạch sẽ', 'weight': 0.9089}",
+        "{'tag_id': 'REVIEW_TAG::Gia đình', 'weight': 0.904}",
+        "{'tag_id': 'SUITABLE_FOR::Khách du lịch một mình', 'weight': 0.8914}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng chờ chung khu vực tv', 'weight': 0.88}",
+        "{'tag_id': 'REVIEW_TAG::Tiện nghi trong phòng', 'weight': 0.88}",
+        "{'tag_id': 'HOTEL_AMENITY::Quán bar', 'weight': 0.88}",
+        "{'tag_id': 'HOTEL_AMENITY::Tiếng Anh', 'weight': 0.88}",
+        "{'tag_id': 'HOTEL_AMENITY::Hoàn toàn không hút thuốc', 'weight': 0.88}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng không hút thuốc', 'weight': 0.88}",
+        "{'tag_id': 'HOTEL_AMENITY::CCTV bên ngoài chỗ nghỉ', 'weight': 0.88}",
+        "{'tag_id': 'HOTEL_AMENITY::Thích hợp cho gia đình trẻ em', 'weight': 0.88}",
+        "{'tag_id': 'HOTEL_AMENITY::Vườn', 'weight': 0.88}"
+      ],
+      "nearby_places": []
+    },
+    {
+      "item_id": "9698",
+      "name": "Khách Sạn TTC Đà Lạt (TTC Hotel Dalat)",
+      "base_score": 0.221,
+      "feature_scores": {
+        "keyword": 0.014,
+        "budget": 0.5,
+        "amenity": 0.5,
+        "room_view": 0.0,
+        "review": 0.0,
+        "availability": 0.0,
+        "personalization": 0.35,
+        "location": 0.45,
+        "trend": 0.0
+      },
+      "feature_contributions": {
+        "keyword": 0.001698,
+        "budget": 0.045,
+        "amenity": 0.1,
+        "room_view": 0.0,
+        "review": 0.0,
+        "availability": 0.0,
+        "personalization": 0.0385,
+        "location": 0.036,
+        "trend": 0.0
+      },
+      "raw_base_before_penalty": 0.221198,
+      "base_after_penalty": 0.221198,
+      "negative_penalty": 0.0,
+      "booking_signals": {
+        "booking_count_7d": 0,
+        "booking_count_30d": 0,
+        "booking_growth_7d_vs_30d": 0.0,
+        "user_booked_before": false,
+        "same_destination_booking_count": 0,
+        "trend_score": 0.0
+      },
+      "price_range": {
+        "min": null,
+        "max": null,
+        "currency": "VND"
+      },
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [],
+      "nearby_places": []
+    },
+    {
+      "item_id": "32680041",
+      "name": "Khách sạn Tala Đà Lạt (Tala Dalat Hotel)",
+      "base_score": 0.22,
+      "feature_scores": {
+        "keyword": 0.0,
+        "budget": 0.5,
+        "amenity": 0.5,
+        "room_view": 0.0,
+        "review": 0.0,
+        "availability": 0.0,
+        "personalization": 0.35,
+        "location": 0.45,
+        "trend": 0.0
+      },
+      "feature_contributions": {
+        "keyword": 0.0,
+        "budget": 0.045,
+        "amenity": 0.1,
+        "room_view": 0.0,
+        "review": 0.0,
+        "availability": 0.0,
+        "personalization": 0.0385,
+        "location": 0.036,
+        "trend": 0.0
+      },
+      "raw_base_before_penalty": 0.2195,
+      "base_after_penalty": 0.2195,
+      "negative_penalty": 0.0,
+      "booking_signals": {
+        "booking_count_7d": 0,
+        "booking_count_30d": 0,
+        "booking_growth_7d_vs_30d": 0.0,
+        "user_booked_before": false,
+        "same_destination_booking_count": 0,
+        "trend_score": 0.0
+      },
+      "price_range": {
+        "min": null,
+        "max": null,
+        "currency": "VND"
+      },
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'REVIEW_TAG::Đáng tiền', 'weight': 0.9515}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng chờ chung khu vực tv', 'weight': 0.9429}",
+        "{'tag_id': 'REVIEW_TAG::Tiện ích tại cơ sở lưu trú', 'weight': 0.9429}",
+        "{'tag_id': 'HOTEL_AMENITY::Ít gây dị ứng', 'weight': 0.9429}",
+        "{'tag_id': 'HOTEL_AMENITY::Vườn', 'weight': 0.9429}",
+        "{'tag_id': 'HOTEL_AMENITY::WiFi miễn phí', 'weight': 0.9429}",
+        "{'tag_id': 'HOTEL_AMENITY::Tiếng Anh', 'weight': 0.9429}",
+        "{'tag_id': 'HOTEL_AMENITY::Thang máy', 'weight': 0.9429}",
+        "{'tag_id': 'HOTEL_AMENITY::Khu vực ăn uống riêng', 'weight': 0.9429}",
+        "{'tag_id': 'HOTEL_AMENITY::Phù hợp cho xe lăn', 'weight': 0.9429}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng không hút thuốc', 'weight': 0.9429}",
+        "{'tag_id': 'REVIEW_TAG::Không khí', 'weight': 0.9297}",
+        "{'tag_id': 'HOTEL_AMENITY::Nhà hàng', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Ô tô cho thuê', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Thích hợp cho gia đình trẻ em', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng gia đình', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Quán cà phê', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ taxi', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ đưa đón', 'weight': 0.92}"
+      ],
+      "nearby_places": []
+    }
+  ],
+  "llm_used": false,
+  "llm_source": "fallback",
+  "llm_debug": {
+    "requested": false,
+    "candidate_ids": [
+      "15896111",
+      "49385769",
+      "31642453",
+      "55256505",
+      "74577726",
+      "78233733",
+      "47218637",
+      "14626926",
+      "21978371",
+      "1984283",
+      "42109640",
+      "16784780",
+      "50138938",
+      "10954459",
+      "9698",
+      "32680041"
+    ],
+    "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "request": null,
+    "reason": "options.use_llm_rerank=false",
+    "raw_response": null,
+    "attempts": [],
+    "validated": {
+      "raw_item_count": 0,
+      "valid_item_ids": [],
+      "rejected_items": []
+    }
+  },
+  "fallback_used": false,
+  "candidate_source": "input",
+  "candidate_enrichment_debug": {
+    "hotel_api": {
+      "requested": false
+    },
+    "postgres": {
+      "requested": false
+    }
+  },
+  "raw_candidates": {
+    "15896111": {
+      "item_id": "15896111",
+      "hotel_id": 15896111,
+      "name": "New Hampton Suits- Khách sạn trung tâm Tầm Xuân (New Hampton Suits-Tam Xuan Centre Hotel)",
+      "search_score": 0.70007170322158,
+      "strategy": "hybrid_bge_m3_bm25",
+      "city": "Đà Lạt",
+      "tags": [
+        {
+          "tag_id": "HOTEL_TYPE::Khách sạn",
+          "weight": 1.0
+        },
+        {
+          "tag_id": "REVIEW_TAG::Địa điểm",
+          "weight": 0.9212
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Khách đi công tác",
+          "weight": 0.9023
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Cặp đôi",
+          "weight": 0.8831
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng cách âm",
+          "weight": 0.8762
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Giao hàng tạp hóa",
+          "weight": 0.8762
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Đưa đón sân bay",
+          "weight": 0.8762
+        },
+        {
+          "tag_id": "REVIEW_TAG::Kích thước phòng",
+          "weight": 0.8731
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Tính năng an toàn cho trẻ em",
+          "weight": 0.87
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng gia đình",
+          "weight": 0.87
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::WiFi miễn phí",
+          "weight": 0.87
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Dịch vụ vé",
+          "weight": 0.87
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Thích hợp cho gia đình trẻ em",
+          "weight": 0.87
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng không hút thuốc",
+          "weight": 0.87
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Bảo vệ 24 giờ",
+          "weight": 0.87
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Tiện nghi cho khách khuyết tật",
+          "weight": 0.87
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Hoàn toàn không hút thuốc",
+          "weight": 0.87
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Tiếng Anh",
+          "weight": 0.87
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng không gây dị ứng",
+          "weight": 0.87
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phù hợp cho xe lăn",
+          "weight": 0.87
+        }
+      ],
+      "retrieval": "dense",
+      "destination": "Đà Lạt",
+      "rank": 1,
+      "booking_count": 59,
+      "review_score": 8.7,
+      "demo_score": 0.0,
+      "interest_score": 0.9999798099994195,
+      "collaborative_score": 0.0,
+      "user_segments": [
+        "safety",
+        "unique",
+        "low: < 2tr",
+        "Explorer",
+        "< 25",
+        "vibrant"
+      ],
+      "top5_interests": [
+        {
+          "score": 20.43595460184269,
+          "tag": "Khách du lịch một mình"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Hướng Biển"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Homestay"
+        }
+      ],
+      "sources": [
+        "embedding_search",
+        "trending",
+        "personalization"
+      ]
+    },
+    "49385769": {
+      "item_id": "49385769",
+      "hotel_id": 49385769,
+      "name": "CALYSSA HOTELS & VILLAGE",
+      "search_score": 0.5,
+      "review_score": 9.0,
+      "city": "Đà Lạt",
+      "demo_score": 0.5,
+      "interest_score": 0.9999942382061553,
+      "collaborative_score": 0.0,
+      "user_segments": [
+        "safety",
+        "unique",
+        "low: < 2tr",
+        "Explorer",
+        "< 25",
+        "vibrant"
+      ],
+      "top5_interests": [
+        {
+          "score": 20.43595460184269,
+          "tag": "Khách du lịch một mình"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Hướng Biển"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Homestay"
+        }
+      ],
+      "strategy": "unified_personalization",
+      "sources": [
+        "personalization"
+      ]
+    },
+    "31642453": {
+      "item_id": "31642453",
+      "hotel_id": 31642453,
+      "name": "Mercure Đà Lạt Resort (Mercure Dalat Resort)",
+      "search_score": 0.32913823014551125,
+      "strategy": "hybrid_bge_m3_bm25",
+      "city": "Đà Lạt",
+      "tags": [
+        {
+          "tag_id": "HOTEL_TYPE::Khách sạn",
+          "weight": 1.0
+        },
+        {
+          "tag_id": "REVIEW_TAG::Thiết kế phòng",
+          "weight": 0.9368
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Cặp đôi",
+          "weight": 0.9231
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Gia đình có thanh thiếu niên",
+          "weight": 0.9121
+        },
+        {
+          "tag_id": "REVIEW_TAG::Nhiều lựa chọn nhà hàng",
+          "weight": 0.904
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Nhà hàng phục vụ món tự chọn",
+          "weight": 0.904
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Nhà hàng ẩm thực phương tây",
+          "weight": 0.904
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng thiết kế theo phong cách quán cà phê",
+          "weight": 0.904
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Nhà hàng ẩm thực trung quốc",
+          "weight": 0.904
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Tiện nghi nấu nướng ngoài trời",
+          "weight": 0.904
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Nhà hàng ẩm thực châu á",
+          "weight": 0.904
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Quán cà phê",
+          "weight": 0.904
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Nhà hàng",
+          "weight": 0.904
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Giờ giảm giá đồ uống",
+          "weight": 0.904
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Gia đình có trẻ nhỏ",
+          "weight": 0.9014
+        },
+        {
+          "tag_id": "REVIEW_TAG::Không khí",
+          "weight": 0.901
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Khách đi công tác",
+          "weight": 0.8979
+        },
+        {
+          "tag_id": "REVIEW_TAG::Gia đình",
+          "weight": 0.8965
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Khách du lịch một mình",
+          "weight": 0.8953
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Nhóm du khách",
+          "weight": 0.8915
+        }
+      ],
+      "retrieval": "dense",
+      "review_score": 8.8,
+      "demo_score": 0.0,
+      "interest_score": 0.9999558984976237,
+      "collaborative_score": 0.0,
+      "user_segments": [
+        "safety",
+        "unique",
+        "low: < 2tr",
+        "Explorer",
+        "< 25",
+        "vibrant"
+      ],
+      "top5_interests": [
+        {
+          "score": 20.43595460184269,
+          "tag": "Khách du lịch một mình"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Hướng Biển"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Homestay"
+        }
+      ],
+      "sources": [
+        "embedding_search",
+        "personalization"
+      ]
+    },
+    "42109640": {
+      "item_id": "42109640",
+      "hotel_id": 42109640,
+      "name": "Khách sạn MerPerle Đà Lạt (MerPerle Dalat Hotel)",
+      "search_score": 0.2957205412343027,
+      "strategy": "hybrid_bge_m3_bm25",
+      "city": "Đà Lạt",
+      "tags": [
+        {
+          "tag_id": "HOTEL_TYPE::Khách sạn",
+          "weight": 1.0
+        },
+        {
+          "tag_id": "REVIEW_TAG::Bãi đỗ xe",
+          "weight": 0.9371
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Đỗ xe tại chỗ",
+          "weight": 0.9371
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Đỗ xe miễn phí",
+          "weight": 0.9371
+        },
+        {
+          "tag_id": "REVIEW_TAG::Cơ sở vật chất cho trẻ em",
+          "weight": 0.92
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng gia đình",
+          "weight": 0.92
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Thích hợp cho gia đình trẻ em",
+          "weight": 0.92
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Bữa ăn cho trẻ",
+          "weight": 0.92
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Cơ sở vật chất cho trẻ em",
+          "weight": 0.92
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::CLB trẻ em",
+          "weight": 0.92
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Sân chơi",
+          "weight": 0.92
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Gia đình có trẻ nhỏ",
+          "weight": 0.9102
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Gia đình có thanh thiếu niên",
+          "weight": 0.9038
+        },
+        {
+          "tag_id": "REVIEW_TAG::Gia đình",
+          "weight": 0.9007
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Bể bơi trẻ em",
+          "weight": 0.9005
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Khách du lịch một mình",
+          "weight": 0.893
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Cặp đôi",
+          "weight": 0.89
+        },
+        {
+          "tag_id": "REVIEW_TAG::Bể bơi",
+          "weight": 0.89
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng tập",
+          "weight": 0.89
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Đưa đón sân bay",
+          "weight": 0.89
+        }
+      ],
+      "retrieval": "dense",
+      "destination": "Đà Lạt",
+      "rank": 6,
+      "booking_count": 6,
+      "sources": [
+        "embedding_search",
+        "trending"
+      ]
+    },
+    "74577726": {
+      "item_id": "74577726",
+      "hotel_id": 74577726,
+      "name": "Khách sạn Amory Đà Lạt (Amory Dalat Hotel)",
+      "search_score": 0.21610002977845583,
+      "strategy": "hybrid_bge_m3_bm25",
+      "city": "Đà Lạt",
+      "tags": [
+        {
+          "tag_id": "HOTEL_TYPE::Khách sạn",
+          "weight": 1.0
+        },
+        {
+          "tag_id": "REVIEW_TAG::Hướng nhìn từ phòng",
+          "weight": 0.8667
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Gia đình có thanh thiếu niên",
+          "weight": 0.8581
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::WiFi miễn phí",
+          "weight": 0.8571
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Khu vực hút thuốc",
+          "weight": 0.8571
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng chờ chung khu vực tv",
+          "weight": 0.8571
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Thang máy",
+          "weight": 0.8571
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Tiếng Anh",
+          "weight": 0.8571
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Lối đi riêng",
+          "weight": 0.8571
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Dịch vụ vé",
+          "weight": 0.8571
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Hoàn toàn không hút thuốc",
+          "weight": 0.8571
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Cửa sổ có thể mở ra",
+          "weight": 0.8571
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng không hút thuốc",
+          "weight": 0.8571
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Khách du lịch một mình",
+          "weight": 0.8559
+        },
+        {
+          "tag_id": "REVIEW_TAG::Độ thoải mái của phòng",
+          "weight": 0.8557
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Khách đi công tác",
+          "weight": 0.8552
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Cặp đôi",
+          "weight": 0.8523
+        },
+        {
+          "tag_id": "REVIEW_TAG::Thiết kế phòng",
+          "weight": 0.85
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng theo chủ đề",
+          "weight": 0.85
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::CCTV bên ngoài chỗ nghỉ",
+          "weight": 0.85
+        }
+      ],
+      "retrieval": "dense",
+      "review_score": 8.5,
+      "demo_score": 0.0,
+      "interest_score": 0.9999954475663339,
+      "collaborative_score": 0.0,
+      "user_segments": [
+        "safety",
+        "unique",
+        "low: < 2tr",
+        "Explorer",
+        "< 25",
+        "vibrant"
+      ],
+      "top5_interests": [
+        {
+          "score": 20.43595460184269,
+          "tag": "Khách du lịch một mình"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Hướng Biển"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Homestay"
+        }
+      ],
+      "sources": [
+        "embedding_search",
+        "personalization"
+      ]
+    },
+    "55256505": {
+      "item_id": "55256505",
+      "hotel_id": 55256505,
+      "name": "Khách sạn Greenview City (Greenview City Hotel)",
+      "search_score": 0.20033418157462277,
+      "strategy": "hybrid_bge_m3_bm25",
+      "city": "Đà Lạt",
+      "tags": [
+        {
+          "tag_id": "HOTEL_TYPE::Khách sạn",
+          "weight": 1.0
+        },
+        {
+          "tag_id": "REVIEW_TAG::Bãi đỗ xe",
+          "weight": 0.9214
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Đỗ xe miễn phí",
+          "weight": 0.9214
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Đỗ xe gần bên",
+          "weight": 0.9214
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Đỗ xe tại chỗ",
+          "weight": 0.9214
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Đỗ xe có nhân viên",
+          "weight": 0.9214
+        },
+        {
+          "tag_id": "REVIEW_TAG::Gia đình",
+          "weight": 0.912
+        },
+        {
+          "tag_id": "REVIEW_TAG::Đáng tiền",
+          "weight": 0.903
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Gia đình có thanh thiếu niên",
+          "weight": 0.9
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Cặp đôi",
+          "weight": 0.8981
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Khách đi công tác",
+          "weight": 0.8964
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng gia đình",
+          "weight": 0.89
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Bảo vệ 24 giờ",
+          "weight": 0.89
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Thích hợp cho gia đình trẻ em",
+          "weight": 0.89
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Tính năng an toàn cho trẻ em",
+          "weight": 0.89
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Dịch vụ taxi",
+          "weight": 0.89
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Dịch vụ đưa đón",
+          "weight": 0.89
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::CCTV trong khu vực chung",
+          "weight": 0.89
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Đưa đón sân bay",
+          "weight": 0.89
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Bồn tắm nước nóng",
+          "weight": 0.89
+        }
+      ],
+      "retrieval": "dense",
+      "review_score": 8.9,
+      "demo_score": 0.0,
+      "interest_score": 0.9999486017530332,
+      "collaborative_score": 0.0,
+      "user_segments": [
+        "safety",
+        "unique",
+        "low: < 2tr",
+        "Explorer",
+        "< 25",
+        "vibrant"
+      ],
+      "top5_interests": [
+        {
+          "score": 20.43595460184269,
+          "tag": "Khách du lịch một mình"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Hướng Biển"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Homestay"
+        }
+      ],
+      "sources": [
+        "embedding_search",
+        "personalization"
+      ]
+    },
+    "78233733": {
+      "item_id": "78233733",
+      "hotel_id": 78233733,
+      "name": "COCO HOUSE Đà Lạt (COCO HOUSE Đa Lat)",
+      "search_score": 0.19936475793468092,
+      "strategy": "hybrid_bge_m3_bm25",
+      "city": "Đà Lạt",
+      "tags": [
+        {
+          "tag_id": "HOTEL_TYPE::Khách sạn",
+          "weight": 1.0
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Dịch vụ làm đẹp",
+          "weight": 0.8583
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Bàn tiếp tân 24 giờ",
+          "weight": 0.8583
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Giữ hành lý",
+          "weight": 0.8583
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Dịch vụ giặt là",
+          "weight": 0.8583
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Nhận trả phòng nhanh",
+          "weight": 0.8583
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Dịch vụ phòng",
+          "weight": 0.8583
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Bếp",
+          "weight": 0.8381
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Gia đình có trẻ nhỏ",
+          "weight": 0.8324
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Tiếng Anh",
+          "weight": 0.83
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::WiFi miễn phí",
+          "weight": 0.83
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Đỗ xe miễn phí",
+          "weight": 0.83
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng không hút thuốc",
+          "weight": 0.83
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Giải trí",
+          "weight": 0.83
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Khu vực hút thuốc",
+          "weight": 0.83
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Hoàn toàn không hút thuốc",
+          "weight": 0.83
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Thang máy",
+          "weight": 0.83
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Được phép đưa thú nuôi vào",
+          "weight": 0.83
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng không gây dị ứng",
+          "weight": 0.83
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Thích hợp cho gia đình trẻ em",
+          "weight": 0.83
+        }
+      ],
+      "retrieval": "dense",
+      "review_score": 8.3,
+      "demo_score": 0.0,
+      "interest_score": 0.9999977444695095,
+      "collaborative_score": 0.0,
+      "user_segments": [
+        "safety",
+        "unique",
+        "low: < 2tr",
+        "Explorer",
+        "< 25",
+        "vibrant"
+      ],
+      "top5_interests": [
+        {
+          "score": 20.43595460184269,
+          "tag": "Khách du lịch một mình"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Hướng Biển"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Homestay"
+        }
+      ],
+      "sources": [
+        "embedding_search",
+        "personalization"
+      ]
+    },
+    "16784780": {
+      "item_id": "16784780",
+      "hotel_id": 16784780,
+      "name": "Khách Sạn Be U City View (Be U Hotel City View)",
+      "search_score": 0.19331379492617623,
+      "strategy": "hybrid_bge_m3_bm25",
+      "city": "Đà Lạt",
+      "tags": [
+        {
+          "tag_id": "HOTEL_TYPE::Khách sạn",
+          "weight": 1.0
+        },
+        {
+          "tag_id": "REVIEW_TAG::Địa điểm",
+          "weight": 0.8967
+        },
+        {
+          "tag_id": "REVIEW_TAG::Bãi đỗ xe",
+          "weight": 0.8715
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Đỗ xe có nhân viên",
+          "weight": 0.8715
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Đỗ xe tại chỗ",
+          "weight": 0.8715
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Đỗ xe gần bên",
+          "weight": 0.8715
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Đỗ xe miễn phí",
+          "weight": 0.8715
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Khách du lịch một mình",
+          "weight": 0.8709
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Cặp đôi",
+          "weight": 0.8682
+        },
+        {
+          "tag_id": "REVIEW_TAG::Đáng tiền",
+          "weight": 0.8529
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Nhóm du khách",
+          "weight": 0.849
+        },
+        {
+          "tag_id": "REVIEW_TAG::Không khí",
+          "weight": 0.8486
+        },
+        {
+          "tag_id": "REVIEW_TAG::Khả năng đi bộ thuận tiện",
+          "weight": 0.8486
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Gia đình có trẻ nhỏ",
+          "weight": 0.8485
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Bảo vệ 24 giờ",
+          "weight": 0.84
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Tiếng Anh",
+          "weight": 0.84
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::WiFi miễn phí",
+          "weight": 0.84
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Thích hợp cho gia đình trẻ em",
+          "weight": 0.84
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Hoàn toàn không hút thuốc",
+          "weight": 0.84
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::CCTV bên ngoài chỗ nghỉ",
+          "weight": 0.84
+        }
+      ],
+      "retrieval": "dense",
+      "destination": "Đà Lạt",
+      "rank": 5,
+      "booking_count": 8,
+      "sources": [
+        "embedding_search",
+        "trending"
+      ]
+    },
+    "50138938": {
+      "item_id": "50138938",
+      "hotel_id": 50138938,
+      "name": "Khách sạn Savio Triệu Việt Vương Đà Lạt (Savio Hotel Trieu Viet Vuong)",
+      "search_score": 0.1679421091767995,
+      "strategy": "hybrid_bge_m3_bm25",
+      "city": "Đà Lạt",
+      "tags": [
+        {
+          "tag_id": "HOTEL_TYPE::Khách sạn",
+          "weight": 1.0
+        },
+        {
+          "tag_id": "REVIEW_TAG::Địa điểm",
+          "weight": 0.9488
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Khách du lịch một mình",
+          "weight": 0.9067
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::WiFi miễn phí",
+          "weight": 0.9
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Dịch vụ vé",
+          "weight": 0.9
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Vườn",
+          "weight": 0.9
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng chờ chung khu vực tv",
+          "weight": 0.9
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Hoàn toàn không hút thuốc",
+          "weight": 0.9
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Ít gây dị ứng",
+          "weight": 0.9
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Không gian làm việc cho máy tính xách tay",
+          "weight": 0.9
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng không hút thuốc",
+          "weight": 0.9
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng không gây dị ứng",
+          "weight": 0.9
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Lối đi riêng",
+          "weight": 0.9
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phù hợp cho xe lăn",
+          "weight": 0.9
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Thang máy",
+          "weight": 0.9
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Tiếng Anh",
+          "weight": 0.9
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Khu vực hút thuốc",
+          "weight": 0.9
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Cặp đôi",
+          "weight": 0.8979
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Gia đình có trẻ nhỏ",
+          "weight": 0.8958
+        },
+        {
+          "tag_id": "REVIEW_TAG::Đáng tiền",
+          "weight": 0.8952
+        }
+      ],
+      "retrieval": "dense",
+      "sources": [
+        "embedding_search"
+      ]
+    },
+    "10954459": {
+      "item_id": "10954459",
+      "hotel_id": 10954459,
+      "name": "Khách sạn Sài Gòn's Book Dalat ( Hồ Xuân Hương) (Saigon's Book Da Lat Hotel)",
+      "search_score": 0.12713101084596623,
+      "strategy": "hybrid_bge_m3_bm25",
+      "city": "Đà Lạt",
+      "tags": [
+        {
+          "tag_id": "HOTEL_TYPE::Khách sạn",
+          "weight": 1.0
+        },
+        {
+          "tag_id": "REVIEW_TAG::Bãi đỗ xe",
+          "weight": 0.9172
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Đỗ xe miễn phí",
+          "weight": 0.9172
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Đỗ xe có nhân viên",
+          "weight": 0.9172
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Đỗ xe tại chỗ",
+          "weight": 0.9172
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Đỗ xe gần bên",
+          "weight": 0.9172
+        },
+        {
+          "tag_id": "REVIEW_TAG::Đáng tiền",
+          "weight": 0.9111
+        },
+        {
+          "tag_id": "REVIEW_TAG::Kích thước phòng",
+          "weight": 0.9092
+        },
+        {
+          "tag_id": "REVIEW_TAG::Độ sạch sẽ",
+          "weight": 0.9089
+        },
+        {
+          "tag_id": "REVIEW_TAG::Gia đình",
+          "weight": 0.904
+        },
+        {
+          "tag_id": "SUITABLE_FOR::Khách du lịch một mình",
+          "weight": 0.8914
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng chờ chung khu vực tv",
+          "weight": 0.88
+        },
+        {
+          "tag_id": "REVIEW_TAG::Tiện nghi trong phòng",
+          "weight": 0.88
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Quán bar",
+          "weight": 0.88
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Tiếng Anh",
+          "weight": 0.88
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Hoàn toàn không hút thuốc",
+          "weight": 0.88
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng không hút thuốc",
+          "weight": 0.88
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::CCTV bên ngoài chỗ nghỉ",
+          "weight": 0.88
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Thích hợp cho gia đình trẻ em",
+          "weight": 0.88
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Vườn",
+          "weight": 0.88
+        }
+      ],
+      "retrieval": "dense",
+      "sources": [
+        "embedding_search"
+      ]
+    },
+    "47218637": {
+      "item_id": "47218637",
+      "hotel_id": 47218637,
+      "name": "Nhà Sun (The Sun House)",
+      "search_score": 0.1169811320754717,
+      "destination": "Đà Lạt",
+      "rank": 2,
+      "booking_count": 12,
+      "strategy": "mongo_booking_aggregate",
+      "review_score": 8.7,
+      "city": "Đà Lạt",
+      "demo_score": 0.0,
+      "interest_score": 0.9999260228007057,
+      "collaborative_score": 0.0,
+      "user_segments": [
+        "safety",
+        "unique",
+        "low: < 2tr",
+        "Explorer",
+        "< 25",
+        "vibrant"
+      ],
+      "top5_interests": [
+        {
+          "score": 20.43595460184269,
+          "tag": "Khách du lịch một mình"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Hướng Biển"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Homestay"
+        }
+      ],
+      "sources": [
+        "trending",
+        "personalization"
+      ]
+    },
+    "14626926": {
+      "item_id": "14626926",
+      "hotel_id": 14626926,
+      "name": "Sunshine - Tia Nắng Mới (Sunshine - Tia Nang Moi)",
+      "search_score": 0.11141550531228397,
+      "destination": "Đà Lạt",
+      "rank": 4,
+      "booking_count": 10,
+      "strategy": "mongo_booking_aggregate",
+      "review_score": 8.3,
+      "city": "Đà Lạt",
+      "demo_score": 0.0,
+      "interest_score": 0.9999970986740834,
+      "collaborative_score": 0.0,
+      "user_segments": [
+        "safety",
+        "unique",
+        "low: < 2tr",
+        "Explorer",
+        "< 25",
+        "vibrant"
+      ],
+      "top5_interests": [
+        {
+          "score": 20.43595460184269,
+          "tag": "Khách du lịch một mình"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Hướng Biển"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Homestay"
+        }
+      ],
+      "sources": [
+        "trending",
+        "personalization"
+      ]
+    },
+    "9698": {
+      "item_id": "9698",
+      "hotel_id": 9698,
+      "name": "Khách Sạn TTC Đà Lạt (TTC Hotel Dalat)",
+      "search_score": 0.014150943396226415,
+      "destination": "Đà Lạt",
+      "rank": 3,
+      "booking_count": 11,
+      "strategy": "mongo_booking_aggregate",
+      "sources": [
+        "trending"
+      ]
+    },
+    "1984283": {
+      "item_id": "1984283",
+      "hotel_id": 1984283,
+      "name": "Khách sạn Nam Xuân premium (Nam Xuan premium Hotel)",
+      "search_score": 9.747825597639392e-05,
+      "review_score": 8.1,
+      "city": "Đà Lạt",
+      "demo_score": 0.0,
+      "interest_score": 0.9999991447917256,
+      "collaborative_score": 0.0,
+      "user_segments": [
+        "safety",
+        "unique",
+        "low: < 2tr",
+        "Explorer",
+        "< 25",
+        "vibrant"
+      ],
+      "top5_interests": [
+        {
+          "score": 20.43595460184269,
+          "tag": "Khách du lịch một mình"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Hướng Biển"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Homestay"
+        }
+      ],
+      "strategy": "unified_personalization",
+      "sources": [
+        "personalization"
+      ]
+    },
+    "21978371": {
+      "item_id": "21978371",
+      "hotel_id": 21978371,
+      "name": "NGÔI LÀNG CỔ 77 HOÀNG DIỆU (NGOI LANG CO 77 HOANG DIEU)",
+      "search_score": 9.030741460333402e-05,
+      "review_score": 8.2,
+      "city": "Đà Lạt",
+      "demo_score": 0.0,
+      "interest_score": 0.9999937656823721,
+      "collaborative_score": 0.0,
+      "user_segments": [
+        "safety",
+        "unique",
+        "low: < 2tr",
+        "Explorer",
+        "< 25",
+        "vibrant"
+      ],
+      "top5_interests": [
+        {
+          "score": 20.43595460184269,
+          "tag": "Khách du lịch một mình"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 19.02657842240526,
+          "tag": "WiFi miễn phí"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Hướng Biển"
+        },
+        {
+          "score": 18.32189033268655,
+          "tag": "Homestay"
+        }
+      ],
+      "strategy": "unified_personalization",
+      "sources": [
+        "personalization"
+      ]
+    },
+    "32680041": {
+      "item_id": "32680041",
+      "hotel_id": 32680041,
+      "name": "Khách sạn Tala Đà Lạt (Tala Dalat Hotel)",
+      "search_score": 0.0,
+      "strategy": "hybrid_bge_m3_bm25",
+      "city": "Đà Lạt",
+      "tags": [
+        {
+          "tag_id": "HOTEL_TYPE::Khách sạn",
+          "weight": 1.0
+        },
+        {
+          "tag_id": "REVIEW_TAG::Đáng tiền",
+          "weight": 0.9515
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng chờ chung khu vực tv",
+          "weight": 0.9429
+        },
+        {
+          "tag_id": "REVIEW_TAG::Tiện ích tại cơ sở lưu trú",
+          "weight": 0.9429
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Ít gây dị ứng",
+          "weight": 0.9429
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Vườn",
+          "weight": 0.9429
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::WiFi miễn phí",
+          "weight": 0.9429
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Tiếng Anh",
+          "weight": 0.9429
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Thang máy",
+          "weight": 0.9429
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Khu vực ăn uống riêng",
+          "weight": 0.9429
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phù hợp cho xe lăn",
+          "weight": 0.9429
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng không hút thuốc",
+          "weight": 0.9429
+        },
+        {
+          "tag_id": "REVIEW_TAG::Không khí",
+          "weight": 0.9297
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Nhà hàng",
+          "weight": 0.92
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Ô tô cho thuê",
+          "weight": 0.92
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Thích hợp cho gia đình trẻ em",
+          "weight": 0.92
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Phòng gia đình",
+          "weight": 0.92
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Quán cà phê",
+          "weight": 0.92
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Dịch vụ taxi",
+          "weight": 0.92
+        },
+        {
+          "tag_id": "HOTEL_AMENITY::Dịch vụ đưa đón",
+          "weight": 0.92
+        }
+      ],
+      "retrieval": "dense",
+      "sources": [
+        "embedding_search"
+      ]
+    }
+  },
+  "normalized_candidates": [
+    {
+      "item_id": "15896111",
+      "item_type": "hotel",
+      "name": "New Hampton Suits- Khách sạn trung tâm Tầm Xuân (New Hampton Suits-Tam Xuan Centre Hotel)",
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "price_min": null,
+      "price_max": null,
+      "currency": "VND",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'REVIEW_TAG::Địa điểm', 'weight': 0.9212}",
+        "{'tag_id': 'SUITABLE_FOR::Khách đi công tác', 'weight': 0.9023}",
+        "{'tag_id': 'SUITABLE_FOR::Cặp đôi', 'weight': 0.8831}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng cách âm', 'weight': 0.8762}",
+        "{'tag_id': 'HOTEL_AMENITY::Giao hàng tạp hóa', 'weight': 0.8762}",
+        "{'tag_id': 'HOTEL_AMENITY::Đưa đón sân bay', 'weight': 0.8762}",
+        "{'tag_id': 'REVIEW_TAG::Kích thước phòng', 'weight': 0.8731}",
+        "{'tag_id': 'HOTEL_AMENITY::Tính năng an toàn cho trẻ em', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng gia đình', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::WiFi miễn phí', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ vé', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Thích hợp cho gia đình trẻ em', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng không hút thuốc', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Bảo vệ 24 giờ', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Tiện nghi cho khách khuyết tật', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Hoàn toàn không hút thuốc', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Tiếng Anh', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng không gây dị ứng', 'weight': 0.87}",
+        "{'tag_id': 'HOTEL_AMENITY::Phù hợp cho xe lăn', 'weight': 0.87}"
+      ],
+      "location_tags": [],
+      "nearby_places": [],
+      "rating": 4.35,
+      "review_sentiment": 0.87,
+      "available": true,
+      "available_rooms": 0,
+      "keyword_score": 0.70007170322158
+    },
+    {
+      "item_id": "49385769",
+      "item_type": "hotel",
+      "name": "CALYSSA HOTELS & VILLAGE",
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "price_min": null,
+      "price_max": null,
+      "currency": "VND",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [],
+      "location_tags": [],
+      "nearby_places": [],
+      "rating": 4.5,
+      "review_sentiment": 0.9,
+      "available": true,
+      "available_rooms": 0,
+      "keyword_score": 0.5
+    },
+    {
+      "item_id": "31642453",
+      "item_type": "hotel",
+      "name": "Mercure Đà Lạt Resort (Mercure Dalat Resort)",
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "price_min": null,
+      "price_max": null,
+      "currency": "VND",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'REVIEW_TAG::Thiết kế phòng', 'weight': 0.9368}",
+        "{'tag_id': 'SUITABLE_FOR::Cặp đôi', 'weight': 0.9231}",
+        "{'tag_id': 'SUITABLE_FOR::Gia đình có thanh thiếu niên', 'weight': 0.9121}",
+        "{'tag_id': 'REVIEW_TAG::Nhiều lựa chọn nhà hàng', 'weight': 0.904}",
+        "{'tag_id': 'HOTEL_AMENITY::Nhà hàng phục vụ món tự chọn', 'weight': 0.904}",
+        "{'tag_id': 'HOTEL_AMENITY::Nhà hàng ẩm thực phương tây', 'weight': 0.904}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng thiết kế theo phong cách quán cà phê', 'weight': 0.904}",
+        "{'tag_id': 'HOTEL_AMENITY::Nhà hàng ẩm thực trung quốc', 'weight': 0.904}",
+        "{'tag_id': 'HOTEL_AMENITY::Tiện nghi nấu nướng ngoài trời', 'weight': 0.904}",
+        "{'tag_id': 'HOTEL_AMENITY::Nhà hàng ẩm thực châu á', 'weight': 0.904}",
+        "{'tag_id': 'HOTEL_AMENITY::Quán cà phê', 'weight': 0.904}",
+        "{'tag_id': 'HOTEL_AMENITY::Nhà hàng', 'weight': 0.904}",
+        "{'tag_id': 'HOTEL_AMENITY::Giờ giảm giá đồ uống', 'weight': 0.904}",
+        "{'tag_id': 'SUITABLE_FOR::Gia đình có trẻ nhỏ', 'weight': 0.9014}",
+        "{'tag_id': 'REVIEW_TAG::Không khí', 'weight': 0.901}",
+        "{'tag_id': 'SUITABLE_FOR::Khách đi công tác', 'weight': 0.8979}",
+        "{'tag_id': 'REVIEW_TAG::Gia đình', 'weight': 0.8965}",
+        "{'tag_id': 'SUITABLE_FOR::Khách du lịch một mình', 'weight': 0.8953}",
+        "{'tag_id': 'SUITABLE_FOR::Nhóm du khách', 'weight': 0.8915}"
+      ],
+      "location_tags": [],
+      "nearby_places": [],
+      "rating": 4.4,
+      "review_sentiment": 0.88,
+      "available": true,
+      "available_rooms": 0,
+      "keyword_score": 0.32913823014551125
+    },
+    {
+      "item_id": "42109640",
+      "item_type": "hotel",
+      "name": "Khách sạn MerPerle Đà Lạt (MerPerle Dalat Hotel)",
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "price_min": null,
+      "price_max": null,
+      "currency": "VND",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'REVIEW_TAG::Bãi đỗ xe', 'weight': 0.9371}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe tại chỗ', 'weight': 0.9371}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe miễn phí', 'weight': 0.9371}",
+        "{'tag_id': 'REVIEW_TAG::Cơ sở vật chất cho trẻ em', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng gia đình', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Thích hợp cho gia đình trẻ em', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Bữa ăn cho trẻ', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Cơ sở vật chất cho trẻ em', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::CLB trẻ em', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Sân chơi', 'weight': 0.92}",
+        "{'tag_id': 'SUITABLE_FOR::Gia đình có trẻ nhỏ', 'weight': 0.9102}",
+        "{'tag_id': 'SUITABLE_FOR::Gia đình có thanh thiếu niên', 'weight': 0.9038}",
+        "{'tag_id': 'REVIEW_TAG::Gia đình', 'weight': 0.9007}",
+        "{'tag_id': 'HOTEL_AMENITY::Bể bơi trẻ em', 'weight': 0.9005}",
+        "{'tag_id': 'SUITABLE_FOR::Khách du lịch một mình', 'weight': 0.893}",
+        "{'tag_id': 'SUITABLE_FOR::Cặp đôi', 'weight': 0.89}",
+        "{'tag_id': 'REVIEW_TAG::Bể bơi', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng tập', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::Đưa đón sân bay', 'weight': 0.89}"
+      ],
+      "location_tags": [],
+      "nearby_places": [],
+      "rating": null,
+      "review_sentiment": null,
+      "available": true,
+      "available_rooms": 0,
+      "keyword_score": 0.2957205412343027
+    },
+    {
+      "item_id": "74577726",
+      "item_type": "hotel",
+      "name": "Khách sạn Amory Đà Lạt (Amory Dalat Hotel)",
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "price_min": null,
+      "price_max": null,
+      "currency": "VND",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'REVIEW_TAG::Hướng nhìn từ phòng', 'weight': 0.8667}",
+        "{'tag_id': 'SUITABLE_FOR::Gia đình có thanh thiếu niên', 'weight': 0.8581}",
+        "{'tag_id': 'HOTEL_AMENITY::WiFi miễn phí', 'weight': 0.8571}",
+        "{'tag_id': 'HOTEL_AMENITY::Khu vực hút thuốc', 'weight': 0.8571}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng chờ chung khu vực tv', 'weight': 0.8571}",
+        "{'tag_id': 'HOTEL_AMENITY::Thang máy', 'weight': 0.8571}",
+        "{'tag_id': 'HOTEL_AMENITY::Tiếng Anh', 'weight': 0.8571}",
+        "{'tag_id': 'HOTEL_AMENITY::Lối đi riêng', 'weight': 0.8571}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ vé', 'weight': 0.8571}",
+        "{'tag_id': 'HOTEL_AMENITY::Hoàn toàn không hút thuốc', 'weight': 0.8571}",
+        "{'tag_id': 'HOTEL_AMENITY::Cửa sổ có thể mở ra', 'weight': 0.8571}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng không hút thuốc', 'weight': 0.8571}",
+        "{'tag_id': 'SUITABLE_FOR::Khách du lịch một mình', 'weight': 0.8559}",
+        "{'tag_id': 'REVIEW_TAG::Độ thoải mái của phòng', 'weight': 0.8557}",
+        "{'tag_id': 'SUITABLE_FOR::Khách đi công tác', 'weight': 0.8552}",
+        "{'tag_id': 'SUITABLE_FOR::Cặp đôi', 'weight': 0.8523}",
+        "{'tag_id': 'REVIEW_TAG::Thiết kế phòng', 'weight': 0.85}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng theo chủ đề', 'weight': 0.85}",
+        "{'tag_id': 'HOTEL_AMENITY::CCTV bên ngoài chỗ nghỉ', 'weight': 0.85}"
+      ],
+      "location_tags": [],
+      "nearby_places": [],
+      "rating": 4.25,
+      "review_sentiment": 0.85,
+      "available": true,
+      "available_rooms": 0,
+      "keyword_score": 0.21610002977845583
+    },
+    {
+      "item_id": "55256505",
+      "item_type": "hotel",
+      "name": "Khách sạn Greenview City (Greenview City Hotel)",
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "price_min": null,
+      "price_max": null,
+      "currency": "VND",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'REVIEW_TAG::Bãi đỗ xe', 'weight': 0.9214}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe miễn phí', 'weight': 0.9214}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe gần bên', 'weight': 0.9214}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe tại chỗ', 'weight': 0.9214}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe có nhân viên', 'weight': 0.9214}",
+        "{'tag_id': 'REVIEW_TAG::Gia đình', 'weight': 0.912}",
+        "{'tag_id': 'REVIEW_TAG::Đáng tiền', 'weight': 0.903}",
+        "{'tag_id': 'SUITABLE_FOR::Gia đình có thanh thiếu niên', 'weight': 0.9}",
+        "{'tag_id': 'SUITABLE_FOR::Cặp đôi', 'weight': 0.8981}",
+        "{'tag_id': 'SUITABLE_FOR::Khách đi công tác', 'weight': 0.8964}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng gia đình', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::Bảo vệ 24 giờ', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::Thích hợp cho gia đình trẻ em', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::Tính năng an toàn cho trẻ em', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ taxi', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ đưa đón', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::CCTV trong khu vực chung', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::Đưa đón sân bay', 'weight': 0.89}",
+        "{'tag_id': 'HOTEL_AMENITY::Bồn tắm nước nóng', 'weight': 0.89}"
+      ],
+      "location_tags": [],
+      "nearby_places": [],
+      "rating": 4.45,
+      "review_sentiment": 0.89,
+      "available": true,
+      "available_rooms": 0,
+      "keyword_score": 0.20033418157462277
+    },
+    {
+      "item_id": "78233733",
+      "item_type": "hotel",
+      "name": "COCO HOUSE Đà Lạt (COCO HOUSE Đa Lat)",
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "price_min": null,
+      "price_max": null,
+      "currency": "VND",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ làm đẹp', 'weight': 0.8583}",
+        "{'tag_id': 'HOTEL_AMENITY::Bàn tiếp tân 24 giờ', 'weight': 0.8583}",
+        "{'tag_id': 'HOTEL_AMENITY::Giữ hành lý', 'weight': 0.8583}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ giặt là', 'weight': 0.8583}",
+        "{'tag_id': 'HOTEL_AMENITY::Nhận trả phòng nhanh', 'weight': 0.8583}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ phòng', 'weight': 0.8583}",
+        "{'tag_id': 'HOTEL_AMENITY::Bếp', 'weight': 0.8381}",
+        "{'tag_id': 'SUITABLE_FOR::Gia đình có trẻ nhỏ', 'weight': 0.8324}",
+        "{'tag_id': 'HOTEL_AMENITY::Tiếng Anh', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::WiFi miễn phí', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe miễn phí', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng không hút thuốc', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::Giải trí', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::Khu vực hút thuốc', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::Hoàn toàn không hút thuốc', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::Thang máy', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::Được phép đưa thú nuôi vào', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng không gây dị ứng', 'weight': 0.83}",
+        "{'tag_id': 'HOTEL_AMENITY::Thích hợp cho gia đình trẻ em', 'weight': 0.83}"
+      ],
+      "location_tags": [],
+      "nearby_places": [],
+      "rating": 4.15,
+      "review_sentiment": 0.83,
+      "available": true,
+      "available_rooms": 0,
+      "keyword_score": 0.19936475793468092
+    },
+    {
+      "item_id": "16784780",
+      "item_type": "hotel",
+      "name": "Khách Sạn Be U City View (Be U Hotel City View)",
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "price_min": null,
+      "price_max": null,
+      "currency": "VND",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'REVIEW_TAG::Địa điểm', 'weight': 0.8967}",
+        "{'tag_id': 'REVIEW_TAG::Bãi đỗ xe', 'weight': 0.8715}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe có nhân viên', 'weight': 0.8715}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe tại chỗ', 'weight': 0.8715}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe gần bên', 'weight': 0.8715}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe miễn phí', 'weight': 0.8715}",
+        "{'tag_id': 'SUITABLE_FOR::Khách du lịch một mình', 'weight': 0.8709}",
+        "{'tag_id': 'SUITABLE_FOR::Cặp đôi', 'weight': 0.8682}",
+        "{'tag_id': 'REVIEW_TAG::Đáng tiền', 'weight': 0.8529}",
+        "{'tag_id': 'SUITABLE_FOR::Nhóm du khách', 'weight': 0.849}",
+        "{'tag_id': 'REVIEW_TAG::Không khí', 'weight': 0.8486}",
+        "{'tag_id': 'REVIEW_TAG::Khả năng đi bộ thuận tiện', 'weight': 0.8486}",
+        "{'tag_id': 'SUITABLE_FOR::Gia đình có trẻ nhỏ', 'weight': 0.8485}",
+        "{'tag_id': 'HOTEL_AMENITY::Bảo vệ 24 giờ', 'weight': 0.84}",
+        "{'tag_id': 'HOTEL_AMENITY::Tiếng Anh', 'weight': 0.84}",
+        "{'tag_id': 'HOTEL_AMENITY::WiFi miễn phí', 'weight': 0.84}",
+        "{'tag_id': 'HOTEL_AMENITY::Thích hợp cho gia đình trẻ em', 'weight': 0.84}",
+        "{'tag_id': 'HOTEL_AMENITY::Hoàn toàn không hút thuốc', 'weight': 0.84}",
+        "{'tag_id': 'HOTEL_AMENITY::CCTV bên ngoài chỗ nghỉ', 'weight': 0.84}"
+      ],
+      "location_tags": [],
+      "nearby_places": [],
+      "rating": null,
+      "review_sentiment": null,
+      "available": true,
+      "available_rooms": 0,
+      "keyword_score": 0.19331379492617623
+    },
+    {
+      "item_id": "50138938",
+      "item_type": "hotel",
+      "name": "Khách sạn Savio Triệu Việt Vương Đà Lạt (Savio Hotel Trieu Viet Vuong)",
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "price_min": null,
+      "price_max": null,
+      "currency": "VND",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'REVIEW_TAG::Địa điểm', 'weight': 0.9488}",
+        "{'tag_id': 'SUITABLE_FOR::Khách du lịch một mình', 'weight': 0.9067}",
+        "{'tag_id': 'HOTEL_AMENITY::WiFi miễn phí', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ vé', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Vườn', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng chờ chung khu vực tv', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Hoàn toàn không hút thuốc', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Ít gây dị ứng', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Không gian làm việc cho máy tính xách tay', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng không hút thuốc', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng không gây dị ứng', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Lối đi riêng', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Phù hợp cho xe lăn', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Thang máy', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Tiếng Anh', 'weight': 0.9}",
+        "{'tag_id': 'HOTEL_AMENITY::Khu vực hút thuốc', 'weight': 0.9}",
+        "{'tag_id': 'SUITABLE_FOR::Cặp đôi', 'weight': 0.8979}",
+        "{'tag_id': 'SUITABLE_FOR::Gia đình có trẻ nhỏ', 'weight': 0.8958}",
+        "{'tag_id': 'REVIEW_TAG::Đáng tiền', 'weight': 0.8952}"
+      ],
+      "location_tags": [],
+      "nearby_places": [],
+      "rating": null,
+      "review_sentiment": null,
+      "available": true,
+      "available_rooms": 0,
+      "keyword_score": 0.1679421091767995
+    },
+    {
+      "item_id": "10954459",
+      "item_type": "hotel",
+      "name": "Khách sạn Sài Gòn's Book Dalat ( Hồ Xuân Hương) (Saigon's Book Da Lat Hotel)",
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "price_min": null,
+      "price_max": null,
+      "currency": "VND",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'REVIEW_TAG::Bãi đỗ xe', 'weight': 0.9172}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe miễn phí', 'weight': 0.9172}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe có nhân viên', 'weight': 0.9172}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe tại chỗ', 'weight': 0.9172}",
+        "{'tag_id': 'HOTEL_AMENITY::Đỗ xe gần bên', 'weight': 0.9172}",
+        "{'tag_id': 'REVIEW_TAG::Đáng tiền', 'weight': 0.9111}",
+        "{'tag_id': 'REVIEW_TAG::Kích thước phòng', 'weight': 0.9092}",
+        "{'tag_id': 'REVIEW_TAG::Độ sạch sẽ', 'weight': 0.9089}",
+        "{'tag_id': 'REVIEW_TAG::Gia đình', 'weight': 0.904}",
+        "{'tag_id': 'SUITABLE_FOR::Khách du lịch một mình', 'weight': 0.8914}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng chờ chung khu vực tv', 'weight': 0.88}",
+        "{'tag_id': 'REVIEW_TAG::Tiện nghi trong phòng', 'weight': 0.88}",
+        "{'tag_id': 'HOTEL_AMENITY::Quán bar', 'weight': 0.88}",
+        "{'tag_id': 'HOTEL_AMENITY::Tiếng Anh', 'weight': 0.88}",
+        "{'tag_id': 'HOTEL_AMENITY::Hoàn toàn không hút thuốc', 'weight': 0.88}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng không hút thuốc', 'weight': 0.88}",
+        "{'tag_id': 'HOTEL_AMENITY::CCTV bên ngoài chỗ nghỉ', 'weight': 0.88}",
+        "{'tag_id': 'HOTEL_AMENITY::Thích hợp cho gia đình trẻ em', 'weight': 0.88}",
+        "{'tag_id': 'HOTEL_AMENITY::Vườn', 'weight': 0.88}"
+      ],
+      "location_tags": [],
+      "nearby_places": [],
+      "rating": null,
+      "review_sentiment": null,
+      "available": true,
+      "available_rooms": 0,
+      "keyword_score": 0.12713101084596623
+    },
+    {
+      "item_id": "47218637",
+      "item_type": "hotel",
+      "name": "Nhà Sun (The Sun House)",
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "price_min": null,
+      "price_max": null,
+      "currency": "VND",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [],
+      "location_tags": [],
+      "nearby_places": [],
+      "rating": 4.35,
+      "review_sentiment": 0.87,
+      "available": true,
+      "available_rooms": 0,
+      "keyword_score": 0.1169811320754717
+    },
+    {
+      "item_id": "14626926",
+      "item_type": "hotel",
+      "name": "Sunshine - Tia Nắng Mới (Sunshine - Tia Nang Moi)",
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "price_min": null,
+      "price_max": null,
+      "currency": "VND",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [],
+      "location_tags": [],
+      "nearby_places": [],
+      "rating": 4.15,
+      "review_sentiment": 0.83,
+      "available": true,
+      "available_rooms": 0,
+      "keyword_score": 0.11141550531228397
+    },
+    {
+      "item_id": "9698",
+      "item_type": "hotel",
+      "name": "Khách Sạn TTC Đà Lạt (TTC Hotel Dalat)",
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "price_min": null,
+      "price_max": null,
+      "currency": "VND",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [],
+      "location_tags": [],
+      "nearby_places": [],
+      "rating": null,
+      "review_sentiment": null,
+      "available": true,
+      "available_rooms": 0,
+      "keyword_score": 0.014150943396226415
+    },
+    {
+      "item_id": "1984283",
+      "item_type": "hotel",
+      "name": "Khách sạn Nam Xuân premium (Nam Xuan premium Hotel)",
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "price_min": null,
+      "price_max": null,
+      "currency": "VND",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [],
+      "location_tags": [],
+      "nearby_places": [],
+      "rating": 4.05,
+      "review_sentiment": 0.81,
+      "available": true,
+      "available_rooms": 0,
+      "keyword_score": 9.747825597639392e-05
+    },
+    {
+      "item_id": "21978371",
+      "item_type": "hotel",
+      "name": "NGÔI LÀNG CỔ 77 HOÀNG DIỆU (NGOI LANG CO 77 HOANG DIEU)",
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "price_min": null,
+      "price_max": null,
+      "currency": "VND",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [],
+      "location_tags": [],
+      "nearby_places": [],
+      "rating": 4.1,
+      "review_sentiment": 0.82,
+      "available": true,
+      "available_rooms": 0,
+      "keyword_score": 9.030741460333402e-05
+    },
+    {
+      "item_id": "32680041",
+      "item_type": "hotel",
+      "name": "Khách sạn Tala Đà Lạt (Tala Dalat Hotel)",
+      "destination": "Đà Lạt",
+      "hotel_type": "",
+      "price_min": null,
+      "price_max": null,
+      "currency": "VND",
+      "amenities": [],
+      "room_views": [],
+      "preference_habits": [],
+      "tags": [
+        "{'tag_id': 'HOTEL_TYPE::Khách sạn', 'weight': 1.0}",
+        "{'tag_id': 'REVIEW_TAG::Đáng tiền', 'weight': 0.9515}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng chờ chung khu vực tv', 'weight': 0.9429}",
+        "{'tag_id': 'REVIEW_TAG::Tiện ích tại cơ sở lưu trú', 'weight': 0.9429}",
+        "{'tag_id': 'HOTEL_AMENITY::Ít gây dị ứng', 'weight': 0.9429}",
+        "{'tag_id': 'HOTEL_AMENITY::Vườn', 'weight': 0.9429}",
+        "{'tag_id': 'HOTEL_AMENITY::WiFi miễn phí', 'weight': 0.9429}",
+        "{'tag_id': 'HOTEL_AMENITY::Tiếng Anh', 'weight': 0.9429}",
+        "{'tag_id': 'HOTEL_AMENITY::Thang máy', 'weight': 0.9429}",
+        "{'tag_id': 'HOTEL_AMENITY::Khu vực ăn uống riêng', 'weight': 0.9429}",
+        "{'tag_id': 'HOTEL_AMENITY::Phù hợp cho xe lăn', 'weight': 0.9429}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng không hút thuốc', 'weight': 0.9429}",
+        "{'tag_id': 'REVIEW_TAG::Không khí', 'weight': 0.9297}",
+        "{'tag_id': 'HOTEL_AMENITY::Nhà hàng', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Ô tô cho thuê', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Thích hợp cho gia đình trẻ em', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Phòng gia đình', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Quán cà phê', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ taxi', 'weight': 0.92}",
+        "{'tag_id': 'HOTEL_AMENITY::Dịch vụ đưa đón', 'weight': 0.92}"
+      ],
+      "location_tags": [],
+      "nearby_places": [],
+      "rating": null,
+      "review_sentiment": null,
+      "available": true,
+      "available_rooms": 0,
+      "keyword_score": 0.0
+    }
+  ],
+  "booking_signals_all": {
+    "10954459": {
+      "booking_count_7d": 0,
+      "booking_count_30d": 0,
+      "booking_growth_7d_vs_30d": 0.0,
+      "user_booked_before": false,
+      "same_destination_booking_count": 0,
+      "trend_score": 0.0
+    },
+    "55256505": {
+      "booking_count_7d": 0,
+      "booking_count_30d": 0,
+      "booking_growth_7d_vs_30d": 0.0,
+      "user_booked_before": false,
+      "same_destination_booking_count": 0,
+      "trend_score": 0.0
+    },
+    "31642453": {
+      "booking_count_7d": 0,
+      "booking_count_30d": 0,
+      "booking_growth_7d_vs_30d": 0.0,
+      "user_booked_before": false,
+      "same_destination_booking_count": 0,
+      "trend_score": 0.0
+    },
+    "49385769": {
+      "booking_count_7d": 0,
+      "booking_count_30d": 0,
+      "booking_growth_7d_vs_30d": 0.0,
+      "user_booked_before": false,
+      "same_destination_booking_count": 0,
+      "trend_score": 0.0
+    },
+    "16784780": {
+      "booking_count_7d": 0,
+      "booking_count_30d": 0,
+      "booking_growth_7d_vs_30d": 0.0,
+      "user_booked_before": false,
+      "same_destination_booking_count": 0,
+      "trend_score": 0.0
+    },
+    "50138938": {
+      "booking_count_7d": 0,
+      "booking_count_30d": 0,
+      "booking_growth_7d_vs_30d": 0.0,
+      "user_booked_before": false,
+      "same_destination_booking_count": 0,
+      "trend_score": 0.0
+    },
+    "74577726": {
+      "booking_count_7d": 0,
+      "booking_count_30d": 0,
+      "booking_growth_7d_vs_30d": 0.0,
+      "user_booked_before": false,
+      "same_destination_booking_count": 0,
+      "trend_score": 0.0
+    },
+    "42109640": {
+      "booking_count_7d": 0,
+      "booking_count_30d": 0,
+      "booking_growth_7d_vs_30d": 0.0,
+      "user_booked_before": false,
+      "same_destination_booking_count": 0,
+      "trend_score": 0.0
+    },
+    "78233733": {
+      "booking_count_7d": 0,
+      "booking_count_30d": 0,
+      "booking_growth_7d_vs_30d": 0.0,
+      "user_booked_before": false,
+      "same_destination_booking_count": 0,
+      "trend_score": 0.0
+    },
+    "1984283": {
+      "booking_count_7d": 0,
+      "booking_count_30d": 0,
+      "booking_growth_7d_vs_30d": 0.0,
+      "user_booked_before": false,
+      "same_destination_booking_count": 0,
+      "trend_score": 0.0
+    },
+    "32680041": {
+      "booking_count_7d": 0,
+      "booking_count_30d": 0,
+      "booking_growth_7d_vs_30d": 0.0,
+      "user_booked_before": false,
+      "same_destination_booking_count": 0,
+      "trend_score": 0.0
+    },
+    "21978371": {
+      "booking_count_7d": 0,
+      "booking_count_30d": 0,
+      "booking_growth_7d_vs_30d": 0.0,
+      "user_booked_before": false,
+      "same_destination_booking_count": 0,
+      "trend_score": 0.0
+    },
+    "14626926": {
+      "booking_count_7d": 0,
+      "booking_count_30d": 0,
+      "booking_growth_7d_vs_30d": 0.0,
+      "user_booked_before": false,
+      "same_destination_booking_count": 0,
+      "trend_score": 0.0
+    },
+    "9698": {
+      "booking_count_7d": 0,
+      "booking_count_30d": 0,
+      "booking_growth_7d_vs_30d": 0.0,
+      "user_booked_before": false,
+      "same_destination_booking_count": 0,
+      "trend_score": 0.0
+    },
+    "47218637": {
+      "booking_count_7d": 0,
+      "booking_count_30d": 0,
+      "booking_growth_7d_vs_30d": 0.0,
+      "user_booked_before": false,
+      "same_destination_booking_count": 0,
+      "trend_score": 0.0
+    },
+    "15896111": {
+      "booking_count_7d": 0,
+      "booking_count_30d": 3,
+      "booking_growth_7d_vs_30d": 0.0,
+      "user_booked_before": false,
+      "same_destination_booking_count": 0,
+      "trend_score": 0.1
+    }
+  },
+  "llm_candidates": [
+    "15896111",
+    "49385769",
+    "31642453",
+    "55256505",
+    "74577726",
+    "78233733",
+    "47218637",
+    "14626926",
+    "21978371",
+    "1984283",
+    "42109640",
+    "16784780",
+    "50138938",
+    "10954459",
+    "9698",
+    "32680041"
+  ],
+  "llm_results": {},
+  "final_ranked_hotel_ids": [
+    "15896111",
+    "49385769",
+    "31642453",
+    "55256505",
+    "74577726"
+  ],
+  "ranked_hotel_summaries": [
+    {
+      "item_id": "15896111",
+      "rank": 1,
+      "name": "New Hampton Suits- Khách sạn trung tâm Tầm Xuân (New Hampton Suits-Tam Xuan Centre Hotel)",
+      "city": "Đà Lạt",
+      "hotel_type": null,
+      "price_min": null,
+      "price_max": null,
+      "final_score": 0.379,
+      "base_score": 0.379,
+      "llm_score": null
+    },
+    {
+      "item_id": "49385769",
+      "rank": 2,
+      "name": "CALYSSA HOTELS & VILLAGE",
+      "city": "Đà Lạt",
+      "hotel_type": null,
+      "price_min": null,
+      "price_max": null,
+      "final_score": 0.351,
+      "base_score": 0.351,
+      "llm_score": null
+    },
+    {
+      "item_id": "31642453",
+      "rank": 3,
+      "name": "Mercure Đà Lạt Resort (Mercure Dalat Resort)",
+      "city": "Đà Lạt",
+      "hotel_type": null,
+      "price_min": null,
+      "price_max": null,
+      "final_score": 0.327,
+      "base_score": 0.327,
+      "llm_score": null
+    },
+    {
+      "item_id": "55256505",
+      "rank": 4,
+      "name": "Khách sạn Greenview City (Greenview City Hotel)",
+      "city": "Đà Lạt",
+      "hotel_type": null,
+      "price_min": null,
+      "price_max": null,
+      "final_score": 0.313,
+      "base_score": 0.313,
+      "llm_score": null
+    },
+    {
+      "item_id": "74577726",
+      "rank": 5,
+      "name": "Khách sạn Amory Đà Lạt (Amory Dalat Hotel)",
+      "city": "Đà Lạt",
+      "hotel_type": null,
+      "price_min": null,
+      "price_max": null,
+      "final_score": 0.308,
+      "base_score": 0.308,
+      "llm_score": null
+    }
+  ],
+  "feature_scores": {
+    "15896111": {
+      "keyword": 0.7,
+      "budget": 0.5,
+      "amenity": 0.5,
+      "room_view": 0.0,
+      "review": 0.733,
+      "availability": 0.0,
+      "personalization": 0.35,
+      "location": 0.45,
+      "trend": 0.1
+    },
+    "49385769": {
+      "keyword": 0.5,
+      "budget": 0.5,
+      "amenity": 0.5,
+      "room_view": 0.0,
+      "review": 0.795,
+      "availability": 0.0,
+      "personalization": 0.35,
+      "location": 0.45,
+      "trend": 0.0
+    },
+    "31642453": {
+      "keyword": 0.329,
+      "budget": 0.5,
+      "amenity": 0.5,
+      "room_view": 0.0,
+      "review": 0.754,
+      "availability": 0.0,
+      "personalization": 0.35,
+      "location": 0.45,
+      "trend": 0.0
+    },
+    "55256505": {
+      "keyword": 0.2,
+      "budget": 0.5,
+      "amenity": 0.5,
+      "room_view": 0.0,
+      "review": 0.775,
+      "availability": 0.0,
+      "personalization": 0.35,
+      "location": 0.45,
+      "trend": 0.0
+    },
+    "74577726": {
+      "keyword": 0.216,
+      "budget": 0.5,
+      "amenity": 0.5,
+      "room_view": 0.0,
+      "review": 0.693,
+      "availability": 0.0,
+      "personalization": 0.35,
+      "location": 0.45,
+      "trend": 0.0
+    }
+  },
+  "feature_contributions": {
+    "15896111": null,
+    "49385769": null,
+    "31642453": null,
+    "55256505": null,
+    "74577726": null
+  },
+  "trend_score": {
+    "15896111": 0.1,
+    "49385769": 0.0,
+    "31642453": 0.0,
+    "55256505": 0.0,
+    "74577726": 0.0
+  },
+  "normalized_profile_summary": {
+    "user_id": "user_001",
+    "session": {
+      "destination": "Đà Lạt",
+      "nearby_place": "trung tâm",
+      "number_of_guests": null,
+      "has_children": null,
+      "price_range": {
+        "min": null,
+        "max": null,
+        "currency": "VND"
+      },
+      "trip_types": {},
+      "budget_levels": {},
+      "preference_habits": {},
+      "hotel_types": {},
+      "room_views": {},
+      "amenities": {},
+      "negative_preferences": {
+        "avoid_hotel_types": {},
+        "avoid_amenities": {},
+        "avoid_preference_habits": {},
+        "avoid_nearby_places": {},
+        "avoid_locations": {}
+      },
+      "boost_amenity_rich_hotels": false
+    },
+    "long_term_top_hotel_types": {}
+  },
+  "latency_ms": 2378.62
+}

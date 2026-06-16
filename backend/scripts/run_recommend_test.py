@@ -5,7 +5,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.recommendation.models import RecommendInput
-from app.recommendation.engine import run_candidate_pipeline
+from app.recommendation.engine import run_recommend_and_rerank
 
 INTENT_OUTPUT = {
   "turn": 3,
@@ -80,10 +80,27 @@ def main():
     )
 
     # trace=True → in chi tiết từng bước: intent → orchestrator → từng nguồn → merge
-    merged = run_candidate_pipeline(inp, trace=True)
+    result = run_recommend_and_rerank(
+        inp,
+        options={
+            "top_k": 5,
+            "return_debug": True,
+            "use_llm_rerank": False,
+        },
+        trace=True,
+    )
 
-    if not merged:
-        print("\n(Không có kết quả sau merge)")
+    ranked = result.get("ranked_items", [])
+    if not ranked:
+        print("\n(Không có kết quả sau rerank)")
+        return
+
+    print(f"\nRerank returned {len(ranked)} ranked items")
+    for item in ranked[:5]:
+        print(
+            f"#{item['rank']} {item.get('name', item['item_id'])} "
+            f"(id={item['item_id']}) final_score={item['final_score']} base_score={item['base_score']}"
+        )
 
 
 if __name__ == "__main__":
