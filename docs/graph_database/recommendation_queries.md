@@ -69,6 +69,8 @@ LLM dùng Neo4j để xử lý các nghiệp vụ gợi ý cá nhân hóa, tìm 
     *   **Properties**: `weight` (Float - Độ mạnh liên kết $[0.0, 1.0]$), `mentioned` (Integer), `positive_pct` (Float).
 *   `(:Room)-[:HAS_TAG]->(:Tag)`
 *   `(:Place)-[:HAS_TAG]->(:Tag)`
+*   `(:Tag)-[:RELATED_TO]->(:Tag)`: Quan hệ tương đồng ngữ nghĩa giữa các Tag.
+    *   **Properties**: `score` (Float - Độ tương đồng ngữ nghĩa giữa hai Tag $[0.0, 1.0]$).
 
 ---
 
@@ -242,6 +244,33 @@ RETURN hotel.hotel_id AS hotel_id,
 ORDER BY feature_match_score DESC, hotel.review_score DESC
 LIMIT $limit
 ```
+
+### 2.6 Gợi ý Mở rộng qua Độ tương đồng Tag (Tag Similarity Expansion via RELATED_TO)
+*   **Mục đích**: Gợi ý các khách sạn có các tiện ích hoặc đối tượng phù hợp tương tự (nhưng không nhất thiết phải trùng khớp hoàn toàn từ khóa chính xác) với sở thích của người dùng bằng cách mở rộng các tag quan tâm qua quan hệ tương đồng ngữ nghĩa `RELATED_TO` (được sinh từ embedding). (Ví dụ: Người dùng thích "Bi-a" có thể được gợi ý khách sạn có "Phòng giải trí" hoặc "Bóng bàn").
+*   **Ý tưởng**: Từ các tag mà người dùng quan tâm (`INTERESTED_IN`), tìm các tag tương đồng qua quan hệ `RELATED_TO` (với score >= 0.7), sau đó tính toán điểm số phù hợp với khách sạn dựa trên tích: `user interest score` * `similarity score` * `hotel tag weight`.
+
+```cypher
+MATCH (u:User {user_id: $user_id})-[i:INTERESTED_IN]->(t1:Tag)
+WITH t1, i.count * exp(-0.05 * duration.inDays(date(i.last_interaction), date()).days) AS userInterestScore
+// Tìm các tag tương đồng ngữ nghĩa qua RELATED_TO
+MATCH (t1)-[rel:RELATED_TO]-(t2:Tag)<-[h:HAS_TAG]-(hotel:Hotel)
+WHERE hotel.city = $city AND rel.score >= 0.7
+WITH hotel, t2,
+     sum(userInterestScore * rel.score * h.weight) AS matchContribution,
+     collect(distinct t1.name) AS originalTags,
+     collect(distinct t2.name) AS expandedTags
+WITH hotel, sum(matchContribution) AS similarityMatchScore, originalTags, expandedTags
+RETURN hotel.hotel_id AS hotel_id,
+       hotel.name AS name,
+       hotel.star_rating AS star_rating,
+       hotel.review_score AS review_score,
+       similarityMatchScore AS similarity_match_score,
+       originalTags[..3] AS original_interests,
+       expandedTags[..3] AS expanded_tags
+ORDER BY similarity_match_score DESC, hotel.review_score DESC
+LIMIT $limit
+```
+
 
 ---
 
