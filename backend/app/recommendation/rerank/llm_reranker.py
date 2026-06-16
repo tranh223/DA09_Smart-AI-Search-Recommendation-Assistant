@@ -5,7 +5,6 @@ import time
 from typing import Any
 
 from .config import Settings
-from .mock_store import MockStore
 from .prompt_builder import build_llm_messages
 from .utils import clamp, to_str_id
 
@@ -162,13 +161,6 @@ def rerank_with_llm(
     allowed_ids = {item["item_id"] for item in candidates}
     try:
         detail["request"] = build_llm_debug_request(query, profile, candidates)
-        if settings.mock_mode:
-            payload = MockStore(settings).get_llm_response()
-            validated = validate_llm_output(payload, allowed_ids)
-            detail["raw_response"] = payload
-            detail["validated"] = summarize_llm_validation(payload, allowed_ids)
-            detail["reason"] = None if validated else "mock_llm_response_has_no_valid_items"
-            return validated, "mock", False, detail
         if dry_run:
             detail["reason"] = "options.llm_dry_run=true"
             return {}, "dry_run", True, detail

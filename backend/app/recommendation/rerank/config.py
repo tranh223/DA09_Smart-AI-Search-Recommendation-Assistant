@@ -13,7 +13,6 @@ PACKAGE_ROOT = Path(__file__).resolve().parent
 
 @dataclass(frozen=True)
 class Settings:
-    mock_mode: bool = True
     mongodb_uri: str = "mongodb://localhost:27017"
     mongodb_db: str = "VinSmartFuture"
     user_profile_collection: str = "Users"
@@ -52,7 +51,7 @@ def postgres_debug_info(dsn: str) -> dict[str, str | bool | int | None]:
 def load_settings() -> Settings:
     load_dotenv(PACKAGE_ROOT / ".env")
     return Settings(
-        mock_mode=_bool_env(os.getenv("MOCK_MODE"), True),
+        
         mongodb_uri=os.getenv("MONGODB_URI", "mongodb://localhost:27017"),
         mongodb_db=os.getenv("MONGODB_DB", "VinSmartFuture"),
         user_profile_collection=os.getenv("MONGODB_USER_PROFILE_COLLECTION", "Users"),

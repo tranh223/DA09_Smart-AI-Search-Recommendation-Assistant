@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import time
+import logging
 from typing import Any
+from datetime import timedelta
 
 import requests
 
@@ -10,12 +12,11 @@ from .config import load_settings
 from .explain_builder import build_reasons, build_warnings
 from .llm_reranker import rerank_with_llm
 from .logger import write_rerank_log
-from .mock_store import MockStore
 from .normalizer import normalize_candidates
 from .profile_normalizer import normalize_profile
 from .rule_scorer import score_candidate
 from .trend_scorer import apply_trend_scores
-from .utils import as_dict, clamp, normalize_text, round_score
+from .utils import as_dict, clamp, normalize_text, round_score, to_str_id, utc_now
 
 
 SESSION_OPTION_KEYS = {
@@ -100,28 +101,51 @@ def _load_profile_and_bookings(
     user_context: dict | None,
     candidate_ids: list[str],
     settings: Any,
-) -> tuple[dict[str, Any] | None, list[dict[str, Any]], str, str]:
+) -> tuple[dict[str, Any] | None, list[dict[str, Any]], str, str, dict[str, int]]:
     # Prefer provided `user_context`. Do NOT fetch from Mongo here — upstream
     # now passes full profile when available. If not provided, proceed with
     # minimal profile (None) and no bookings.
     if user_context:
         profile = user_context
         profile_source = "provided"
-    elif settings.mock_mode:
-        profile = MockStore(settings).get_user_context(user_id)
-        profile_source = "mock"
     else:
         profile = None
         profile_source = "none"
 
-    if settings.mock_mode:
-        bookings = MockStore(settings).get_bookings(user_id, candidate_ids)
-        booking_source = "mock"
-    else:
+    # Attempt to fetch recent bookings from the shared backend mongo client
+    counts: dict[str, int] = {}
+    try:
+        from backend.mongo_client import get_collection
+
+        ids = list({to_str_id(item) for item in candidate_ids})
+        numeric_ids = [int(item) for item in ids if item.isdigit()]
+        since = utc_now() - timedelta(days=30)
+        # Fetch bookings for the candidate hotels only (ignore user_id here)
+        query = {
+            "$and": [
+                {"hotel_id": {"$in": ids + numeric_ids}},
+                {"$or": [{"booked_at": {"$gte": since.isoformat()}}, {"booking_date": {"$gte": since.isoformat()}}]},
+            ]
+        }
+        coll = get_collection(settings.bookings_collection)
+        bookings = list(coll.find(query))
+        booking_source = "mongo_shared"
+        # summarize counts per hotel
+        counts: dict[str, int] = {}
+        for b in bookings:
+            hid = to_str_id(b.get("hotel_id") or b.get("item_id"))
+            counts[hid] = counts.get(hid, 0) + 1
+        logging.getLogger(__name__).info(
+            "Fetched %d recent bookings for candidate hotel_ids=%s; counts=%s",
+            len(bookings),
+            ids,
+            {k: counts[k] for k in list(counts)[:10]},
+        )
+    except Exception:
         bookings = []
         booking_source = "none"
 
-    return profile, bookings, profile_source, booking_source
+    return profile, bookings, profile_source, booking_source, counts
 
 
 def _session_context_from_options(options: dict[str, Any]) -> dict[str, Any]:
@@ -370,7 +394,7 @@ def rerank(
     raw_candidates_by_id = {_candidate_id(candidate): _json_safe(candidate) for candidate in candidate_items}
     candidates = normalize_candidates(candidate_items)
     candidate_ids = [item["item_id"] for item in candidates]
-    raw_profile, bookings, profile_source, booking_source = _load_profile_and_bookings(
+    raw_profile, bookings, profile_source, booking_source, booking_counts = _load_profile_and_bookings(
         user_id, user_context, candidate_ids, settings
     )
     profile = normalize_profile(_with_input_session_context(raw_profile, user_id, opts))
@@ -498,9 +522,15 @@ def rerank(
         "raw_candidates": raw_candidates_by_id,
         "normalized_candidates": candidates,
         "booking_signals_all": signals,
+        "booking_fetch": {
+                "count": len(bookings),
+                "strategy": booking_source,
+                "candidate_ids_checked": candidate_ids,
+                "counts": booking_counts,
+            },
         "llm_used": bool(llm_results),
         "fallback_used": fallback_used,
-        "mock_mode": settings.mock_mode,
+        # mock_mode removed for production
         "candidate_source": candidate_source,
         "candidate_enrichment_debug": candidate_enrichment_debug,
         "diversified": diversify_recommendations,
@@ -533,6 +563,7 @@ def rerank(
             "raw_candidates": raw_candidates_by_id,
             "normalized_candidates": candidates,
             "booking_signals_all": signals,
+            "booking_fetch": {"count": len(bookings), "strategy": booking_source, "candidate_ids_checked": candidate_ids, "counts": booking_counts},
             "llm_candidates": [c["item_id"] for c in llm_candidates],
             "llm_results": llm_results,
             "final_ranked_hotel_ids": [item["item_id"] for item in ranked],
