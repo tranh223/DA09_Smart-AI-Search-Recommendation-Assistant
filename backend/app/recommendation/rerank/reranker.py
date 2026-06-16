@@ -11,9 +11,7 @@ from .explain_builder import build_reasons, build_warnings
 from .llm_reranker import rerank_with_llm
 from .logger import write_rerank_log
 from .mock_store import MockStore
-from .mongo_client import safe_mongo_store
 from .normalizer import normalize_candidates
-from .postgres_candidate_store import PostgresCandidateStore
 from .profile_normalizer import normalize_profile
 from .rule_scorer import score_candidate
 from .trend_scorer import apply_trend_scores
@@ -52,8 +50,7 @@ def _enrich_candidates_from_hotel_api(
     settings: Any,
     options: dict[str, Any],
 ) -> tuple[list[dict], str, dict[str, Any]]:
-    if not options.get("enrich_hotel_api_candidates"):
-        return candidate_items, "input", {"requested": False}
+    # Always attempt hotel API enrichment (caller no longer toggles this).
     base_url, api_key = _hotel_api_config(settings, options)
     debug: dict[str, Any] = {
         "requested": True,
@@ -104,6 +101,9 @@ def _load_profile_and_bookings(
     candidate_ids: list[str],
     settings: Any,
 ) -> tuple[dict[str, Any] | None, list[dict[str, Any]], str, str]:
+    # Prefer provided `user_context`. Do NOT fetch from Mongo here — upstream
+    # now passes full profile when available. If not provided, proceed with
+    # minimal profile (None) and no bookings.
     if user_context:
         profile = user_context
         profile_source = "provided"
@@ -111,31 +111,16 @@ def _load_profile_and_bookings(
         profile = MockStore(settings).get_user_context(user_id)
         profile_source = "mock"
     else:
-        store = safe_mongo_store(settings)
-        if store:
-            try:
-                profile = store.get_user_context(user_id)
-                profile_source = "mongo"
-            finally:
-                store.close()
-        else:
-            profile = None
-            profile_source = "fallback"
+        profile = None
+        profile_source = "none"
 
     if settings.mock_mode:
         bookings = MockStore(settings).get_bookings(user_id, candidate_ids)
         booking_source = "mock"
     else:
-        store = safe_mongo_store(settings)
-        if store:
-            try:
-                bookings = store.get_bookings(user_id, candidate_ids)
-                booking_source = "mongo"
-            finally:
-                store.close()
-        else:
-            bookings = []
-            booking_source = "fallback"
+        bookings = []
+        booking_source = "none"
+
     return profile, bookings, profile_source, booking_source
 
 
@@ -163,17 +148,8 @@ def _enrich_candidates_from_postgres(
     settings: Any,
     options: dict[str, Any],
 ) -> tuple[list[dict], str, dict[str, Any]]:
-    if not options.get("enrich_postgres_candidates"):
-        return candidate_items, "input", {"requested": False}
-    debug: dict[str, Any] = {"requested": True}
-    try:
-        store = PostgresCandidateStore(settings)
-        enriched, enrich_debug = store.enrich_candidates(candidate_items)
-        debug.update(enrich_debug)
-        return enriched, "postgres_enriched", debug
-    except Exception as error:
-        debug["reason"] = f"{type(error).__name__}: {error}"
-        return candidate_items, "input_postgres_enrich_fallback", debug
+    # Postgres enrichment removed; keep a no-op placeholder for backward compatibility
+    return candidate_items, "input", {"requested": False}
 
 
 def _candidate_id(candidate: dict[str, Any]) -> str:
@@ -387,10 +363,10 @@ def rerank(
     # control whether to write pretty debug JSON files (may be large)
     debug_write = _bool_option(opts.get("write_debug_file"), True)
 
+    # Enrich candidates from hotel API only. Postgres enrichment removed.
     candidate_items, api_source, api_debug = _enrich_candidates_from_hotel_api(candidate_items or [], settings, opts)
-    candidate_items, post_source, post_debug = _enrich_candidates_from_postgres(candidate_items, settings, opts)
-    candidate_source = post_source if post_source != "input" else api_source
-    candidate_enrichment_debug = {"hotel_api": api_debug, "postgres": post_debug}
+    candidate_source = api_source
+    candidate_enrichment_debug = {"hotel_api": api_debug}
     raw_candidates_by_id = {_candidate_id(candidate): _json_safe(candidate) for candidate in candidate_items}
     candidates = normalize_candidates(candidate_items)
     candidate_ids = [item["item_id"] for item in candidates]

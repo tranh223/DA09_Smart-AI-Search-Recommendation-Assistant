@@ -18,8 +18,7 @@ except ModuleNotFoundError:
         return "\n".join(lines)
 
 from . import rerank
-from .config import load_settings, postgres_debug_info
-from .postgres_candidate_store import postgres_driver_debug_info
+from .config import load_settings
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -57,9 +56,7 @@ def main() -> None:
         options["session_context"] = request["session_context"]
     candidate_items = request.get("candidate_items", [])
     settings = load_settings()
-    print(f"Postgres config: {json.dumps(postgres_debug_info(settings.postgres_dsn), ensure_ascii=False)}")
-    print(f"Postgres driver: {json.dumps(postgres_driver_debug_info(), ensure_ascii=False)}")
-    print(f"Postgres enrichment enabled: {bool(options.get('enrich_postgres_candidates'))}")
+    # Postgres/DB debug removed - demo focuses on hotel API and rerank behaviour
     print("Candidate source: request_json")
     result = rerank(
         user_id=request.get("user_id"),
