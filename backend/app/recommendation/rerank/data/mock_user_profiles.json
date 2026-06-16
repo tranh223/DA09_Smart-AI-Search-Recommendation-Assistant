@@ -1,0 +1,55 @@
+{
+  "users": [
+    {
+      "_id": {"$oid": "6a2132464b1515189d35bbc0"},
+      "user_id": "user_002",
+      "name": "Hoang Nam Tran",
+      "long_term_profile": {
+        "nationality": "vietnamese",
+        "age_group": "over_35",
+        "current_workplace": "Sydney",
+        "is_enough": true,
+        "traveler_type": {
+          "planner": {"count": 10, "last_interaction": "2026-06-09"},
+          "comfort_seeker": {"count": 10, "last_interaction": "2026-06-09"}
+        },
+        "long_term_trip_types": {
+          "Khách du lịch một mình": {"count": 10, "last_interaction": "2026-06-09"},
+          "Gia đình có trẻ nhỏ": {"count": 10, "last_interaction": "2026-06-09"}
+        },
+        "long_term_budget_levels": null,
+        "long_term_price_range": {"min": null, "max": null, "currency": null},
+        "long_term_preference_habits": {
+          "safety": {"count": 10, "last_interaction": "2026-06-09"},
+          "unique": {"count": 8, "last_interaction": "2026-06-09"}
+        },
+        "long_term_hotel_types": {
+          "Biệt thự nghỉ dưỡng": {"count": 9, "last_interaction": "2026-06-09"},
+          "Nhà dân": {"count": 10, "last_interaction": "2026-06-09"},
+          "Khách sạn": {"count": 10, "last_interaction": "2026-06-09"},
+          "Nhà nghỉ": {"count": 2, "last_interaction": "2026-06-09"}
+        },
+        "long_term_room_views": null,
+        "long_term_amenities": null,
+        "recommendation_clicks": {"hotel": [569205]},
+        "long_term_negative_preferences": {
+          "avoid_hotel_types": {
+            "Nhà khách / Nhà nghỉ B&B": {"count": 10, "last_interaction": "2026-06-09"},
+            "Căn hộ dịch vụ": {"count": 8, "last_interaction": "2026-06-09"}
+          },
+          "avoid_amenities": {},
+          "avoid_preference_habits": {
+            "old_facility": {"count": 10, "last_interaction": "2026-06-09"},
+            "far_from_center": {"count": 9, "last_interaction": "2026-06-09"},
+            "poor_cleanliness": {"count": 1, "last_interaction": "2026-06-09"}
+          },
+          "avoid_nearby_places": {},
+          "avoid_locations": {
+            "industrial_area": {"count": 10, "last_interaction": "2026-06-09"},
+            "remote_area": {"count": 10, "last_interaction": "2026-06-09"}
+          }
+        }
+      }
+    }
+  ]
+}

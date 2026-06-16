@@ -1,0 +1,25 @@
+{
+  "ranked_items": [
+    {
+      "item_id": "569205",
+      "llm_score": 0.958,
+      "rank": 1,
+      "reasons": ["Phù hợp gia đình có trẻ nhỏ vì có loại resort, view hồ và các tiện ích đúng nhu cầu"],
+      "warnings": []
+    },
+    {
+      "item_id": "880101",
+      "llm_score": 0.88,
+      "rank": 2,
+      "reasons": ["Phù hợp riêng tư và ngân sách cao cho gia đình"],
+      "warnings": []
+    },
+    {
+      "item_id": "880102",
+      "llm_score": 0.35,
+      "rank": 3,
+      "reasons": ["Giá thấp nhưng thiếu view hồ và tiện ích ưu tiên"],
+      "warnings": ["Không nằm trong khoảng ngân sách mong muốn"]
+    }
+  ]
+}

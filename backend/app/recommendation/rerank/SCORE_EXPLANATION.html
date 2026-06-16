@@ -1,0 +1,735 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Giải thích Hotel Rerank Score</title>
+  <style>
+    :root {
+      --ink: #17202a;
+      --muted: #667085;
+      --line: #d8dee8;
+      --soft: #f6f8fb;
+      --dark: #101828;
+      --blue: #1d4ed8;
+      --sky: #0369a1;
+      --green: #047857;
+      --red: #b42318;
+      --amber: #b45309;
+      --violet: #6d28d9;
+      --white: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+      color: var(--ink);
+      background: #eef2f7;
+    }
+
+    header {
+      background: #0f172a;
+      color: white;
+      padding: 34px 24px 28px;
+      border-bottom: 5px solid #38bdf8;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 24px auto 52px;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    h1 { font-size: clamp(30px, 5vw, 52px); }
+    h2 { font-size: 25px; margin-bottom: 12px; }
+    h3 { font-size: 18px; margin-bottom: 8px; }
+    p { margin: 8px 0 0; }
+
+    .subtitle {
+      max-width: 880px;
+      color: #cbd5e1;
+      font-size: 17px;
+      margin-top: 14px;
+    }
+
+    section, .panel {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+    }
+
+    section + section { margin-top: 18px; }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 5px;
+      background: #eef2f7;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      margin: 12px 0 0;
+      padding: 14px;
+      border-radius: 8px;
+      background: #111827;
+      color: #e5e7eb;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .formula {
+      overflow-x: auto;
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid #bfd7ff;
+      background: #eff6ff;
+      color: #0f172a;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 14px;
+      white-space: nowrap;
+      margin-top: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f8fafc;
+      color: #344054;
+      font-weight: 800;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    ul, ol {
+      margin: 10px 0 0;
+      padding-left: 22px;
+    }
+
+    li + li { margin-top: 6px; }
+
+    .note {
+      border-left: 4px solid var(--blue);
+      background: #eff6ff;
+      padding: 12px 14px;
+      border-radius: 6px;
+      color: #1e3a8a;
+      margin-top: 12px;
+    }
+
+    .ok { border-left-color: var(--green); background: #ecfdf3; color: #065f46; }
+    .warn { border-left-color: var(--amber); background: #fffbeb; color: #92400e; }
+    .danger { border-left-color: var(--red); background: #fef3f2; color: #912018; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #e0f2fe;
+      color: #075985;
+      font-size: 13px;
+      font-weight: 700;
+      margin: 0 6px 6px 0;
+    }
+
+    .metric {
+      border-left: 5px solid var(--violet);
+    }
+
+    .weight {
+      color: var(--blue);
+      font-weight: 900;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .step {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: #dbeafe;
+      color: #1e3a8a;
+      font-weight: 900;
+      margin-right: 8px;
+    }
+
+    @media (max-width: 860px) {
+      .cols-2, .cols-3 { grid-template-columns: 1fr; }
+      header { padding-top: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Giải thích cách tính điểm Rerank</h1>
+    <p class="subtitle">
+      Tài liệu này giải thích theo kiểu mentor review được: input vào là gì, thiếu dữ liệu thì sao,
+      mỗi feature score tính thế nào, tag nào được dùng, penalty trừ ra sao, và khi nào LLM ảnh hưởng rank.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. Rerank Đang Làm Gì?</h2>
+      <p>
+        Rerank nhận một list khách sạn đã được search/retrieve trước đó, rồi sắp xếp lại theo mức phù hợp với user.
+        Nó không tự tìm thêm khách sạn mới. Nếu bật PostgreSQL enrichment thì PostgreSQL chỉ bổ sung thông tin cho
+        đúng các candidate đã truyền vào.
+      </p>
+      <div class="grid cols-3" style="margin-top:16px">
+        <div class="panel">
+          <h3><span class="step">1</span>Input</h3>
+          <p><code>candidate_items</code>, <code>user_id</code>, optional <code>user_context</code>, <code>query</code>, <code>options</code>.</p>
+        </div>
+        <div class="panel">
+          <h3><span class="step">2</span>Rule Score</h3>
+          <p>Hard filter trước, sau đó tính 9 feature score và trừ negative penalty.</p>
+        </div>
+        <div class="panel">
+          <h3><span class="step">3</span>Final Rank</h3>
+          <p>Nếu không dùng LLM: <code>final_score = base_score</code>. Nếu dùng LLM: merge base và LLM score.</p>
+        </div>
+      </div>
+      <div class="note ok">
+        <strong>Quan trọng:</strong> Users trong Mongo chỉ chứa long-term profile.
+        Những field theo phiên tìm kiếm như <code>destination</code>, <code>number_of_guests</code>,
+        <code>session_price_range</code> phải truyền vào request qua <code>options.session_context</code>.
+      </div>
+    </section>
+
+    <section>
+      <h2>2. Ví Dụ Input Thực Tế</h2>
+      <p>Ví dụ user đang tìm khách sạn ở Vũng Tàu, đi gia đình, muốn giá 7-15 triệu, ưu tiên view hồ.</p>
+      <pre>{
+  "user_id": "user_002",
+  "query": "Tôi đi Vũng Tàu cùng gia đình có trẻ nhỏ, muốn riêng tư, view hồ, tầm 7 đến 15 triệu",
+  "candidate_items": [
+    {"item_id": 1122450, "search_score": 0.90},
+    {"item_id": 161729, "search_score": 0.80}
+  ],
+  "options": {
+    "top_k": 3,
+    "use_llm_rerank": false,
+    "enrich_postgres_candidates": true,
+    "session_context": {
+      "destination": "Vũng Tàu",
+      "number_of_guests": 4,
+      "session_price_range": {"min": 7000000, "max": 15000000, "currency": "VND"},
+      "session_trip_types": {"Gia đình có trẻ nhỏ": {"count": 8}},
+      "session_hotel_types": {"Khách sạn": {"count": 10}},
+      "session_room_views": {"Hướng Hồ": {"count": 10}},
+      "session_amenities": {"WiFi miễn phí": {"count": 8}}
+    }
+  }
+}</pre>
+      <p>
+        Sau normalize, các <code>count</code> được chuyển thành weight <code>0..1</code> trong từng group.
+        Group nào có count cao nhất sẽ thành <code>1.0</code>.
+      </p>
+    </section>
+
+    <section>
+      <h2>3. Thiếu Dữ Liệu Thì Sao?</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Tình huống</th>
+            <th>Cách xử lý</th>
+            <th>Lý do</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Không có <code>session_price_range</code> hoặc hotel thiếu giá</td>
+            <td><code>budget_score = 0.5</code></td>
+            <td>Không đủ dữ liệu để nói rẻ/đắt, nên cho điểm trung tính.</td>
+          </tr>
+          <tr>
+            <td>Không có session amenities và long-term amenities</td>
+            <td><code>amenity_score = 0.5</code></td>
+            <td>Không biết user thích tiện ích gì, không thưởng cũng không phạt.</td>
+          </tr>
+          <tr>
+            <td>Không có room view preference</td>
+            <td><code>room_view_score = 0.5</code></td>
+            <td>Không có tín hiệu view, dùng neutral.</td>
+          </tr>
+          <tr>
+            <td>Không có personalization group nào</td>
+            <td><code>source_score = 0.5</code></td>
+            <td>Không có hotel type/trip type/habit để match.</td>
+          </tr>
+          <tr>
+            <td>Không có nearby place</td>
+            <td><code>location_score = 0.45</code></td>
+            <td>Neutral hơi thấp vì chưa chứng minh được gần nơi user muốn.</td>
+          </tr>
+          <tr>
+            <td>Không có booking gần đây</td>
+            <td><code>trend_score = 0.0</code></td>
+            <td>Trend là tín hiệu thưởng thêm, không có thì không cộng.</td>
+          </tr>
+          <tr>
+            <td>Không có LLM hoặc LLM lỗi</td>
+            <td><code>final_score = base_score</code></td>
+            <td>Rule-based vẫn chạy độc lập.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>4. Hard Filter Trước Khi Tính Điểm</h2>
+      <p>Hard filter là cửa loại bắt buộc. Bị loại ở đây thì khách sạn không vào bảng score nữa.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Điều kiện</th>
+            <th>Reason</th>
+            <th>Ví dụ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Sai điểm đến</td>
+            <td><code>destination_mismatch</code></td>
+            <td>User tìm <code>Vũng Tàu</code>, hotel ở <code>Đà Nẵng</code>.</td>
+          </tr>
+          <tr>
+            <td>Hết phòng</td>
+            <td><code>not_available</code></td>
+            <td><code>available=false</code>.</td>
+          </tr>
+          <tr>
+            <td>Loại khách sạn bị avoid rất mạnh</td>
+            <td><code>strong_avoid_hotel_type</code></td>
+            <td>User avoid <code>Biệt thự nghỉ dưỡng</code> với weight >= <code>0.85</code>.</td>
+          </tr>
+          <tr>
+            <td>Tiện ích bị avoid rất mạnh</td>
+            <td><code>strong_avoid_amenity</code></td>
+            <td>User avoid <code>Ban công sân hiên</code> với weight >= <code>0.90</code>.</td>
+          </tr>
+          <tr>
+            <td>Habit/location bị avoid rất mạnh</td>
+            <td><code>strong_avoid_preference_habit</code> / <code>strong_avoid_location</code></td>
+            <td>Candidate có đúng tín hiệu mà user negative preference đang tránh.</td>
+          </tr>
+          <tr>
+            <td>Giá quá xa budget</td>
+            <td><code>price_far_outside</code></td>
+            <td>Budget 7-15 triệu, hotel 200-360 nghìn hoặc 28-50 triệu có thể bị loại.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>5. Công Thức Base Score</h2>
+      <p>Sau hard filter, mỗi hotel có 9 feature score. Tất cả score đều trong khoảng <code>0..1</code>.</p>
+      <div class="formula">
+base_score = clamp(
+  0.12*keyword
+  + 0.10*budget
+  + 0.14*amenity
+  + 0.10*room_view
+  + 0.10*review
+  + 0.13*availability
+  + 0.12*personalization
+  + 0.09*location
+  + 0.10*trend
+  - negative_penalty
+)
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Weight</th>
+            <th>Ý nghĩa ngắn gọn</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>keyword</code></td><td class="weight">0.12</td><td>Điểm search/retrieval ban đầu.</td></tr>
+          <tr><td><code>budget</code></td><td class="weight">0.10</td><td>Giá hotel có nằm trong budget session không.</td></tr>
+          <tr><td><code>amenity</code></td><td class="weight">0.14</td><td>Tiện ích hotel khớp user preference.</td></tr>
+          <tr><td><code>room_view</code></td><td class="weight">0.10</td><td>View phòng khớp user preference.</td></tr>
+          <tr><td><code>review</code></td><td class="weight">0.10</td><td>Rating và sentiment review.</td></tr>
+          <tr><td><code>availability</code></td><td class="weight">0.13</td><td>Còn nhiều phòng thì tốt hơn.</td></tr>
+          <tr><td><code>personalization</code></td><td class="weight">0.12</td><td>Khớp loại hotel, trip type, habit, click history.</td></tr>
+          <tr><td><code>location</code></td><td class="weight">0.09</td><td>Khớp nearby place user đang cần.</td></tr>
+          <tr><td><code>trend</code></td><td class="weight">0.10</td><td>Hotel đang được booking nhiều gần đây.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>6. Ví Dụ Tính Từng Feature</h2>
+      <div class="grid cols-2">
+        <div class="panel metric">
+          <h3>6.1 Keyword</h3>
+          <p>Nếu search trả về <code>search_score=0.90</code>, normalizer map sang <code>keyword_score=0.90</code>.</p>
+          <div class="formula">keyword = clamp(0.90) = 0.90</div>
+          <p>Nếu candidate không có điểm search:</p>
+          <div class="formula">keyword = 0.50</div>
+        </div>
+
+        <div class="panel metric">
+          <h3>6.2 Budget: Đủ Giá</h3>
+          <p>User muốn 7-15 triệu. Hotel giá 8-13 triệu.</p>
+          <ul>
+            <li>User width = <code>15 - 7 = 8</code> triệu.</li>
+            <li>Overlap = <code>13 - 8 = 5</code> triệu.</li>
+            <li>Coverage = <code>5 / 8 = 0.625</code>.</li>
+            <li>User center = <code>11</code> triệu, hotel center = <code>10.5</code> triệu.</li>
+            <li>Center score = <code>1 - 0.5/8 = 0.9375</code>.</li>
+          </ul>
+          <div class="formula">budget = 0.65*0.625 + 0.35*0.9375 = 0.734</div>
+        </div>
+
+        <div class="panel metric">
+          <h3>6.3 Budget: Thiếu Giá</h3>
+          <p>Nếu hotel không có <code>price_min</code> hoặc <code>price_max</code>, không thể tính overlap.</p>
+          <div class="formula">budget = 0.50</div>
+          <p class="small">Đây là neutral, không phải điểm tốt.</p>
+        </div>
+
+        <div class="panel metric">
+          <h3>6.4 Budget: Không Overlap</h3>
+          <p>User muốn 7-15 triệu. Hotel giá 16-18 triệu.</p>
+          <ul>
+            <li>Không overlap.</li>
+            <li>Khoảng cách gần nhất tới budget = <code>16 - 15 = 1</code> triệu.</li>
+            <li>User width = <code>8</code> triệu.</li>
+          </ul>
+          <div class="formula">budget = clamp(1 - 1/8) = 0.875</div>
+          <p class="small">Vì chỉ lệch nhẹ nên chưa bị phạt mạnh. Nếu lệch quá xa, hard filter có thể loại trước.</p>
+        </div>
+
+        <div class="panel metric">
+          <h3>6.5 Amenity</h3>
+          <p>User session muốn:</p>
+          <pre>{
+  "WiFi miễn phí": 1.0,
+  "Bể bơi": 0.5
+}</pre>
+          <p>Hotel có:</p>
+          <pre>["WiFi miễn phí", "Máy pha trà cà phê"]</pre>
+          <div class="formula">amenity = matched_weight / total_weight = 1.0 / 1.5 = 0.667</div>
+        </div>
+
+        <div class="panel metric">
+          <h3>6.6 Amenity: Session + Long-term</h3>
+          <p>Nếu có cả session và long-term thì session quan trọng hơn.</p>
+          <div class="formula">amenity = 0.70*session_overlap + 0.30*long_term_overlap</div>
+          <p>Ví dụ session overlap <code>0.8</code>, long-term overlap <code>0.4</code>:</p>
+          <div class="formula">amenity = 0.70*0.8 + 0.30*0.4 = 0.68</div>
+        </div>
+
+        <div class="panel metric">
+          <h3>6.7 Room View</h3>
+          <p>Cùng cách tính với amenity, nhưng so với <code>hotel.room_views</code>.</p>
+          <p>User muốn <code>Hướng Hồ</code>, hotel có <code>Hướng Hồ</code>:</p>
+          <div class="formula">room_view = 1.0</div>
+          <p>User muốn <code>Hướng Hồ</code>, hotel chỉ có <code>Hướng Thành phố</code>:</p>
+          <div class="formula">room_view = 0.0</div>
+        </div>
+
+        <div class="panel metric">
+          <h3>6.8 Review</h3>
+          <p>Hotel rating <code>4.6</code>, sentiment <code>0.8</code>.</p>
+          <div class="formula">review = ((4.6 - 3.0)/2.0)*0.7 + 0.8*0.3 = 0.80</div>
+          <p>Nếu thiếu sentiment thì default sentiment là <code>0.5</code>.</p>
+        </div>
+
+        <div class="panel metric">
+          <h3>6.9 Availability</h3>
+          <table>
+            <thead><tr><th>available_rooms</th><th>Score</th></tr></thead>
+            <tbody>
+              <tr><td>10 trở lên</td><td><code>1.00</code></td></tr>
+              <tr><td>5 đến 9</td><td><code>0.85</code></td></tr>
+              <tr><td>1 đến 4</td><td><code>0.65</code></td></tr>
+              <tr><td>0 hoặc <code>available=false</code></td><td><code>0.00</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="panel metric">
+          <h3>6.10 Location</h3>
+          <p>User muốn gần <code>Nơi Biểu Diễn Văn Nghệ</code>.</p>
+          <p>Hotel có nearby place đó:</p>
+          <div class="formula">location = 0.45 + 0.30 = 0.75</div>
+          <p>Hotel không có nearby place đó hoặc thiếu nearby data:</p>
+          <div class="formula">location = 0.45</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>7. Personalization Score Dễ Hiểu Hơn</h2>
+      <p>Personalization gồm 3 nhóm match, tính riêng session và long-term:</p>
+      <ol>
+        <li><code>hotel_types</code>: user thích loại khách sạn nào, hotel có đúng loại đó không.</li>
+        <li><code>trip_types</code>: user đi kiểu gì, hotel tag có đúng trip type đó không.</li>
+        <li><code>preference_habits</code>: user thích privacy/safety/quiet..., hotel có habit đó không.</li>
+      </ol>
+      <div class="formula">source_score = average(score hotel_type, score trip_type, score preference_habit)</div>
+      <p>Sau đó:</p>
+      <div class="formula">personalization = 0.70*session_source_score + 0.30*long_term_source_score</div>
+
+      <h3 style="margin-top:18px">Ví dụ đủ dữ liệu</h3>
+      <div class="grid cols-2">
+        <div class="panel">
+          <h3>User/session</h3>
+          <pre>{
+  "session_hotel_types": {"Khách sạn": 1.0},
+  "session_trip_types": {"Gia đình có trẻ nhỏ": 1.0},
+  "session_preference_habits": {"privacy": 1.0}
+}</pre>
+        </div>
+        <div class="panel">
+          <h3>Hotel</h3>
+          <pre>{
+  "hotel_type": "Khách sạn",
+  "tags": ["Gia đình có trẻ nhỏ"],
+  "preference_habits": ["privacy", "safety"]
+}</pre>
+        </div>
+      </div>
+      <p>Kết quả:</p>
+      <div class="formula">source_score = (1.0 + 1.0 + 1.0) / 3 = 1.0</div>
+
+      <h3 style="margin-top:18px">Ví dụ thiếu một nhóm</h3>
+      <p>Nếu session không có <code>session_preference_habits</code>, chỉ tính 2 nhóm còn lại:</p>
+      <div class="formula">source_score = (hotel_type_score + trip_type_score) / 2</div>
+
+      <h3 style="margin-top:18px">Ví dụ tag bị bỏ qua</h3>
+      <p>Hotel có tag:</p>
+      <pre>["family_friendly", "near_center", "nightlife"]</pre>
+      <p>Những tag này không nằm trong schema trip type, nên không làm tăng trip type score.</p>
+      <div class="formula">trip_tags_used_for_score = []</div>
+
+      <div class="note warn">
+        Chỉ các trip type trong schema mới được dùng từ <code>hotel.tags</code>.
+        Chỉ 7 preference habits trong schema mới được dùng từ <code>hotel.preference_habits</code>.
+      </div>
+    </section>
+
+    <section>
+      <h2>8. Tag Nào Được Dùng?</h2>
+      <div class="grid cols-3">
+        <div class="panel">
+          <h3>Hotel tags được dùng cho trip</h3>
+          <span class="pill">Nhóm du khách</span>
+          <span class="pill">Cặp đôi</span>
+          <span class="pill">Khách du lịch một mình</span>
+          <span class="pill">Gia đình có trẻ nhỏ</span>
+          <span class="pill">Gia đình có thanh thiếu niên</span>
+          <span class="pill">Khách đi công tác</span>
+        </div>
+        <div class="panel">
+          <h3>Preference habits được score</h3>
+          <span class="pill">luxury</span>
+          <span class="pill">comfort</span>
+          <span class="pill">quiet</span>
+          <span class="pill">privacy</span>
+          <span class="pill">unique</span>
+          <span class="pill">safety</span>
+          <span class="pill">vibrant</span>
+        </div>
+        <div class="panel">
+          <h3>Nếu input lỡ có tag khác?</h3>
+          <p>Tag ngoài schema bị bỏ qua khi cộng điểm positive.</p>
+          <p>Ví dụ: <code>family_friendly</code>, <code>near_center</code>, <code>tourist_area</code> không tăng score.</p>
+          <p class="small">Mình không gọi chúng là blacklist nữa, vì chúng không phải vocab chính.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>9. Negative Penalty</h2>
+      <p>Penalty là phần trừ trực tiếp khỏi <code>base_score</code>. Session negative nặng hơn long-term negative.</p>
+      <div class="formula">
+negative_penalty = clamp(
+  0.70*session_penalty + 0.30*long_term_penalty,
+  0.0,
+  0.8
+)
+      </div>
+      <p>Mỗi source penalty gồm:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Negative group</th>
+            <th>Multiplier</th>
+            <th>Match với candidate field</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>avoid_hotel_types</code></td><td><code>0.40</code></td><td><code>hotel.hotel_type</code></td></tr>
+          <tr><td><code>avoid_amenities</code></td><td><code>0.18</code></td><td><code>hotel.amenities</code></td></tr>
+          <tr><td><code>avoid_preference_habits</code></td><td><code>0.30</code></td><td><code>hotel.preference_habits</code></td></tr>
+          <tr><td><code>avoid_nearby_places</code></td><td><code>0.15</code></td><td><code>hotel.nearby_places</code></td></tr>
+          <tr><td><code>avoid_locations</code></td><td><code>0.25</code></td><td><code>hotel.location_tags</code></td></tr>
+        </tbody>
+      </table>
+      <h3 style="margin-top:18px">Ví dụ penalty</h3>
+      <p>Session user avoid <code>Ban công sân hiên</code> weight <code>1.0</code>. Hotel có amenity này.</p>
+      <div class="formula">penalty_part = 0.70 * 1.0 * 0.18 = 0.126</div>
+      <p>Nếu hotel còn bị avoid hotel type weight <code>0.8</code>:</p>
+      <div class="formula">penalty_part = 0.70 * 0.8 * 0.40 = 0.224</div>
+      <p>Tổng penalty các phần sẽ bị clamp tối đa <code>0.8</code>.</p>
+      <div class="note warn">
+        Negative preference là field mở trong schema. Nó có thể chứa tag nghiệp vụ như <code>nightlife</code>,
+        <code>old_facility</code>, <code>far_from_center</code>. Những tag này chỉ dùng để phạt/filter nếu candidate cũng có đúng tín hiệu đó.
+      </div>
+    </section>
+
+    <section>
+      <h2>10. Trend Score Từ Booking</h2>
+      <p>Trend được tính từ booking của candidate hotels trong 7 ngày và 30 ngày gần nhất.</p>
+      <div class="formula">trend = 0.60*n7 + 0.30*ngrowth + 0.10*n30</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Biến</th>
+            <th>Cách tính</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>n7</code></td><td>booking 7 ngày của hotel / max booking 7 ngày trong candidate set.</td></tr>
+          <tr><td><code>n30</code></td><td>booking 30 ngày của hotel / max booking 30 ngày trong candidate set.</td></tr>
+          <tr><td><code>ngrowth</code></td><td>growth của hotel / max growth trong candidate set.</td></tr>
+        </tbody>
+      </table>
+      <h3 style="margin-top:18px">Ví dụ</h3>
+      <p>Trong 10 candidate, hotel A có booking 7 ngày cao nhất nên <code>n7=1.0</code>. Nếu nó cũng có growth cao nhất và booking 30 ngày bằng 50% max:</p>
+      <div class="formula">trend = 0.60*1.0 + 0.30*1.0 + 0.10*0.5 = 0.95</div>
+      <p>Nếu không có booking nào:</p>
+      <div class="formula">trend = 0.0</div>
+    </section>
+
+    <section>
+      <h2>11. Ví Dụ Tính Base Score Hoàn Chỉnh</h2>
+      <p>Giả sử một hotel đã qua hard filter và có feature scores:</p>
+      <pre>{
+  "keyword": 0.90,
+  "budget": 0.734,
+  "amenity": 0.667,
+  "room_view": 1.00,
+  "review": 0.80,
+  "availability": 0.85,
+  "personalization": 0.90,
+  "location": 0.75,
+  "trend": 0.30,
+  "negative_penalty": 0.126
+}</pre>
+      <div class="formula">
+base =
+  0.12*0.90
+  + 0.10*0.734
+  + 0.14*0.667
+  + 0.10*1.00
+  + 0.10*0.80
+  + 0.13*0.85
+  + 0.12*0.90
+  + 0.09*0.75
+  + 0.10*0.30
+  - 0.126
+= 0.645
+      </div>
+      <p>Nếu không có penalty, score sẽ là <code>0.771</code>. Penalty làm tụt rank rõ ràng.</p>
+    </section>
+
+    <section>
+      <h2>12. LLM Có Ảnh Hưởng Khi Nào?</h2>
+      <p>Nếu <code>use_llm_rerank=false</code>:</p>
+      <div class="formula">final_score = base_score</div>
+      <p>Nếu <code>use_llm_rerank=true</code> và LLM trả JSON hợp lệ:</p>
+      <div class="formula">final_score = 0.70*base_score + 0.30*llm_score</div>
+      <h3 style="margin-top:18px">Ví dụ</h3>
+      <p>Hotel A base <code>0.65</code>, LLM score <code>0.90</code>:</p>
+      <div class="formula">final = 0.70*0.65 + 0.30*0.90 = 0.725</div>
+      <p>Hotel B base <code>0.72</code>, LLM score <code>0.60</code>:</p>
+      <div class="formula">final = 0.70*0.72 + 0.30*0.60 = 0.684</div>
+      <p>Vậy LLM có thể đổi rank, nhưng base score vẫn chiếm phần lớn.</p>
+      <div class="note danger">
+        Nếu LLM lỗi, timeout, JSON sai, ID không thuộc candidate, hoặc score invalid thì bỏ LLM và fallback về base score.
+      </div>
+    </section>
+
+    <section>
+      <h2>13. Đọc Output Debug Như Thế Nào?</h2>
+      <pre>{
+  "item_id": "1122450",
+  "rank": 1,
+  "final_score": 0.586,
+  "base_score": 0.586,
+  "llm_score": null,
+  "feature_scores": {
+    "keyword": 0.9,
+    "budget": 0.73,
+    "amenity": 0.42,
+    "room_view": 0.18,
+    "review": 0.82,
+    "availability": 1.0,
+    "personalization": 0.75,
+    "location": 0.45,
+    "trend": 0.0
+  },
+  "negative_penalty": 0.0
+}</pre>
+      <ul>
+        <li><code>final_score</code>: điểm dùng để sort rank.</li>
+        <li><code>base_score</code>: điểm rule-based.</li>
+        <li><code>llm_score=null</code>: LLM không dùng hoặc fallback.</li>
+        <li><code>feature_scores</code>: nhìn field nào cao/thấp để giải thích rank.</li>
+        <li><code>negative_penalty</code>: nếu cao thì hotel bị trừ vì chạm negative preference.</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

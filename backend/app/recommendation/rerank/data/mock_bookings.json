@@ -1,0 +1,76 @@
+{
+  "bookings": [
+    {
+      "booking_id": "booking_001",
+      "user_id": "user_002",
+      "hotel_id": 569205,
+      "booking_date": "2026-06-08T10:00:00Z",
+      "price": 9500000,
+      "status": "confirmed",
+      "city": "Vung Tau"
+    },
+    {
+      "booking_id": "booking_002",
+      "user_id": "user_999",
+      "hotel_id": 569205,
+      "booking_date": "2026-06-07T10:00:00Z",
+      "price": 9800000,
+      "status": "confirmed",
+      "city": "Vung Tau"
+    },
+    {
+      "booking_id": "booking_003",
+      "user_id": "user_888",
+      "hotel_id": 569205,
+      "booking_date": "2026-06-01T10:00:00Z",
+      "price": 10000000,
+      "status": "confirmed",
+      "city": "Vung Tau"
+    },
+    {
+      "booking_id": "booking_004",
+      "user_id": "user_777",
+      "hotel_id": "880101",
+      "booking_date": "2026-06-06T10:00:00Z",
+      "price": 13000000,
+      "status": "confirmed",
+      "city": "Vung Tau"
+    },
+    {
+      "booking_id": "booking_005",
+      "user_id": "user_776",
+      "hotel_id": "880101",
+      "booking_date": "2026-05-18T10:00:00Z",
+      "price": 12000000,
+      "status": "confirmed",
+      "city": "Vung Tau"
+    },
+    {
+      "booking_id": "booking_006",
+      "user_id": "user_775",
+      "hotel_id": "880102",
+      "booking_date": "2026-06-05T10:00:00Z",
+      "price": 3000000,
+      "status": "cancelled",
+      "city": "Vung Tau"
+    },
+    {
+      "booking_id": "booking_007",
+      "user_id": "user_002",
+      "hotel_id": "999000",
+      "booking_date": "2026-05-20T10:00:00Z",
+      "price": 7500000,
+      "status": "confirmed",
+      "city": "Vung Tau"
+    },
+    {
+      "booking_id": "booking_008",
+      "user_id": "user_111",
+      "hotel_id": "880103",
+      "booking_date": "2026-04-01T10:00:00Z",
+      "price": 9500000,
+      "status": "confirmed",
+      "city": "Vung Tau"
+    }
+  ]
+}

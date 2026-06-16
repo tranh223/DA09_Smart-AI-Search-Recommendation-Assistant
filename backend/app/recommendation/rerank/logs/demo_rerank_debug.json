@@ -1,0 +1,1719 @@
+{
+  "request_summary": {
+    "user_id": "user_002",
+    "query": "Tôi đi Vũng Tàu cùng gia đình có trẻ nhỏ, muốn riêng tư, view hồ, tầm 7 đến 15 triệu",
+    "candidate_count": 10,
+    "options": {
+      "top_k": 5,
+      "use_llm_rerank": true,
+      "llm_dry_run": false,
+      "llm_top_n": 10,
+      "return_debug": true,
+      "base_score_weight": 0.7,
+      "llm_score_weight": 0.3,
+      "enrich_postgres_candidates": true,
+      "session_context": {
+        "destination": "Vũng Tàu",
+        "current_location": null,
+        "nearby_place": "Nơi Biểu Diễn Văn Nghệ",
+        "number_of_guests": 4,
+        "has_pet": null,
+        "has_children": true,
+        "check_in": null,
+        "check_out": null,
+        "session_trip_types": {
+          "Gia đình có trẻ nhỏ": {
+            "count": 8,
+            "last_interaction": "2026-06-09"
+          },
+          "Gia đình có thanh thiếu niên": {
+            "count": 9,
+            "last_interaction": "2026-06-09"
+          }
+        },
+        "session_budget_levels": {
+          "high": {
+            "count": 10,
+            "last_interaction": "2026-06-09"
+          },
+          "low": {
+            "count": 8,
+            "last_interaction": "2026-06-09"
+          }
+        },
+        "session_price_range": {
+          "min": 7000000,
+          "max": 15000000,
+          "currency": "VND"
+        },
+        "session_preference_habits": {
+          "privacy": {
+            "count": 2,
+            "last_interaction": "2026-06-09"
+          }
+        },
+        "session_hotel_types": {
+          "Khách sạn": {
+            "count": 10,
+            "last_interaction": "2026-06-09"
+          }
+        },
+        "session_room_views": {
+          "Hướng Ngoài trời": {
+            "count": 8,
+            "last_interaction": "2026-06-09"
+          },
+          "Hướng Hồ": {
+            "count": 10,
+            "last_interaction": "2026-06-09"
+          }
+        },
+        "session_amenities": {
+          "Tắm suối nước nóng": {
+            "count": 10,
+            "last_interaction": "2026-06-09"
+          },
+          "Phòng thay đồ": {
+            "count": 8,
+            "last_interaction": "2026-06-09"
+          },
+          "Trạm nối ipod": {
+            "count": 9,
+            "last_interaction": "2026-06-09"
+          },
+          "Bàn trang điểm phù hợp cho người khuyết tật": {
+            "count": 8,
+            "last_interaction": "2026-06-09"
+          }
+        },
+        "session_negative_preferences": {
+          "avoid_hotel_types": {},
+          "avoid_amenities": {
+            "Ban công sân hiên": {
+              "count": 20,
+              "last_interaction": "2026-06-09"
+            }
+          },
+          "avoid_preference_habits": {
+            "far_from_center": {
+              "count": 8,
+              "last_interaction": "2026-06-09"
+            },
+            "nightlife": {
+              "count": 9,
+              "last_interaction": "2026-06-09"
+            }
+          },
+          "avoid_nearby_places": {},
+          "avoid_locations": {}
+        }
+      }
+    }
+  },
+  "debug": {
+    "total_candidates": 10,
+    "after_hard_filter": 6,
+    "filtered_count": 4,
+    "filtered_items": [
+      {
+        "item_id": "1370955",
+        "name": "Khách sạn Boutique Happy Home Vũng Tàu (Happy Home Boutique Hotel Vung Tau )",
+        "reason": "price_far_outside",
+        "detail": {
+          "reason": "price_far_outside",
+          "summary": "Hotel price range is too far outside the requested session budget.",
+          "session_price_range": {
+            "min": 7000000,
+            "max": 15000000,
+            "currency": "VND"
+          },
+          "hotel_price_range": {
+            "min": 200000.0,
+            "max": 360000.0,
+            "currency": "VND"
+          }
+        },
+        "destination": "Vũng Tàu",
+        "hotel_type": "Khách sạn",
+        "price_min": 200000.0,
+        "price_max": 360000.0,
+        "available": true
+      },
+      {
+        "item_id": "2114938",
+        "name": "Khách sạn Hải Long (Hai Long Hotel)",
+        "reason": "price_far_outside",
+        "detail": {
+          "reason": "price_far_outside",
+          "summary": "Hotel price range is too far outside the requested session budget.",
+          "session_price_range": {
+            "min": 7000000,
+            "max": 15000000,
+            "currency": "VND"
+          },
+          "hotel_price_range": {
+            "min": 200000.0,
+            "max": 360000.0,
+            "currency": "VND"
+          }
+        },
+        "destination": "Vũng Tàu",
+        "hotel_type": "Khách sạn",
+        "price_min": 200000.0,
+        "price_max": 360000.0,
+        "available": true
+      },
+      {
+        "item_id": "33941483",
+        "name": "Căn hộ THE SÓNG VŨNG TÀU - TRINH'S HOUSE (THE SÓNG APARTMENT VŨNG TÀU - TRINH'S HOUSE)",
+        "reason": "strong_avoid_amenity",
+        "detail": {
+          "reason": "strong_avoid_amenity",
+          "summary": "Hotel amenities strongly match negative preferences.",
+          "hotel_amenities": [
+            "Bàn tiếp tân 24 giờ",
+            "Bếp",
+            "Bể bơi ngoài trời",
+            "Nhà hàng",
+            "Phòng tập",
+            "Spa",
+            "Tiếng Anh",
+            "Thiết bị chơi điện tử",
+            "Bát đĩa và dụng cụ ăn uống",
+            "Lò vi sóng",
+            "Tủ lạnh",
+            "Đồ dùng cơ bản trong nhà bếp dụng cụ nấu ăn, dầu, nước sốt",
+            "Phù hợp cho xe lăn",
+            "Ban công sân hiên",
+            "Bếp nướng",
+            "Khu đối diện bãi biển",
+            "Lối vào hồ bơi",
+            "Vườn hoặc sân sau",
+            "Xe đạp",
+            "WiFi cho thuê loại xách tay",
+            "WiFi miễn phí",
+            "Bi-a",
+            "Bãi biển riêng",
+            "Bóng bàn",
+            "Bể bơi có tầm nhìn",
+            "Bồn tắm nước nóng",
+            "Cho thuê máy tính xách tay máy tính cá nhân",
+            "Các môn thể thao dưới nước không có động cơ",
+            "Câu lạc bộ đêm",
+            "Công viên nước",
+            "Cưỡi ngựa",
+            "Dịch vụ vé",
+            "Ghế mát-xa",
+            "Giải trí",
+            "Học lướt sóng",
+            "Karaoke",
+            "Lướt ván buồm",
+            "Nhà tắm chung",
+            "Nhà tắm riêng",
+            "Phim miễn phí",
+            "Phòng giải trí",
+            "Phòng xông khô hàn quốc",
+            "Phòng xông ướt",
+            "Phòng yoga",
+            "Quán rượu",
+            "Spa xông khô",
+            "Sân cầu lông",
+            "Sân gôn tại chỗ nghỉ",
+            "Sân quần vợt",
+            "Sòng bạc",
+            "Thuê dụng cụ thể thao dưới nước",
+            "Tiện nghi bể bơi",
+            "Tiện nghi nấu nướng ngoài trời",
+            "Vườn",
+            "Đi chơi bằng thuyền",
+            "Bác sĩ y tá trực",
+            "Bữa sáng trong phòng",
+            "Dịch vụ xét nghiệm covid-19",
+            "Bồn tắm lộ thiên",
+            "Bữa sáng tự chọn",
+            "Bữa sáng kiểu lục địa",
+            "Bữa sáng kiểu á",
+            "Bữa sáng đầy đủ kiểu mỹ",
+            "Dịch vụ phòng",
+            "Giao hàng tạp hóa",
+            "Giờ giảm giá đồ uống",
+            "Nhà hàng halal",
+            "Nhà hàng kosher",
+            "Nhà hàng phục vụ món tự chọn",
+            "Nhà hàng ẩm thực châu á",
+            "Nhà hàng ẩm thực phương tây",
+            "Nhà hàng ẩm thực trung quốc",
+            "Quán bar",
+            "Quán cà phê",
+            "Quầy đồ ăn vặt",
+            "Bệnh xá",
+            "Cơ sở vật chất cho họp mặt tiệc lớn",
+            "Cửa hàng quà tặng quà lưu niệm",
+            "Cửa hàng tạp hóa",
+            "Dịch vụ giặt là",
+            "Dịch vụ làm đẹp",
+            "Dịch vụ trượt tuyết",
+            "Dịch vụ văn phòng fax photocopy",
+            "Dịch vụ ủi đồ",
+            "Giặt khô",
+            "Giữ hành lý",
+            "Hoàn toàn không hút thuốc",
+            "Khu vực hút thuốc",
+            "Lò sưởi",
+            "Máy sưởi ở khu vực chung",
+            "Nhân viên trực cửa",
+            "Phòng chờ chung khu vực tv",
+            "Phòng họp",
+            "Phòng hội thảo",
+            "Phòng máy giặt tự động",
+            "Thang máy",
+            "Thư viện",
+            "Tiệm làm đẹp",
+            "Tiện nghi cho khách khuyết tật",
+            "Tổ chức sự kiện",
+            "Đổi ngoại tệ",
+            "Bể bơi trẻ em",
+            "Bữa ăn cho trẻ",
+            "CLB trẻ em",
+            "Cơ sở vật chất cho trẻ em",
+            "Cửa an toàn cho em bé",
+            "Phòng gia đình",
+            "Phòng thay đồ cho em bé",
+            "Sân chơi",
+            "Thích hợp cho gia đình trẻ em",
+            "Tính năng an toàn cho trẻ em",
+            "Bảo vệ 24 giờ",
+            "CCTV bên ngoài chỗ nghỉ",
+            "CCTV trong khu vực chung",
+            "Chỗ nghỉ chỉ dành cho người lớn",
+            "Cơ sở lưu trú chỉ dành cho nữ giới",
+            "Khu vực tầng thượng",
+            "Nhận trả phòng nhanh",
+            "Phòng cách âm",
+            "Phòng có thiết kế theo phong cách hộp đêm",
+            "Phòng không gây dị ứng",
+            "Phòng không hút thuốc",
+            "Phòng theo chủ đề",
+            "Toàn bộ nhà",
+            "Động vật hỗ trợ được chào đón",
+            "Bãi đậu xe tính phí",
+            "Dịch vụ taxi",
+            "Dịch vụ đưa đón",
+            "Trạm sạc điện xe hơi",
+            "Ô tô cho thuê",
+            "Đưa đón sân bay",
+            "Đỗ xe có nhân viên",
+            "Đỗ xe gần bên",
+            "Đỗ xe tại chỗ",
+            "Thuê xe đạp",
+            "Báo động âm thanh",
+            "Cho phép hút thuốc",
+            "Cách âm",
+            "Có các phòng thông nhau",
+            "Căn hộ riêng trong tòa nhà",
+            "Cửa sổ có thể mở ra",
+            "Giường cực dài",
+            "Giường gấp",
+            "Khu vực ăn uống riêng",
+            "Máy giặt",
+            "Nhà vệ sinh cho người khuyết tật",
+            "Phòng khách riêng",
+            "Phòng thay đồ",
+            "Phòng tắm dành cho người khuyết tật",
+            "Phòng tắm đứng",
+            "Xông khô",
+            "TV màn hình phẳng",
+            "Tay nắm đòn bẩy trên cửa",
+            "Tầng cao",
+            "Tầng hạn chế",
+            "Tầng thượng",
+            "Đi lên bằng cầu thang",
+            "Điều hòa",
+            "Đồ gỗ ngoài trời"
+          ],
+          "matches": [
+            {
+              "source": "session",
+              "value": "Ban công sân hiên",
+              "weight": 1.0
+            }
+          ]
+        },
+        "destination": "Vũng Tàu",
+        "hotel_type": "Căn hộ",
+        "price_min": 2800000.0,
+        "price_max": 5000000.0,
+        "available": true
+      },
+      {
+        "item_id": "36643921",
+        "name": "Căn hộ The Sóng Vũng Tàu - Green House (The Sóng Apartment Vũng Tàu - Green House)",
+        "reason": "strong_avoid_amenity",
+        "detail": {
+          "reason": "strong_avoid_amenity",
+          "summary": "Hotel amenities strongly match negative preferences.",
+          "hotel_amenities": [
+            "Bếp",
+            "Sân chơi",
+            "Tiếng Anh",
+            "Bát đĩa và dụng cụ ăn uống",
+            "Tủ lạnh",
+            "Đồ dùng cơ bản trong nhà bếp dụng cụ nấu ăn, dầu, nước sốt",
+            "Đỗ xe trả phí",
+            "Ban công sân hiên",
+            "WiFi miễn phí",
+            "Bể bơi có tầm nhìn",
+            "Nhà tắm chung",
+            "Tiện nghi bể bơi",
+            "Vườn",
+            "Cửa hàng",
+            "Khu vực hút thuốc",
+            "Nhân viên trực cửa",
+            "Thang máy",
+            "Bể bơi trẻ em",
+            "Thích hợp cho gia đình trẻ em",
+            "Bảo vệ 24 giờ",
+            "Nhận trả phòng nhanh",
+            "Phòng không gây dị ứng",
+            "Bãi đậu xe tính phí",
+            "Lối vào hồ bơi",
+            "Máy giặt",
+            "Điều hòa"
+          ],
+          "matches": [
+            {
+              "source": "session",
+              "value": "Ban công sân hiên",
+              "weight": 1.0
+            }
+          ]
+        },
+        "destination": "Vũng Tàu",
+        "hotel_type": "Căn hộ dịch vụ",
+        "price_min": 4480000.0,
+        "price_max": 5000000.0,
+        "available": true
+      }
+    ],
+    "scored_items": [
+      {
+        "item_id": "1122450",
+        "name": "Pullman Vũng Tàu (Pullman Vung Tau)",
+        "base_score": 0.596,
+        "feature_scores": {
+          "keyword": 0.9,
+          "budget": 0.75,
+          "amenity": 0.486,
+          "room_view": 0.18,
+          "review": 0.713,
+          "availability": 1.0,
+          "personalization": 0.627,
+          "location": 0.45,
+          "trend": 0.1
+        },
+        "negative_penalty": 0.0,
+        "booking_signals": {
+          "booking_count_7d": 0,
+          "booking_count_30d": 1,
+          "booking_growth_7d_vs_30d": 0.0,
+          "user_booked_before": false,
+          "same_destination_booking_count": 3,
+          "trend_score": 0.1
+        },
+        "price_range": {
+          "min": 3730000.0,
+          "max": 5000000.0,
+          "currency": "VND"
+        },
+        "destination": "Vũng Tàu",
+        "hotel_type": "Khách sạn",
+        "amenities": [
+          "Bàn tiếp tân 24 giờ",
+          "Bể bơi ngoài trời",
+          "Bể bơi trong nhà",
+          "Bữa sáng tự chọn",
+          "Nhà hàng",
+          "Phòng tập",
+          "Quán bar",
+          "Tiếng Anh",
+          "Phù hợp cho xe lăn",
+          "WiFi miễn phí",
+          "Câu lạc bộ đêm",
+          "Phòng xông ướt",
+          "Spa xông khô",
+          "Sân gôn tại chỗ nghỉ",
+          "Sân quần vợt",
+          "Sòng bạc",
+          "Vườn",
+          "Bác sĩ y tá trực",
+          "Bữa sáng trong phòng",
+          "Bếp",
+          "Bữa sáng kiểu lục địa",
+          "Bữa sáng kiểu á",
+          "Dịch vụ phòng 24 giờ",
+          "Giờ giảm giá đồ uống",
+          "Nhà hàng phục vụ món chay",
+          "Nhà hàng ẩm thực phương tây",
+          "Nhà hàng ẩm thực quốc tế",
+          "Quán bar cạnh bể bơi",
+          "Quán cà phê",
+          "Tiện nghi nấu nướng ngoài trời",
+          "Cơ sở vật chất cho họp mặt tiệc lớn",
+          "Dịch vụ giặt là",
+          "Dịch vụ làm đẹp",
+          "Dịch vụ văn phòng fax photocopy",
+          "Dịch vụ ủi đồ",
+          "Giặt khô",
+          "Giữ hành lý",
+          "Hoàn toàn không hút thuốc",
+          "Khu vực hút thuốc",
+          "Nhân viên trực cửa",
+          "Phòng họp",
+          "Phòng hội thảo",
+          "Thang máy",
+          "Tiện nghi cho khách khuyết tật",
+          "Tiện nghi làm việc",
+          "Điều hòa ở khu vực chung",
+          "Đổi ngoại tệ",
+          "Bể bơi trẻ em",
+          "Bữa ăn cho trẻ",
+          "CLB trẻ em",
+          "Phòng gia đình",
+          "Sân chơi",
+          "Thích hợp cho gia đình trẻ em",
+          "Bảo vệ 24 giờ",
+          "CCTV trong khu vực chung",
+          "Nhận trả phòng nhanh",
+          "Nhận/trả phòng 24 giờ",
+          "Phòng cách âm",
+          "Phòng không hút thuốc",
+          "Dịch vụ taxi",
+          "Dịch vụ đưa đón",
+          "Đưa đón sân bay",
+          "Đỗ xe miễn phí",
+          "Đỗ xe tại chỗ",
+          "Báo hằng ngày",
+          "Báo động trực quan",
+          "Bảng chỉ dẫn chữ nổi và sờ được",
+          "Cách âm",
+          "Có các phòng thông nhau",
+          "Ghế cao cho trẻ con ngồi ăn",
+          "Giường cũi của em bé theo yêu cầu",
+          "Giường cực dài",
+          "Khả năng tiếp cận cho người khó đi lại",
+          "Lối vào hồ bơi",
+          "Máy pha trà cà phê",
+          "Máy sấy quần áo",
+          "Phim theo yêu cầu",
+          "Phòng thay đồ",
+          "Phòng tắm có băng ghế tắm",
+          "Phòng tắm đứng",
+          "Tay nắm đòn bẩy trên cửa",
+          "Tiện nghi bể bơi",
+          "Truyền hình cáp vệ tinh",
+          "Trạm nối ipod",
+          "Điều hòa"
+        ],
+        "room_views": [
+          "Hướng Biển",
+          "Hướng Thành phố"
+        ],
+        "preference_habits": [],
+        "tags": [
+          "Khách đi công tác",
+          "Gia đình có thanh thiếu niên",
+          "Cặp đôi",
+          "Khách du lịch một mình",
+          "Gia đình có trẻ nhỏ",
+          "Nhóm du khách",
+          "Bãi Biển",
+          "Bãi đỗ xe",
+          "Các Sân Thể Thao",
+          "Công Viên Công Cộng",
+          "Siêu Thị",
+          "Tòa Nhà Nổi Tiếng",
+          "Trung Tâm và Khu Mua Sắm",
+          "Ho May Park Skip-the-Line Package Ticket - Vung Tau",
+          "Hồ Tràm | Tour chơi golf 18 lỗ trong ngày tại The Bluffs Grand Hồ Tràm kèm xe đưa đón riêng | Khởi hành từ Thành phố Hồ Chí Minh",
+          "Mindfulness Meditation Retreat - 2 Days in Ho Chi Minh City",
+          "Tour Vũng Tàu Trọn Gói Cả Ngày Từ Hồ Chí Minh",
+          "Trải nghiệm bắn súng tại Câu lạc bộ Bắn súng Vũng Tàu - Trường bắn Vũng Tàu",
+          "Vé Sun World Vũng Tàu Aqua Adventure",
+          "Vé vào cổng Công viên Tropicana",
+          "Vé Vào Cửa Bảo Tàng Vũ Khí Cổ Robert Taylor - Vũng Tàu",
+          "Vé vào cửa Bảo tàng Vũ khí cổ Robert Taylor, Vũng Tàu",
+          "Vung Tau to Ho Chi Minh Airport (SGN) - Private Transfer"
+        ],
+        "nearby_places": [
+          "Bãi đỗ xe khách sạn Imperial",
+          "Bãi sau",
+          "Công viên Thỏ Trắng Vũng Tàu",
+          "Đài Tưởng niệm Liệt sĩ",
+          "Khu du lịch Biển Đông",
+          "Nhà thi đấu TDTT Vũng Tàu",
+          "Quán cơm Thảo Vy",
+          "Siêu thị Lotte Mart",
+          "Trung tâm thương mại Imperial Plaza",
+          "TT mua sắm Imperial Plaza"
+        ]
+      },
+      {
+        "item_id": "161729",
+        "name": "Khách sạn The Imperial Vũng Tàu (The IMPERIAL Vung Tau Hotel )",
+        "base_score": 0.522,
+        "feature_scores": {
+          "keyword": 0.8,
+          "budget": 0.75,
+          "amenity": 0.0,
+          "room_view": 0.3,
+          "review": 0.754,
+          "availability": 1.0,
+          "personalization": 0.627,
+          "location": 0.45,
+          "trend": 0.0
+        },
+        "negative_penalty": 0.0,
+        "booking_signals": {
+          "booking_count_7d": 0,
+          "booking_count_30d": 0,
+          "booking_growth_7d_vs_30d": 0.0,
+          "user_booked_before": false,
+          "same_destination_booking_count": 3,
+          "trend_score": 0.0
+        },
+        "price_range": {
+          "min": 4290000.0,
+          "max": 5000000.0,
+          "currency": "VND"
+        },
+        "destination": "Vũng Tàu",
+        "hotel_type": "Khách sạn",
+        "amenities": [
+          "Bàn tiếp tân 24 giờ",
+          "Bể bơi ngoài trời",
+          "Nhà hàng",
+          "Phòng tập",
+          "Spa xông khô",
+          "Vườn",
+          "Tiếng Anh",
+          "Phù hợp cho xe lăn",
+          "WiFi miễn phí",
+          "Bi-a",
+          "Bãi biển riêng",
+          "Mát-xa",
+          "Phòng xông ướt",
+          "Sòng bạc",
+          "Bữa sáng kiểu lục địa",
+          "Bữa sáng kiểu á",
+          "Bữa sáng tự chọn",
+          "Dịch vụ phòng",
+          "Quán bar",
+          "Cơ sở vật chất cho họp mặt tiệc lớn",
+          "Dịch vụ giặt là",
+          "Dịch vụ văn phòng fax photocopy",
+          "Dịch vụ ủi đồ",
+          "Giặt khô",
+          "Giữ hành lý",
+          "Khu vực hút thuốc",
+          "Nhân viên trực cửa",
+          "Phòng chờ chung khu vực tv",
+          "Phòng họp",
+          "Thang máy",
+          "Tiện nghi cho khách khuyết tật",
+          "Tiện nghi làm việc",
+          "Điều hòa ở khu vực chung",
+          "Đổi ngoại tệ",
+          "Bể bơi trẻ em",
+          "Bữa ăn cho trẻ",
+          "CLB trẻ em",
+          "Cơ sở vật chất cho trẻ em",
+          "Phòng gia đình",
+          "Sân chơi",
+          "Thích hợp cho gia đình trẻ em",
+          "Bảo vệ 24 giờ",
+          "Nhận/trả phòng 24 giờ",
+          "Phòng cách âm",
+          "Phòng hai tầng",
+          "Phòng không hút thuốc",
+          "Dịch vụ taxi",
+          "Dịch vụ đưa đón",
+          "Đỗ xe có nhân viên",
+          "Đỗ xe miễn phí",
+          "Đỗ xe tại chỗ",
+          "Cách âm",
+          "Tủ lạnh",
+          "Điều hòa"
+        ],
+        "room_views": [
+          "Hướng Biển",
+          "Hướng Thành phố",
+          "Hướng Thiên nhiên"
+        ],
+        "preference_habits": [],
+        "tags": [
+          "Khách đi công tác",
+          "Cặp đôi",
+          "Khách du lịch một mình",
+          "Gia đình có trẻ nhỏ",
+          "Gia đình có thanh thiếu niên",
+          "Nhóm du khách",
+          "Bãi Biển",
+          "Bãi đỗ xe",
+          "Công Viên Công Cộng",
+          "Đài Kỷ Niệm và Di Tích Lịch Sử",
+          "Nơi Biểu Diễn Văn Nghệ",
+          "Siêu Thị",
+          "Tòa Nhà Nổi Tiếng",
+          "Trung Tâm và Khu Mua Sắm",
+          "金蘭國際機場(CXR) | Domestic Terminal | SH Premium Lounge - Cam Ranh | 貴賓室服務",
+          "The Mộc Spa - Quận 1, Thành phố Hồ Chí Minh",
+          "Tour trọn ngày | Tour khám phá Vũng Tàu từ Thành phố Hồ Chí Minh bao gồm đón khách miễn phí tại khách sạn",
+          "Tour Vũng Tàu Trọn Gói Cả Ngày Từ Hồ Chí Minh",
+          "Trải Nghiệm Mát Xa Spa Hà Nội",
+          "Vé Sun World Vũng Tàu | Thành phố Hồ Chí Minh",
+          "Vé Sun World Vũng Tàu Aqua Adventure",
+          "Vé Suối Nước Nóng Minera Bình Châu",
+          "Vé vào cổng Công viên Chủ đề VinWonders Cửa Hội",
+          "Vé vào cổng Công viên Tropicana"
+        ],
+        "nearby_places": [
+          "Bãi đỗ xe khách sạn Imperial",
+          "Bãi sau",
+          "Công viên Thỏ Trắng Vũng Tàu",
+          "Đài Tưởng niệm Liệt sĩ",
+          "Đài tưởng niệm Liệt sĩ Vũng Tàu",
+          "Khu du lịch Biển Đông",
+          "Quán cơm Thảo Vy",
+          "Trung tâm thương mại Imperial Plaza",
+          "TT mua sắm Imperial Plaza",
+          "Vũng Tàu Bar & Beach Club"
+        ]
+      },
+      {
+        "item_id": "25773171",
+        "name": "Khu nghỉ dưỡng Holiday Inn Hồ Tràm Beach By IHG (Holiday Inn Resort Ho Tram Beach By IHG)",
+        "base_score": 0.486,
+        "feature_scores": {
+          "keyword": 0.6,
+          "budget": 0.75,
+          "amenity": 0.0,
+          "room_view": 0.12,
+          "review": 0.815,
+          "availability": 1.0,
+          "personalization": 0.627,
+          "location": 0.45,
+          "trend": 0.0
+        },
+        "negative_penalty": 0.0,
+        "booking_signals": {
+          "booking_count_7d": 0,
+          "booking_count_30d": 0,
+          "booking_growth_7d_vs_30d": 0.0,
+          "user_booked_before": false,
+          "same_destination_booking_count": 3,
+          "trend_score": 0.0
+        },
+        "price_range": {
+          "min": 3280000.0,
+          "max": 5000000.0,
+          "currency": "VND"
+        },
+        "destination": "Vũng Tàu",
+        "hotel_type": "Khách sạn",
+        "amenities": [
+          "Bàn tiếp tân 24 giờ",
+          "Nhà hàng",
+          "Phòng tập",
+          "Quán bar cạnh bể bơi",
+          "Spa",
+          "Sân chơi",
+          "Sân gôn tại chỗ nghỉ",
+          "Sòng bạc",
+          "Vườn",
+          "Tiếng Anh",
+          "Phù hợp cho xe lăn",
+          "WiFi miễn phí",
+          "Bi-a",
+          "Bãi biển riêng",
+          "Bãi chơi bowling",
+          "Bể bơi có tầm nhìn",
+          "Bể bơi ngoài trời",
+          "Các môn thể thao dưới nước không có động cơ",
+          "Câu lạc bộ đêm",
+          "Giải trí",
+          "Karaoke",
+          "Mát-xa",
+          "Phòng xông ướt",
+          "Phòng yoga",
+          "Spa xông khô",
+          "Sân cầu lông",
+          "Bác sĩ y tá trực",
+          "Bữa sáng tự chọn",
+          "Bữa sáng kiểu tây",
+          "Dịch vụ phòng 24 giờ",
+          "Nhà hàng phục vụ món tự chọn",
+          "Nhà hàng ẩm thực châu á",
+          "Nhà hàng ẩm thực phương tây",
+          "Nhà hàng ẩm thực trung quốc",
+          "Quán cà phê",
+          "Quầy đồ ăn vặt",
+          "Cơ sở vật chất cho họp mặt tiệc lớn",
+          "Cửa hàng quà tặng quà lưu niệm",
+          "Cửa hàng tạp hóa",
+          "Dịch vụ giặt là",
+          "Dịch vụ làm đẹp",
+          "Dịch vụ ủi đồ",
+          "Giặt khô",
+          "Giữ hành lý",
+          "Khu vực hút thuốc",
+          "Nhân viên trực cửa",
+          "Phòng họp",
+          "Thang máy",
+          "Tiệm làm đẹp",
+          "Tiện nghi cho khách khuyết tật",
+          "Điều hòa ở khu vực chung",
+          "Đổi ngoại tệ",
+          "Bể bơi trẻ em",
+          "Bữa ăn cho trẻ",
+          "CLB trẻ em",
+          "Cơ sở vật chất cho trẻ em",
+          "Dịch vụ trông trẻ",
+          "Phòng gia đình",
+          "Thích hợp cho gia đình trẻ em",
+          "Bảo vệ 24 giờ",
+          "CCTV trong khu vực chung",
+          "Nhận/trả phòng 24 giờ",
+          "Phòng không hút thuốc",
+          "Dịch vụ taxi",
+          "Dịch vụ đưa đón",
+          "Đỗ xe miễn phí",
+          "Cách âm",
+          "Giường cũi của em bé theo yêu cầu",
+          "Nhà tắm chung",
+          "Truyền hình cáp vệ tinh",
+          "Điều hòa"
+        ],
+        "room_views": [
+          "Hướng Biển",
+          "Hướng Thiên nhiên"
+        ],
+        "preference_habits": [],
+        "tags": [
+          "Khách đi công tác",
+          "Gia đình có thanh thiếu niên",
+          "Cặp đôi",
+          "Khách du lịch một mình",
+          "Gia đình có trẻ nhỏ",
+          "Nhóm du khách",
+          "Bệnh Viện và Cơ Sở Y Tế",
+          "Công Viên Công Cộng",
+          "Địa điểm giải trí",
+          "Điểm Cắm Trại và Vui Chơi Ngoài Trời",
+          "Núi, đồi và hang động",
+          "Sân Gôn",
+          "Ho May Park Skip-the-Line Package Ticket - Vung Tau",
+          "Hồ Tràm | Tour chơi golf 18 lỗ trong ngày tại The Bluffs Grand Hồ Tràm kèm xe đưa đón riêng | Khởi hành từ Thành phố Hồ Chí Minh",
+          "Mindfulness Meditation Retreat - 2 Days in Ho Chi Minh City",
+          "Saigon City Shore Excursion Tour From Phu My Port - Highlights Tour",
+          "Tour Vũng Tàu Trọn Gói Cả Ngày Từ Hồ Chí Minh",
+          "Trải nghiệm bắn súng tại Câu lạc bộ Bắn súng Vũng Tàu - Trường bắn Vũng Tàu",
+          "Vé Sun World Vũng Tàu Aqua Adventure",
+          "Vé vào cổng Công viên Tropicana",
+          "Vé Vào Cửa Bảo Tàng Vũ Khí Cổ Robert Taylor - Vũng Tàu",
+          "Vé vào cửa Bảo tàng Vũ khí cổ Robert Taylor, Vũng Tàu"
+        ],
+        "nearby_places": [
+          "Hồ Cốc",
+          "Khu cắm trại Hương Phong",
+          "Khu du lịch Gió Biển",
+          "Núi Đá Dắt",
+          "Núi Giữa",
+          "Núi Hồ Linh",
+          "Núi Kho",
+          "Núi Mộ Ông",
+          "Sân golf The Bluffs Ho Tram Strip",
+          "Trạm Y tế Xã Bưng Riềng"
+        ]
+      },
+      {
+        "item_id": "11024791",
+        "name": "ibis Styles Vũng Tàu (ibis Styles Vung Tau)",
+        "base_score": 0.484,
+        "feature_scores": {
+          "keyword": 0.95,
+          "budget": 0.286,
+          "amenity": 0.0,
+          "room_view": 0.18,
+          "review": 0.775,
+          "availability": 1.0,
+          "personalization": 0.627,
+          "location": 0.45,
+          "trend": 0.0
+        },
+        "negative_penalty": 0.0,
+        "booking_signals": {
+          "booking_count_7d": 0,
+          "booking_count_30d": 0,
+          "booking_growth_7d_vs_30d": 0.0,
+          "user_booked_before": false,
+          "same_destination_booking_count": 3,
+          "trend_score": 0.0
+        },
+        "price_range": {
+          "min": 600000.0,
+          "max": 1290000.0,
+          "currency": "VND"
+        },
+        "destination": "Vũng Tàu",
+        "hotel_type": "Khách sạn",
+        "amenities": [
+          "Bàn tiếp tân 24 giờ",
+          "Bể bơi ngoài trời",
+          "Nhà hàng",
+          "Phòng tập",
+          "Quán bar",
+          "Tiếng Anh",
+          "Tiếng ấn độ",
+          "Phù hợp cho xe lăn",
+          "WiFi miễn phí",
+          "Bể bơi có tầm nhìn",
+          "Sân gôn tại chỗ nghỉ",
+          "Bác sĩ y tá trực",
+          "Dịch vụ phòng",
+          "Giờ giảm giá đồ uống",
+          "Nhà hàng phục vụ món chay",
+          "Nhà hàng ẩm thực châu á",
+          "Nhà hàng ẩm thực phương tây",
+          "Quán bar cạnh bể bơi",
+          "Quán cà phê",
+          "Quầy đồ ăn vặt",
+          "Cơ sở vật chất cho họp mặt tiệc lớn",
+          "Dịch vụ giặt là",
+          "Dịch vụ văn phòng fax photocopy",
+          "Dịch vụ ủi đồ",
+          "Giặt khô",
+          "Giữ hành lý",
+          "Khu vực hút thuốc",
+          "Nhân viên trực cửa",
+          "Phòng chờ chung khu vực tv",
+          "Phòng họp",
+          "Phòng hội thảo",
+          "Thang máy",
+          "Tiện nghi cho khách khuyết tật",
+          "Điều hòa ở khu vực chung",
+          "Bể bơi trẻ em",
+          "Bữa ăn cho trẻ",
+          "CLB trẻ em",
+          "Phòng gia đình",
+          "Sân chơi",
+          "Thích hợp cho gia đình trẻ em",
+          "Bảo vệ 24 giờ",
+          "CCTV bên ngoài chỗ nghỉ",
+          "CCTV trong khu vực chung",
+          "Khu vực tầng thượng",
+          "Nhận trả phòng nhanh",
+          "Nhận/trả phòng 24 giờ",
+          "Phòng cách âm",
+          "Phòng không hút thuốc",
+          "Đưa đón sân bay",
+          "Đỗ xe miễn phí",
+          "Đỗ xe tại chỗ",
+          "Cách âm",
+          "Giường cũi của em bé theo yêu cầu",
+          "TV màn hình phẳng",
+          "Điều hòa"
+        ],
+        "room_views": [
+          "Hướng Biển",
+          "Hướng Thành phố"
+        ],
+        "preference_habits": [],
+        "tags": [
+          "Khách đi công tác",
+          "Gia đình có thanh thiếu niên",
+          "Cặp đôi",
+          "Khách du lịch một mình",
+          "Gia đình có trẻ nhỏ",
+          "Nhóm du khách",
+          "Bãi Biển",
+          "Bãi đỗ xe",
+          "Bệnh Viện và Cơ Sở Y Tế",
+          "Đài Kỷ Niệm và Di Tích Lịch Sử",
+          "Nơi Biểu Diễn Văn Nghệ",
+          "Nơi Thờ Cúng",
+          "Siêu Thị",
+          "Tòa Nhà Nổi Tiếng",
+          "Trung Tâm và Khu Mua Sắm",
+          "金蘭國際機場(CXR) | Domestic Terminal | SH Premium Lounge - Cam Ranh | 貴賓室服務",
+          "The Mộc Spa - Quận 1, Thành phố Hồ Chí Minh",
+          "Tour trọn ngày | Tour khám phá Vũng Tàu từ Thành phố Hồ Chí Minh bao gồm đón khách miễn phí tại khách sạn",
+          "Tour Vũng Tàu Trọn Gói Cả Ngày Từ Hồ Chí Minh",
+          "Trải Nghiệm Mát Xa Spa Hà Nội",
+          "Vé Sun World Vũng Tàu | Thành phố Hồ Chí Minh",
+          "Vé Sun World Vũng Tàu Aqua Adventure",
+          "Vé Suối Nước Nóng Minera Bình Châu",
+          "Vé vào cổng Công viên Chủ đề VinWonders Cửa Hội",
+          "Vé vào cổng Công viên Tropicana"
+        ],
+        "nearby_places": [
+          "Bãi đỗ xe khách sạn Imperial",
+          "Bãi sau",
+          "Chợ trái cây",
+          "Đài tưởng niệm Liệt sĩ Vũng Tàu",
+          "Đình Thắng Tam",
+          "Linh Sơn Cổ Tự",
+          "Nhà thuốc Khánh Hậu",
+          "Trung tâm thương mại Imperial Plaza",
+          "TT mua sắm Imperial Plaza",
+          "Vũng Tàu Bar & Beach Club"
+        ]
+      },
+      {
+        "item_id": "22642078",
+        "name": "Khách sạn Premier Pearl Vũng Tàu (Premier Pearl Hotel Vung Tau)",
+        "base_score": 0.467,
+        "feature_scores": {
+          "keyword": 0.65,
+          "budget": 0.5,
+          "amenity": 0.0,
+          "room_view": 0.18,
+          "review": 0.754,
+          "availability": 1.0,
+          "personalization": 0.627,
+          "location": 0.45,
+          "trend": 0.0
+        },
+        "negative_penalty": 0.0,
+        "booking_signals": {
+          "booking_count_7d": 0,
+          "booking_count_30d": 0,
+          "booking_growth_7d_vs_30d": 0.0,
+          "user_booked_before": false,
+          "same_destination_booking_count": 3,
+          "trend_score": 0.0
+        },
+        "price_range": {
+          "min": 1230000.0,
+          "max": 3000000.0,
+          "currency": "VND"
+        },
+        "destination": "Vũng Tàu",
+        "hotel_type": "Khách sạn",
+        "amenities": [
+          "Bàn tiếp tân 24 giờ",
+          "Bể bơi ngoài trời",
+          "Bể bơi trong nhà",
+          "Câu lạc bộ đêm",
+          "Nhà hàng",
+          "Phòng gia đình",
+          "Phòng tập",
+          "Quán bar",
+          "Spa",
+          "Tiếng Anh",
+          "Phù hợp cho xe lăn",
+          "WiFi miễn phí",
+          "Bể bơi có tầm nhìn",
+          "Giải trí",
+          "Karaoke",
+          "Mát-xa",
+          "Phòng xông ướt",
+          "Quán rượu",
+          "Spa xông khô",
+          "Tiện nghi bể bơi",
+          "Bữa sáng trong phòng",
+          "Bếp",
+          "Bữa sáng tự chọn",
+          "Bữa sáng kiểu lục địa",
+          "Bữa sáng kiểu tây",
+          "Bữa sáng miễn phí",
+          "Bữa sáng đầy đủ kiểu mỹ",
+          "Dịch vụ phòng 24 giờ",
+          "Giờ giảm giá đồ uống",
+          "Nhà hàng phục vụ món chay",
+          "Nhà hàng ẩm thực châu á",
+          "Nhà hàng ẩm thực phương tây",
+          "Nhà hàng ẩm thực trung quốc",
+          "Quán bar cạnh bể bơi",
+          "Quán cà phê",
+          "Cơ sở vật chất cho họp mặt tiệc lớn",
+          "Dịch vụ giặt là",
+          "Dịch vụ ủi đồ",
+          "Giặt khô",
+          "Giữ hành lý",
+          "Hoàn toàn không hút thuốc",
+          "Khu vực hút thuốc",
+          "Nhân viên trực cửa",
+          "Phòng chờ chung khu vực tv",
+          "Phòng họp",
+          "Phòng hội thảo",
+          "Thang máy",
+          "Tiện nghi cho khách khuyết tật",
+          "Điều hòa ở khu vực chung",
+          "Bể bơi trẻ em",
+          "Bữa ăn cho trẻ",
+          "CLB trẻ em",
+          "Cơ sở vật chất cho trẻ em",
+          "Sân chơi",
+          "Thích hợp cho gia đình trẻ em",
+          "Tính năng an toàn cho trẻ em",
+          "Bảo vệ 24 giờ",
+          "CCTV trong khu vực chung",
+          "Khu vực tầng thượng",
+          "Nhận/trả phòng 24 giờ",
+          "Phòng không hút thuốc",
+          "Đỗ xe gần bên",
+          "Đỗ xe miễn phí",
+          "Đỗ xe tại chỗ"
+        ],
+        "room_views": [
+          "Hướng Biển",
+          "Hướng Thành phố"
+        ],
+        "preference_habits": [],
+        "tags": [
+          "Khách đi công tác",
+          "Cặp đôi",
+          "Khách du lịch một mình",
+          "Gia đình có trẻ nhỏ",
+          "Gia đình có thanh thiếu niên",
+          "Nhóm du khách",
+          "Bãi Biển",
+          "Bệnh Viện và Cơ Sở Y Tế",
+          "Công Viên Công Cộng",
+          "Đài Kỷ Niệm và Di Tích Lịch Sử",
+          "Đảo",
+          "Địa điểm giải trí",
+          "Nơi Thờ Cúng",
+          "Siêu Thị",
+          "Ho May Park Skip-the-Line Package Ticket - Vung Tau",
+          "Hồ Tràm | Tour chơi golf 18 lỗ trong ngày tại The Bluffs Grand Hồ Tràm kèm xe đưa đón riêng | Khởi hành từ Thành phố Hồ Chí Minh",
+          "Mindfulness Meditation Retreat - 2 Days in Ho Chi Minh City",
+          "Saigon City Shore Excursion Tour From Phu My Port - Highlights Tour",
+          "Tour Vũng Tàu Trọn Gói Cả Ngày Từ Hồ Chí Minh",
+          "Trải nghiệm bắn súng tại Câu lạc bộ Bắn súng Vũng Tàu - Trường bắn Vũng Tàu",
+          "Vé Sun World Vũng Tàu Aqua Adventure",
+          "Vé vào cổng Công viên Tropicana",
+          "Vé Vào Cửa Bảo Tàng Vũ Khí Cổ Robert Taylor - Vũng Tàu",
+          "Vé vào cửa Bảo tàng Vũ khí cổ Robert Taylor, Vũng Tàu"
+        ],
+        "nearby_places": [
+          "Bãi sau",
+          "Chợ trái cây",
+          "Công viên Tao Phùng",
+          "Đình Thắng Tam",
+          "Đồi Con Heo",
+          "Hòn Bà",
+          "Linh Sơn Cổ Tự",
+          "Nhà thuốc Khánh Hậu",
+          "Trạm y tế Phường 2",
+          "Tượng Chúa Kitô Vua"
+        ]
+      },
+      {
+        "item_id": "178195",
+        "name": "Mercure Vũng Tàu (Mercure Vung Tau)",
+        "base_score": 0.464,
+        "feature_scores": {
+          "keyword": 0.75,
+          "budget": 0.312,
+          "amenity": 0.0,
+          "room_view": 0.12,
+          "review": 0.754,
+          "availability": 1.0,
+          "personalization": 0.627,
+          "location": 0.45,
+          "trend": 0.1
+        },
+        "negative_penalty": 0.0,
+        "booking_signals": {
+          "booking_count_7d": 0,
+          "booking_count_30d": 1,
+          "booking_growth_7d_vs_30d": 0.0,
+          "user_booked_before": true,
+          "same_destination_booking_count": 3,
+          "trend_score": 0.1
+        },
+        "price_range": {
+          "min": 600000.0,
+          "max": 1500000.0,
+          "currency": "VND"
+        },
+        "destination": "Vũng Tàu",
+        "hotel_type": "Khách sạn",
+        "amenities": [
+          "Bàn tiếp tân 24 giờ",
+          "Bãi biển riêng",
+          "Bể bơi ngoài trời",
+          "Cửa hàng",
+          "Nhà hàng",
+          "Phòng tập",
+          "Quán bar",
+          "Spa",
+          "Vườn",
+          "Tiếng Anh",
+          "Tiếng ấn độ",
+          "Xe đạp",
+          "WiFi miễn phí",
+          "Bể bơi có tầm nhìn",
+          "Mát-xa",
+          "Phòng yoga",
+          "Sân gôn tại chỗ nghỉ",
+          "Bác sĩ y tá trực",
+          "Dịch vụ phòng 24 giờ",
+          "Giờ giảm giá đồ uống",
+          "Nhà hàng phục vụ món chay",
+          "Nhà hàng ẩm thực châu á",
+          "Nhà hàng ẩm thực phương tây",
+          "Nhà hàng ẩm thực trung quốc",
+          "Quán bar cạnh bể bơi",
+          "Quán cà phê",
+          "Quầy đồ ăn vặt",
+          "Cơ sở vật chất cho họp mặt tiệc lớn",
+          "Cửa hàng quà tặng quà lưu niệm",
+          "Dịch vụ giặt là",
+          "Dịch vụ văn phòng fax photocopy",
+          "Dịch vụ ủi đồ",
+          "Giặt khô",
+          "Giữ hành lý",
+          "Hoàn toàn không hút thuốc",
+          "Khu vực hút thuốc",
+          "Nhân viên trực cửa",
+          "Phòng họp",
+          "Tiện nghi cho khách khuyết tật",
+          "Tiện nghi làm việc",
+          "Điều hòa ở khu vực chung",
+          "Bể bơi trẻ em",
+          "Bữa ăn cho trẻ",
+          "CLB trẻ em",
+          "Dịch vụ trông trẻ",
+          "Phòng gia đình",
+          "Sân chơi",
+          "Thích hợp cho gia đình trẻ em",
+          "Bảo vệ 24 giờ",
+          "CCTV bên ngoài chỗ nghỉ",
+          "CCTV trong khu vực chung",
+          "Nhận trả phòng riêng",
+          "Nhận/trả phòng 24 giờ",
+          "Phòng không gây dị ứng",
+          "Phòng không hút thuốc",
+          "Dịch vụ taxi",
+          "Dịch vụ đưa đón",
+          "Đưa đón sân bay",
+          "Đỗ xe có nhân viên",
+          "Đỗ xe miễn phí",
+          "Đỗ xe tại chỗ",
+          "Thuê xe đạp",
+          "Cách âm",
+          "Tiện nghi bể bơi",
+          "Truyền hình cáp vệ tinh",
+          "Đi lên bằng cầu thang",
+          "Điều hòa"
+        ],
+        "room_views": [
+          "Hướng Biển",
+          "Hướng Thiên nhiên"
+        ],
+        "preference_habits": [],
+        "tags": [
+          "Khách đi công tác",
+          "Gia đình có thanh thiếu niên",
+          "Cặp đôi",
+          "Khách du lịch một mình",
+          "Gia đình có trẻ nhỏ",
+          "Nhóm du khách",
+          "Bãi Biển",
+          "Bệnh Viện và Cơ Sở Y Tế",
+          "Công Viên Công Cộng",
+          "Đài Kỷ Niệm và Di Tích Lịch Sử",
+          "Địa điểm giải trí",
+          "Nơi Thờ Cúng",
+          "Núi, đồi và hang động",
+          "Quán Rượu",
+          "Ho May Park Skip-the-Line Package Ticket - Vung Tau",
+          "Hồ Tràm | Tour chơi golf 18 lỗ trong ngày tại The Bluffs Grand Hồ Tràm kèm xe đưa đón riêng | Khởi hành từ Thành phố Hồ Chí Minh",
+          "Mindfulness Meditation Retreat - 2 Days in Ho Chi Minh City",
+          "Tour Vũng Tàu Trọn Gói Cả Ngày Từ Hồ Chí Minh",
+          "Trải nghiệm bắn súng tại Câu lạc bộ Bắn súng Vũng Tàu - Trường bắn Vũng Tàu",
+          "Vé Sun World Vũng Tàu Aqua Adventure",
+          "Vé vào cổng Công viên Tropicana",
+          "Vé Vào Cửa Bảo Tàng Vũ Khí Cổ Robert Taylor - Vũng Tàu",
+          "Vé vào cửa Bảo tàng Vũ khí cổ Robert Taylor, Vũng Tàu",
+          "Vung Tau to Ho Chi Minh Airport (SGN) - Private Transfer"
+        ],
+        "nearby_places": [
+          "Bãi Dứa",
+          "Bãi sau",
+          "Chùa Niết Bàn",
+          "Công viên Tao Phùng",
+          "Đồi Con Heo",
+          "Mũi Nghinh Phong",
+          "Núi Nhỏ",
+          "Quán bar Black Pearl Bar",
+          "Trạm y tế Phường 2",
+          "Tượng Chúa Kitô Vua"
+        ]
+      }
+    ],
+    "normalized_session": {
+      "destination": "Vũng Tàu",
+      "nearby_place": "Nơi Biểu Diễn Văn Nghệ",
+      "number_of_guests": 4,
+      "has_children": true,
+      "price_range": {
+        "min": 7000000,
+        "max": 15000000,
+        "currency": "VND"
+      },
+      "trip_types": {
+        "Gia đình có trẻ nhỏ": 0.889,
+        "Gia đình có thanh thiếu niên": 1.0
+      },
+      "budget_levels": {
+        "high": 1.0,
+        "low": 0.8
+      },
+      "preference_habits": {
+        "privacy": 1.0
+      },
+      "hotel_types": {
+        "Khách sạn": 1.0
+      },
+      "room_views": {
+        "Hướng Ngoài trời": 0.8,
+        "Hướng Hồ": 1.0
+      },
+      "amenities": {
+        "Tắm suối nước nóng": 1.0,
+        "Phòng thay đồ": 0.8,
+        "Trạm nối ipod": 0.9,
+        "Bàn trang điểm phù hợp cho người khuyết tật": 0.8
+      },
+      "negative_preferences": {
+        "avoid_hotel_types": {},
+        "avoid_amenities": {
+          "Ban công sân hiên": 1.0
+        },
+        "avoid_preference_habits": {
+          "far_from_center": 0.889,
+          "nightlife": 1.0
+        },
+        "avoid_nearby_places": {},
+        "avoid_locations": {}
+      },
+      "boost_amenity_rich_hotels": false
+    },
+    "normalized_long_term": {
+      "hotel_types": {
+        "Bungalow": 1.0,
+        "Resort": 0.7,
+        "Khách sạn": 0.6
+      },
+      "trip_types": {
+        "Cặp đôi": 1.0,
+        "Gia đình có thanh thiếu niên": 1.0
+      },
+      "budget_levels": {
+        "low": 1.0
+      },
+      "preference_habits": {
+        "safety": 1.0
+      },
+      "room_views": {
+        "Hướng Thiên nhiên": 0.667,
+        "Hướng Thành phố": 1.0
+      },
+      "amenities": {},
+      "recommendation_clicks": {
+        "hotel": [
+          "25455208",
+          "29379512",
+          "16784780",
+          "63917222",
+          "58958232"
+        ]
+      },
+      "negative_preferences": {
+        "avoid_hotel_types": {
+          "Nhà nghỉ": 0.286,
+          "Toàn bộ căn nhà": 1.0
+        },
+        "avoid_amenities": {
+          "Máy rửa bát": 1.0,
+          "Trò chơi board game xếp hình": 0.6
+        },
+        "avoid_preference_habits": {
+          "low_rating": 1.0,
+          "shared_room": 0.714
+        },
+        "avoid_nearby_places": {},
+        "avoid_locations": {
+          "crowded_center": 1.0,
+          "industrial_area": 1.0
+        }
+      }
+    },
+    "llm_used": true,
+    "fallback_used": false,
+    "mock_mode": false,
+    "candidate_source": "postgres_enriched",
+    "candidate_enrichment_debug": {
+      "hotel_api": {
+        "requested": false
+      },
+      "postgres": {
+        "requested": true,
+        "postgres": {
+          "configured": true,
+          "scheme": "postgresql",
+          "host": "localhost",
+          "port": 5432,
+          "database": "postgres",
+          "user": "postgres",
+          "password_set": false
+        },
+        "requested_ids": [
+          "11024791",
+          "1122450",
+          "1370955",
+          "161729",
+          "178195",
+          "2114938",
+          "22642078",
+          "25773171",
+          "33941483",
+          "36643921"
+        ],
+        "enriched_ids": [
+          "11024791",
+          "1122450",
+          "1370955",
+          "161729",
+          "178195",
+          "2114938",
+          "22642078",
+          "25773171",
+          "33941483",
+          "36643921"
+        ],
+        "missing_ids": []
+      }
+    },
+    "profile_source": "mongo",
+    "booking_source": "mongo",
+    "llm_source": "openrouter",
+    "llm_debug": {
+      "requested": true,
+      "candidate_ids": [
+        "1122450",
+        "161729",
+        "25773171",
+        "11024791",
+        "22642078",
+        "178195"
+      ],
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "request": {
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are an OTA hotel reranking assistant.\nOnly use the provided data.\nDo not invent hotel facts.\nRespect hard constraints.\nReturn strict JSON only.\nRerank the provided hotel IDs.\nDo not include hotel IDs that are not in the candidate list.\nVietnamese labels such as hotel_type, amenities, room_views, trip_types must be preserved."
+          },
+          {
+            "role": "user",
+            "content": "{\"query\": \"Tôi đi Vũng Tàu cùng gia đình có trẻ nhỏ, muốn riêng tư, view hồ, tầm 7 đến 15 triệu\", \"normalized_profile\": {\"user_id\": \"user_002\", \"session\": {\"destination\": \"Vũng Tàu\", \"nearby_place\": \"Nơi Biểu Diễn Văn Nghệ\", \"number_of_guests\": 4, \"has_children\": true, \"price_range\": {\"min\": 7000000, \"max\": 15000000, \"currency\": \"VND\"}, \"trip_types\": {\"Gia đình có trẻ nhỏ\": 0.889, \"Gia đình có thanh thiếu niên\": 1.0}, \"budget_levels\": {\"high\": 1.0, \"low\": 0.8}, \"preference_habits\": {\"privacy\": 1.0}, \"hotel_types\": {\"Khách sạn\": 1.0}, \"room_views\": {\"Hướng Ngoài trời\": 0.8, \"Hướng Hồ\": 1.0}, \"amenities\": {\"Tắm suối nước nóng\": 1.0, \"Phòng thay đồ\": 0.8, \"Trạm nối ipod\": 0.9, \"Bàn trang điểm phù hợp cho người khuyết tật\": 0.8}, \"negative_preferences\": {\"avoid_hotel_types\": {}, \"avoid_amenities\": {\"Ban công sân hiên\": 1.0}, \"avoid_preference_habits\": {\"far_from_center\": 0.889, \"nightlife\": 1.0}, \"avoid_nearby_places\": {}, \"avoid_locations\": {}}, \"boost_amenity_rich_hotels\": false}, \"long_term\": {\"hotel_types\": {\"Bungalow\": 1.0, \"Resort\": 0.7, \"Khách sạn\": 0.6}, \"trip_types\": {\"Cặp đôi\": 1.0, \"Gia đình có thanh thiếu niên\": 1.0}, \"budget_levels\": {\"low\": 1.0}, \"preference_habits\": {\"safety\": 1.0}, \"room_views\": {\"Hướng Thiên nhiên\": 0.667, \"Hướng Thành phố\": 1.0}, \"amenities\": {}, \"recommendation_clicks\": {\"hotel\": [\"25455208\", \"29379512\", \"16784780\", \"63917222\", \"58958232\"]}, \"negative_preferences\": {\"avoid_hotel_types\": {\"Nhà nghỉ\": 0.286, \"Toàn bộ căn nhà\": 1.0}, \"avoid_amenities\": {\"Máy rửa bát\": 1.0, \"Trò chơi board game xếp hình\": 0.6}, \"avoid_preference_habits\": {\"low_rating\": 1.0, \"shared_room\": 0.714}, \"avoid_nearby_places\": {}, \"avoid_locations\": {\"crowded_center\": 1.0, \"industrial_area\": 1.0}}}}, \"candidates\": [{\"item_id\": \"1122450\", \"name\": \"Pullman Vũng Tàu (Pullman Vung Tau)\", \"destination\": \"Vũng Tàu\", \"hotel_type\": \"Khách sạn\", \"price_min\": 3730000.0, \"price_max\": 5000000.0, \"amenities\": [\"Bàn tiếp tân 24 giờ\", \"Bể bơi ngoài trời\", \"Bể bơi trong nhà\", \"Bữa sáng tự chọn\", \"Nhà hàng\", \"Phòng tập\", \"Quán bar\", \"Tiếng Anh\", \"Phù hợp cho xe lăn\", \"WiFi miễn phí\", \"Câu lạc bộ đêm\", \"Phòng xông ướt\", \"Spa xông khô\", \"Sân gôn tại chỗ nghỉ\", \"Sân quần vợt\", \"Sòng bạc\", \"Vườn\", \"Bác sĩ y tá trực\", \"Bữa sáng trong phòng\", \"Bếp\", \"Bữa sáng kiểu lục địa\", \"Bữa sáng kiểu á\", \"Dịch vụ phòng 24 giờ\", \"Giờ giảm giá đồ uống\", \"Nhà hàng phục vụ món chay\", \"Nhà hàng ẩm thực phương tây\", \"Nhà hàng ẩm thực quốc tế\", \"Quán bar cạnh bể bơi\", \"Quán cà phê\", \"Tiện nghi nấu nướng ngoài trời\", \"Cơ sở vật chất cho họp mặt tiệc lớn\", \"Dịch vụ giặt là\", \"Dịch vụ làm đẹp\", \"Dịch vụ văn phòng fax photocopy\", \"Dịch vụ ủi đồ\", \"Giặt khô\", \"Giữ hành lý\", \"Hoàn toàn không hút thuốc\", \"Khu vực hút thuốc\", \"Nhân viên trực cửa\", \"Phòng họp\", \"Phòng hội thảo\", \"Thang máy\", \"Tiện nghi cho khách khuyết tật\", \"Tiện nghi làm việc\", \"Điều hòa ở khu vực chung\", \"Đổi ngoại tệ\", \"Bể bơi trẻ em\", \"Bữa ăn cho trẻ\", \"CLB trẻ em\", \"Phòng gia đình\", \"Sân chơi\", \"Thích hợp cho gia đình trẻ em\", \"Bảo vệ 24 giờ\", \"CCTV trong khu vực chung\", \"Nhận trả phòng nhanh\", \"Nhận/trả phòng 24 giờ\", \"Phòng cách âm\", \"Phòng không hút thuốc\", \"Dịch vụ taxi\", \"Dịch vụ đưa đón\", \"Đưa đón sân bay\", \"Đỗ xe miễn phí\", \"Đỗ xe tại chỗ\", \"Báo hằng ngày\", \"Báo động trực quan\", \"Bảng chỉ dẫn chữ nổi và sờ được\", \"Cách âm\", \"Có các phòng thông nhau\", \"Ghế cao cho trẻ con ngồi ăn\", \"Giường cũi của em bé theo yêu cầu\", \"Giường cực dài\", \"Khả năng tiếp cận cho người khó đi lại\", \"Lối vào hồ bơi\", \"Máy pha trà cà phê\", \"Máy sấy quần áo\", \"Phim theo yêu cầu\", \"Phòng thay đồ\", \"Phòng tắm có băng ghế tắm\", \"Phòng tắm đứng\", \"Tay nắm đòn bẩy trên cửa\", \"Tiện nghi bể bơi\", \"Truyền hình cáp vệ tinh\", \"Trạm nối ipod\", \"Điều hòa\"], \"room_views\": [\"Hướng Biển\", \"Hướng Thành phố\"], \"preference_habits\": [], \"tags\": [\"Khách đi công tác\", \"Gia đình có thanh thiếu niên\", \"Cặp đôi\", \"Khách du lịch một mình\", \"Gia đình có trẻ nhỏ\", \"Nhóm du khách\", \"Bãi Biển\", \"Bãi đỗ xe\", \"Các Sân Thể Thao\", \"Công Viên Công Cộng\", \"Siêu Thị\", \"Tòa Nhà Nổi Tiếng\", \"Trung Tâm và Khu Mua Sắm\", \"Ho May Park Skip-the-Line Package Ticket - Vung Tau\", \"Hồ Tràm | Tour chơi golf 18 lỗ trong ngày tại The Bluffs Grand Hồ Tràm kèm xe đưa đón riêng | Khởi hành từ Thành phố Hồ Chí Minh\", \"Mindfulness Meditation Retreat - 2 Days in Ho Chi Minh City\", \"Tour Vũng Tàu Trọn Gói Cả Ngày Từ Hồ Chí Minh\", \"Trải nghiệm bắn súng tại Câu lạc bộ Bắn súng Vũng Tàu - Trường bắn Vũng Tàu\", \"Vé Sun World Vũng Tàu Aqua Adventure\", \"Vé vào cổng Công viên Tropicana\", \"Vé Vào Cửa Bảo Tàng Vũ Khí Cổ Robert Taylor - Vũng Tàu\", \"Vé vào cửa Bảo tàng Vũ khí cổ Robert Taylor, Vũng Tàu\", \"Vung Tau to Ho Chi Minh Airport (SGN) - Private Transfer\"], \"location_tags\": [], \"nearby_places\": [\"Bãi đỗ xe khách sạn Imperial\", \"Bãi sau\", \"Công viên Thỏ Trắng Vũng Tàu\", \"Đài Tưởng niệm Liệt sĩ\", \"Khu du lịch Biển Đông\", \"Nhà thi đấu TDTT Vũng Tàu\", \"Quán cơm Thảo Vy\", \"Siêu thị Lotte Mart\", \"Trung tâm thương mại Imperial Plaza\", \"TT mua sắm Imperial Plaza\"], \"base_score\": 0.596, \"feature_scores\": {\"keyword\": 0.9, \"budget\": 0.75, \"amenity\": 0.486, \"room_view\": 0.18, \"review\": 0.713, \"availability\": 1.0, \"personalization\": 0.627, \"location\": 0.45, \"trend\": 0.1}}, {\"item_id\": \"161729\", \"name\": \"Khách sạn The Imperial Vũng Tàu (The IMPERIAL Vung Tau Hotel )\", \"destination\": \"Vũng Tàu\", \"hotel_type\": \"Khách sạn\", \"price_min\": 4290000.0, \"price_max\": 5000000.0, \"amenities\": [\"Bàn tiếp tân 24 giờ\", \"Bể bơi ngoài trời\", \"Nhà hàng\", \"Phòng tập\", \"Spa xông khô\", \"Vườn\", \"Tiếng Anh\", \"Phù hợp cho xe lăn\", \"WiFi miễn phí\", \"Bi-a\", \"Bãi biển riêng\", \"Mát-xa\", \"Phòng xông ướt\", \"Sòng bạc\", \"Bữa sáng kiểu lục địa\", \"Bữa sáng kiểu á\", \"Bữa sáng tự chọn\", \"Dịch vụ phòng\", \"Quán bar\", \"Cơ sở vật chất cho họp mặt tiệc lớn\", \"Dịch vụ giặt là\", \"Dịch vụ văn phòng fax photocopy\", \"Dịch vụ ủi đồ\", \"Giặt khô\", \"Giữ hành lý\", \"Khu vực hút thuốc\", \"Nhân viên trực cửa\", \"Phòng chờ chung khu vực tv\", \"Phòng họp\", \"Thang máy\", \"Tiện nghi cho khách khuyết tật\", \"Tiện nghi làm việc\", \"Điều hòa ở khu vực chung\", \"Đổi ngoại tệ\", \"Bể bơi trẻ em\", \"Bữa ăn cho trẻ\", \"CLB trẻ em\", \"Cơ sở vật chất cho trẻ em\", \"Phòng gia đình\", \"Sân chơi\", \"Thích hợp cho gia đình trẻ em\", \"Bảo vệ 24 giờ\", \"Nhận/trả phòng 24 giờ\", \"Phòng cách âm\", \"Phòng hai tầng\", \"Phòng không hút thuốc\", \"Dịch vụ taxi\", \"Dịch vụ đưa đón\", \"Đỗ xe có nhân viên\", \"Đỗ xe miễn phí\", \"Đỗ xe tại chỗ\", \"Cách âm\", \"Tủ lạnh\", \"Điều hòa\"], \"room_views\": [\"Hướng Biển\", \"Hướng Thành phố\", \"Hướng Thiên nhiên\"], \"preference_habits\": [], \"tags\": [\"Khách đi công tác\", \"Cặp đôi\", \"Khách du lịch một mình\", \"Gia đình có trẻ nhỏ\", \"Gia đình có thanh thiếu niên\", \"Nhóm du khách\", \"Bãi Biển\", \"Bãi đỗ xe\", \"Công Viên Công Cộng\", \"Đài Kỷ Niệm và Di Tích Lịch Sử\", \"Nơi Biểu Diễn Văn Nghệ\", \"Siêu Thị\", \"Tòa Nhà Nổi Tiếng\", \"Trung Tâm và Khu Mua Sắm\", \"金蘭國際機場(CXR) | Domestic Terminal | SH Premium Lounge - Cam Ranh | 貴賓室服務\", \"The Mộc Spa - Quận 1, Thành phố Hồ Chí Minh\", \"Tour trọn ngày | Tour khám phá Vũng Tàu từ Thành phố Hồ Chí Minh bao gồm đón khách miễn phí tại khách sạn\", \"Tour Vũng Tàu Trọn Gói Cả Ngày Từ Hồ Chí Minh\", \"Trải Nghiệm Mát Xa Spa Hà Nội\", \"Vé Sun World Vũng Tàu | Thành phố Hồ Chí Minh\", \"Vé Sun World Vũng Tàu Aqua Adventure\", \"Vé Suối Nước Nóng Minera Bình Châu\", \"Vé vào cổng Công viên Chủ đề VinWonders Cửa Hội\", \"Vé vào cổng Công viên Tropicana\"], \"location_tags\": [], \"nearby_places\": [\"Bãi đỗ xe khách sạn Imperial\", \"Bãi sau\", \"Công viên Thỏ Trắng Vũng Tàu\", \"Đài Tưởng niệm Liệt sĩ\", \"Đài tưởng niệm Liệt sĩ Vũng Tàu\", \"Khu du lịch Biển Đông\", \"Quán cơm Thảo Vy\", \"Trung tâm thương mại Imperial Plaza\", \"TT mua sắm Imperial Plaza\", \"Vũng Tàu Bar & Beach Club\"], \"base_score\": 0.522, \"feature_scores\": {\"keyword\": 0.8, \"budget\": 0.75, \"amenity\": 0.0, \"room_view\": 0.3, \"review\": 0.754, \"availability\": 1.0, \"personalization\": 0.627, \"location\": 0.45, \"trend\": 0.0}}, {\"item_id\": \"25773171\", \"name\": \"Khu nghỉ dưỡng Holiday Inn Hồ Tràm Beach By IHG (Holiday Inn Resort Ho Tram Beach By IHG)\", \"destination\": \"Vũng Tàu\", \"hotel_type\": \"Khách sạn\", \"price_min\": 3280000.0, \"price_max\": 5000000.0, \"amenities\": [\"Bàn tiếp tân 24 giờ\", \"Nhà hàng\", \"Phòng tập\", \"Quán bar cạnh bể bơi\", \"Spa\", \"Sân chơi\", \"Sân gôn tại chỗ nghỉ\", \"Sòng bạc\", \"Vườn\", \"Tiếng Anh\", \"Phù hợp cho xe lăn\", \"WiFi miễn phí\", \"Bi-a\", \"Bãi biển riêng\", \"Bãi chơi bowling\", \"Bể bơi có tầm nhìn\", \"Bể bơi ngoài trời\", \"Các môn thể thao dưới nước không có động cơ\", \"Câu lạc bộ đêm\", \"Giải trí\", \"Karaoke\", \"Mát-xa\", \"Phòng xông ướt\", \"Phòng yoga\", \"Spa xông khô\", \"Sân cầu lông\", \"Bác sĩ y tá trực\", \"Bữa sáng tự chọn\", \"Bữa sáng kiểu tây\", \"Dịch vụ phòng 24 giờ\", \"Nhà hàng phục vụ món tự chọn\", \"Nhà hàng ẩm thực châu á\", \"Nhà hàng ẩm thực phương tây\", \"Nhà hàng ẩm thực trung quốc\", \"Quán cà phê\", \"Quầy đồ ăn vặt\", \"Cơ sở vật chất cho họp mặt tiệc lớn\", \"Cửa hàng quà tặng quà lưu niệm\", \"Cửa hàng tạp hóa\", \"Dịch vụ giặt là\", \"Dịch vụ làm đẹp\", \"Dịch vụ ủi đồ\", \"Giặt khô\", \"Giữ hành lý\", \"Khu vực hút thuốc\", \"Nhân viên trực cửa\", \"Phòng họp\", \"Thang máy\", \"Tiệm làm đẹp\", \"Tiện nghi cho khách khuyết tật\", \"Điều hòa ở khu vực chung\", \"Đổi ngoại tệ\", \"Bể bơi trẻ em\", \"Bữa ăn cho trẻ\", \"CLB trẻ em\", \"Cơ sở vật chất cho trẻ em\", \"Dịch vụ trông trẻ\", \"Phòng gia đình\", \"Thích hợp cho gia đình trẻ em\", \"Bảo vệ 24 giờ\", \"CCTV trong khu vực chung\", \"Nhận/trả phòng 24 giờ\", \"Phòng không hút thuốc\", \"Dịch vụ taxi\", \"Dịch vụ đưa đón\", \"Đỗ xe miễn phí\", \"Cách âm\", \"Giường cũi của em bé theo yêu cầu\", \"Nhà tắm chung\", \"Truyền hình cáp vệ tinh\", \"Điều hòa\"], \"room_views\": [\"Hướng Biển\", \"Hướng Thiên nhiên\"], \"preference_habits\": [], \"tags\": [\"Khách đi công tác\", \"Gia đình có thanh thiếu niên\", \"Cặp đôi\", \"Khách du lịch một mình\", \"Gia đình có trẻ nhỏ\", \"Nhóm du khách\", \"Bệnh Viện và Cơ Sở Y Tế\", \"Công Viên Công Cộng\", \"Địa điểm giải trí\", \"Điểm Cắm Trại và Vui Chơi Ngoài Trời\", \"Núi, đồi và hang động\", \"Sân Gôn\", \"Ho May Park Skip-the-Line Package Ticket - Vung Tau\", \"Hồ Tràm | Tour chơi golf 18 lỗ trong ngày tại The Bluffs Grand Hồ Tràm kèm xe đưa đón riêng | Khởi hành từ Thành phố Hồ Chí Minh\", \"Mindfulness Meditation Retreat - 2 Days in Ho Chi Minh City\", \"Saigon City Shore Excursion Tour From Phu My Port - Highlights Tour\", \"Tour Vũng Tàu Trọn Gói Cả Ngày Từ Hồ Chí Minh\", \"Trải nghiệm bắn súng tại Câu lạc bộ Bắn súng Vũng Tàu - Trường bắn Vũng Tàu\", \"Vé Sun World Vũng Tàu Aqua Adventure\", \"Vé vào cổng Công viên Tropicana\", \"Vé Vào Cửa Bảo Tàng Vũ Khí Cổ Robert Taylor - Vũng Tàu\", \"Vé vào cửa Bảo tàng Vũ khí cổ Robert Taylor, Vũng Tàu\"], \"location_tags\": [], \"nearby_places\": [\"Hồ Cốc\", \"Khu cắm trại Hương Phong\", \"Khu du lịch Gió Biển\", \"Núi Đá Dắt\", \"Núi Giữa\", \"Núi Hồ Linh\", \"Núi Kho\", \"Núi Mộ Ông\", \"Sân golf The Bluffs Ho Tram Strip\", \"Trạm Y tế Xã Bưng Riềng\"], \"base_score\": 0.486, \"feature_scores\": {\"keyword\": 0.6, \"budget\": 0.75, \"amenity\": 0.0, \"room_view\": 0.12, \"review\": 0.815, \"availability\": 1.0, \"personalization\": 0.627, \"location\": 0.45, \"trend\": 0.0}}, {\"item_id\": \"11024791\", \"name\": \"ibis Styles Vũng Tàu (ibis Styles Vung Tau)\", \"destination\": \"Vũng Tàu\", \"hotel_type\": \"Khách sạn\", \"price_min\": 600000.0, \"price_max\": 1290000.0, \"amenities\": [\"Bàn tiếp tân 24 giờ\", \"Bể bơi ngoài trời\", \"Nhà hàng\", \"Phòng tập\", \"Quán bar\", \"Tiếng Anh\", \"Tiếng ấn độ\", \"Phù hợp cho xe lăn\", \"WiFi miễn phí\", \"Bể bơi có tầm nhìn\", \"Sân gôn tại chỗ nghỉ\", \"Bác sĩ y tá trực\", \"Dịch vụ phòng\", \"Giờ giảm giá đồ uống\", \"Nhà hàng phục vụ món chay\", \"Nhà hàng ẩm thực châu á\", \"Nhà hàng ẩm thực phương tây\", \"Quán bar cạnh bể bơi\", \"Quán cà phê\", \"Quầy đồ ăn vặt\", \"Cơ sở vật chất cho họp mặt tiệc lớn\", \"Dịch vụ giặt là\", \"Dịch vụ văn phòng fax photocopy\", \"Dịch vụ ủi đồ\", \"Giặt khô\", \"Giữ hành lý\", \"Khu vực hút thuốc\", \"Nhân viên trực cửa\", \"Phòng chờ chung khu vực tv\", \"Phòng họp\", \"Phòng hội thảo\", \"Thang máy\", \"Tiện nghi cho khách khuyết tật\", \"Điều hòa ở khu vực chung\", \"Bể bơi trẻ em\", \"Bữa ăn cho trẻ\", \"CLB trẻ em\", \"Phòng gia đình\", \"Sân chơi\", \"Thích hợp cho gia đình trẻ em\", \"Bảo vệ 24 giờ\", \"CCTV bên ngoài chỗ nghỉ\", \"CCTV trong khu vực chung\", \"Khu vực tầng thượng\", \"Nhận trả phòng nhanh\", \"Nhận/trả phòng 24 giờ\", \"Phòng cách âm\", \"Phòng không hút thuốc\", \"Đưa đón sân bay\", \"Đỗ xe miễn phí\", \"Đỗ xe tại chỗ\", \"Cách âm\", \"Giường cũi của em bé theo yêu cầu\", \"TV màn hình phẳng\", \"Điều hòa\"], \"room_views\": [\"Hướng Biển\", \"Hướng Thành phố\"], \"preference_habits\": [], \"tags\": [\"Khách đi công tác\", \"Gia đình có thanh thiếu niên\", \"Cặp đôi\", \"Khách du lịch một mình\", \"Gia đình có trẻ nhỏ\", \"Nhóm du khách\", \"Bãi Biển\", \"Bãi đỗ xe\", \"Bệnh Viện và Cơ Sở Y Tế\", \"Đài Kỷ Niệm và Di Tích Lịch Sử\", \"Nơi Biểu Diễn Văn Nghệ\", \"Nơi Thờ Cúng\", \"Siêu Thị\", \"Tòa Nhà Nổi Tiếng\", \"Trung Tâm và Khu Mua Sắm\", \"金蘭國際機場(CXR) | Domestic Terminal | SH Premium Lounge - Cam Ranh | 貴賓室服務\", \"The Mộc Spa - Quận 1, Thành phố Hồ Chí Minh\", \"Tour trọn ngày | Tour khám phá Vũng Tàu từ Thành phố Hồ Chí Minh bao gồm đón khách miễn phí tại khách sạn\", \"Tour Vũng Tàu Trọn Gói Cả Ngày Từ Hồ Chí Minh\", \"Trải Nghiệm Mát Xa Spa Hà Nội\", \"Vé Sun World Vũng Tàu | Thành phố Hồ Chí Minh\", \"Vé Sun World Vũng Tàu Aqua Adventure\", \"Vé Suối Nước Nóng Minera Bình Châu\", \"Vé vào cổng Công viên Chủ đề VinWonders Cửa Hội\", \"Vé vào cổng Công viên Tropicana\"], \"location_tags\": [], \"nearby_places\": [\"Bãi đỗ xe khách sạn Imperial\", \"Bãi sau\", \"Chợ trái cây\", \"Đài tưởng niệm Liệt sĩ Vũng Tàu\", \"Đình Thắng Tam\", \"Linh Sơn Cổ Tự\", \"Nhà thuốc Khánh Hậu\", \"Trung tâm thương mại Imperial Plaza\", \"TT mua sắm Imperial Plaza\", \"Vũng Tàu Bar & Beach Club\"], \"base_score\": 0.484, \"feature_scores\": {\"keyword\": 0.95, \"budget\": 0.286, \"amenity\": 0.0, \"room_view\": 0.18, \"review\": 0.775, \"availability\": 1.0, \"personalization\": 0.627, \"location\": 0.45, \"trend\": 0.0}}, {\"item_id\": \"22642078\", \"name\": \"Khách sạn Premier Pearl Vũng Tàu (Premier Pearl Hotel Vung Tau)\", \"destination\": \"Vũng Tàu\", \"hotel_type\": \"Khách sạn\", \"price_min\": 1230000.0, \"price_max\": 3000000.0, \"amenities\": [\"Bàn tiếp tân 24 giờ\", \"Bể bơi ngoài trời\", \"Bể bơi trong nhà\", \"Câu lạc bộ đêm\", \"Nhà hàng\", \"Phòng gia đình\", \"Phòng tập\", \"Quán bar\", \"Spa\", \"Tiếng Anh\", \"Phù hợp cho xe lăn\", \"WiFi miễn phí\", \"Bể bơi có tầm nhìn\", \"Giải trí\", \"Karaoke\", \"Mát-xa\", \"Phòng xông ướt\", \"Quán rượu\", \"Spa xông khô\", \"Tiện nghi bể bơi\", \"Bữa sáng trong phòng\", \"Bếp\", \"Bữa sáng tự chọn\", \"Bữa sáng kiểu lục địa\", \"Bữa sáng kiểu tây\", \"Bữa sáng miễn phí\", \"Bữa sáng đầy đủ kiểu mỹ\", \"Dịch vụ phòng 24 giờ\", \"Giờ giảm giá đồ uống\", \"Nhà hàng phục vụ món chay\", \"Nhà hàng ẩm thực châu á\", \"Nhà hàng ẩm thực phương tây\", \"Nhà hàng ẩm thực trung quốc\", \"Quán bar cạnh bể bơi\", \"Quán cà phê\", \"Cơ sở vật chất cho họp mặt tiệc lớn\", \"Dịch vụ giặt là\", \"Dịch vụ ủi đồ\", \"Giặt khô\", \"Giữ hành lý\", \"Hoàn toàn không hút thuốc\", \"Khu vực hút thuốc\", \"Nhân viên trực cửa\", \"Phòng chờ chung khu vực tv\", \"Phòng họp\", \"Phòng hội thảo\", \"Thang máy\", \"Tiện nghi cho khách khuyết tật\", \"Điều hòa ở khu vực chung\", \"Bể bơi trẻ em\", \"Bữa ăn cho trẻ\", \"CLB trẻ em\", \"Cơ sở vật chất cho trẻ em\", \"Sân chơi\", \"Thích hợp cho gia đình trẻ em\", \"Tính năng an toàn cho trẻ em\", \"Bảo vệ 24 giờ\", \"CCTV trong khu vực chung\", \"Khu vực tầng thượng\", \"Nhận/trả phòng 24 giờ\", \"Phòng không hút thuốc\", \"Đỗ xe gần bên\", \"Đỗ xe miễn phí\", \"Đỗ xe tại chỗ\"], \"room_views\": [\"Hướng Biển\", \"Hướng Thành phố\"], \"preference_habits\": [], \"tags\": [\"Khách đi công tác\", \"Cặp đôi\", \"Khách du lịch một mình\", \"Gia đình có trẻ nhỏ\", \"Gia đình có thanh thiếu niên\", \"Nhóm du khách\", \"Bãi Biển\", \"Bệnh Viện và Cơ Sở Y Tế\", \"Công Viên Công Cộng\", \"Đài Kỷ Niệm và Di Tích Lịch Sử\", \"Đảo\", \"Địa điểm giải trí\", \"Nơi Thờ Cúng\", \"Siêu Thị\", \"Ho May Park Skip-the-Line Package Ticket - Vung Tau\", \"Hồ Tràm | Tour chơi golf 18 lỗ trong ngày tại The Bluffs Grand Hồ Tràm kèm xe đưa đón riêng | Khởi hành từ Thành phố Hồ Chí Minh\", \"Mindfulness Meditation Retreat - 2 Days in Ho Chi Minh City\", \"Saigon City Shore Excursion Tour From Phu My Port - Highlights Tour\", \"Tour Vũng Tàu Trọn Gói Cả Ngày Từ Hồ Chí Minh\", \"Trải nghiệm bắn súng tại Câu lạc bộ Bắn súng Vũng Tàu - Trường bắn Vũng Tàu\", \"Vé Sun World Vũng Tàu Aqua Adventure\", \"Vé vào cổng Công viên Tropicana\", \"Vé Vào Cửa Bảo Tàng Vũ Khí Cổ Robert Taylor - Vũng Tàu\", \"Vé vào cửa Bảo tàng Vũ khí cổ Robert Taylor, Vũng Tàu\"], \"location_tags\": [], \"nearby_places\": [\"Bãi sau\", \"Chợ trái cây\", \"Công viên Tao Phùng\", \"Đình Thắng Tam\", \"Đồi Con Heo\", \"Hòn Bà\", \"Linh Sơn Cổ Tự\", \"Nhà thuốc Khánh Hậu\", \"Trạm y tế Phường 2\", \"Tượng Chúa Kitô Vua\"], \"base_score\": 0.467, \"feature_scores\": {\"keyword\": 0.65, \"budget\": 0.5, \"amenity\": 0.0, \"room_view\": 0.18, \"review\": 0.754, \"availability\": 1.0, \"personalization\": 0.627, \"location\": 0.45, \"trend\": 0.0}}, {\"item_id\": \"178195\", \"name\": \"Mercure Vũng Tàu (Mercure Vung Tau)\", \"destination\": \"Vũng Tàu\", \"hotel_type\": \"Khách sạn\", \"price_min\": 600000.0, \"price_max\": 1500000.0, \"amenities\": [\"Bàn tiếp tân 24 giờ\", \"Bãi biển riêng\", \"Bể bơi ngoài trời\", \"Cửa hàng\", \"Nhà hàng\", \"Phòng tập\", \"Quán bar\", \"Spa\", \"Vườn\", \"Tiếng Anh\", \"Tiếng ấn độ\", \"Xe đạp\", \"WiFi miễn phí\", \"Bể bơi có tầm nhìn\", \"Mát-xa\", \"Phòng yoga\", \"Sân gôn tại chỗ nghỉ\", \"Bác sĩ y tá trực\", \"Dịch vụ phòng 24 giờ\", \"Giờ giảm giá đồ uống\", \"Nhà hàng phục vụ món chay\", \"Nhà hàng ẩm thực châu á\", \"Nhà hàng ẩm thực phương tây\", \"Nhà hàng ẩm thực trung quốc\", \"Quán bar cạnh bể bơi\", \"Quán cà phê\", \"Quầy đồ ăn vặt\", \"Cơ sở vật chất cho họp mặt tiệc lớn\", \"Cửa hàng quà tặng quà lưu niệm\", \"Dịch vụ giặt là\", \"Dịch vụ văn phòng fax photocopy\", \"Dịch vụ ủi đồ\", \"Giặt khô\", \"Giữ hành lý\", \"Hoàn toàn không hút thuốc\", \"Khu vực hút thuốc\", \"Nhân viên trực cửa\", \"Phòng họp\", \"Tiện nghi cho khách khuyết tật\", \"Tiện nghi làm việc\", \"Điều hòa ở khu vực chung\", \"Bể bơi trẻ em\", \"Bữa ăn cho trẻ\", \"CLB trẻ em\", \"Dịch vụ trông trẻ\", \"Phòng gia đình\", \"Sân chơi\", \"Thích hợp cho gia đình trẻ em\", \"Bảo vệ 24 giờ\", \"CCTV bên ngoài chỗ nghỉ\", \"CCTV trong khu vực chung\", \"Nhận trả phòng riêng\", \"Nhận/trả phòng 24 giờ\", \"Phòng không gây dị ứng\", \"Phòng không hút thuốc\", \"Dịch vụ taxi\", \"Dịch vụ đưa đón\", \"Đưa đón sân bay\", \"Đỗ xe có nhân viên\", \"Đỗ xe miễn phí\", \"Đỗ xe tại chỗ\", \"Thuê xe đạp\", \"Cách âm\", \"Tiện nghi bể bơi\", \"Truyền hình cáp vệ tinh\", \"Đi lên bằng cầu thang\", \"Điều hòa\"], \"room_views\": [\"Hướng Biển\", \"Hướng Thiên nhiên\"], \"preference_habits\": [], \"tags\": [\"Khách đi công tác\", \"Gia đình có thanh thiếu niên\", \"Cặp đôi\", \"Khách du lịch một mình\", \"Gia đình có trẻ nhỏ\", \"Nhóm du khách\", \"Bãi Biển\", \"Bệnh Viện và Cơ Sở Y Tế\", \"Công Viên Công Cộng\", \"Đài Kỷ Niệm và Di Tích Lịch Sử\", \"Địa điểm giải trí\", \"Nơi Thờ Cúng\", \"Núi, đồi và hang động\", \"Quán Rượu\", \"Ho May Park Skip-the-Line Package Ticket - Vung Tau\", \"Hồ Tràm | Tour chơi golf 18 lỗ trong ngày tại The Bluffs Grand Hồ Tràm kèm xe đưa đón riêng | Khởi hành từ Thành phố Hồ Chí Minh\", \"Mindfulness Meditation Retreat - 2 Days in Ho Chi Minh City\", \"Tour Vũng Tàu Trọn Gói Cả Ngày Từ Hồ Chí Minh\", \"Trải nghiệm bắn súng tại Câu lạc bộ Bắn súng Vũng Tàu - Trường bắn Vũng Tàu\", \"Vé Sun World Vũng Tàu Aqua Adventure\", \"Vé vào cổng Công viên Tropicana\", \"Vé Vào Cửa Bảo Tàng Vũ Khí Cổ Robert Taylor - Vũng Tàu\", \"Vé vào cửa Bảo tàng Vũ khí cổ Robert Taylor, Vũng Tàu\", \"Vung Tau to Ho Chi Minh Airport (SGN) - Private Transfer\"], \"location_tags\": [], \"nearby_places\": [\"Bãi Dứa\", \"Bãi sau\", \"Chùa Niết Bàn\", \"Công viên Tao Phùng\", \"Đồi Con Heo\", \"Mũi Nghinh Phong\", \"Núi Nhỏ\", \"Quán bar Black Pearl Bar\", \"Trạm y tế Phường 2\", \"Tượng Chúa Kitô Vua\"], \"base_score\": 0.464, \"feature_scores\": {\"keyword\": 0.75, \"budget\": 0.312, \"amenity\": 0.0, \"room_view\": 0.12, \"review\": 0.754, \"availability\": 1.0, \"personalization\": 0.627, \"location\": 0.45, \"trend\": 0.1}}], \"required_output_shape\": {\"ranked_items\": [{\"item_id\": \"string\", \"llm_score\": \"number 0..1\", \"rank\": \"integer\", \"reasons\": [\"string\"], \"warnings\": [\"string\"]}]}}"
+          }
+        ],
+        "candidate_ids": [
+          "1122450",
+          "161729",
+          "25773171",
+          "11024791",
+          "22642078",
+          "178195"
+        ]
+      },
+      "reason": null,
+      "raw_response": {
+        "ranked_items": [
+          {
+            "item_id": "161729",
+            "llm_score": 0.68,
+            "rank": 1,
+            "reasons": [
+              "Phù hợp gia đình có trẻ nhỏ với nhiều tiện ích cho trẻ em",
+              "Có view Hướng Thiên nhiên (gần nhất với mong muốn view hồ/ngoài trời)",
+              "Gần Nơi Biểu Diễn Văn Nghệ như yêu cầu",
+              "Đảm bảo riêng tư với phòng cách âm, không hút thuốc, bảo vệ 24h"
+            ],
+            "warnings": [
+              "Giá tối đa 5 triệu, thấp hơn ngân sách 7-15 triệu",
+              "Không có view hồ chính xác",
+              "Thiếu tắm suối nước nóng, bàn trang điểm khuyết tật",
+              "Có tiện nghi đời đêm (sòng bạc, quán bar) - có thể gây ồn"
+            ]
+          },
+          {
+            "item_id": "25773171",
+            "llm_score": 0.58,
+            "rank": 2,
+            "reasons": [
+              "Phù hợp gia đình có trẻ nhỏ với đầy đủ tiện ích trẻ em",
+              "Có view Hướng Thiên nhiên",
+              "Đảm bảo riêng tư tốt"
+            ],
+            "warnings": [
+              "Giá tối đa 5 triệu, thấp hơn ngân sách",
+              "Không có view hồ",
+              "Thiếu các tiện nghi mong muốn (tắm suối nóng, phòng thay đồ, trạm ipod, bàn trang điểm khuyết tật)",
+              "Không gần Nơi Biểu Diễn Văn Nghệ",
+              "Có tiện nghi đời đêm (câu lạc bộ đêm, sòng bạc, karaoke)"
+            ]
+          },
+          {
+            "item_id": "178195",
+            "llm_score": 0.53,
+            "rank": 3,
+            "reasons": [
+              "Phù hợp gia đình có trẻ nhỏ",
+              "Có view Hướng Thiên nhiên",
+              "Đảm bảo riêng tư"
+            ],
+            "warnings": [
+              "Giá tối đa 1.5 triệu, thấp hơn ngân sách",
+              "Không có view hồ",
+              "Thiếu các tiện nghi mong muốn",
+              "Không gần Nơi Biểu Diễn Văn Nghệ",
+              "Có quán bar - tiềm ẩn ồn"
+            ]
+          },
+          {
+            "item_id": "1122450",
+            "llm_score": 0.51,
+            "rank": 4,
+            "reasons": [
+              "Có phòng thay đồ và trạm nối ipod như mong muốn",
+              "Gần Nơi Biểu Diễn Văn Nghệ",
+              "Rất phù hợp gia đình, riêng tư tốt"
+            ],
+            "warnings": [
+              "Giá tối đa 5 triệu, thấp hơn ngân sách",
+              "Không có view hồ (chỉ view biển/thành phố)",
+              "Thiếu tắm suối nước nóng, bàn trang điểm khuyết tật",
+              "Có nhiều tiện nghi đời đêm (câu lạc bộ đêm, sòng bạc, quán bar) - vi phạm tránh nightlife"
+            ]
+          },
+          {
+            "item_id": "11024791",
+            "llm_score": 0.44,
+            "rank": 5,
+            "reasons": [
+              "Gần Nơi Biểu Diễn Văn Nghệ",
+              "Phù hợp gia đình, riêng tư"
+            ],
+            "warnings": [
+              "Giá rất thấp (1.29 triệu), không phù hợp ngân sách",
+              "Không có view hồ",
+              "Thiếu hầu hết tiện nghi mong muốn",
+              "Có quán bar - tiềm ẩn ồn"
+            ]
+          },
+          {
+            "item_id": "22642078",
+            "llm_score": 0.39,
+            "rank": 6,
+            "reasons": [
+              "Phù hợp gia đình, riêng tư"
+            ],
+            "warnings": [
+              "Giá thấp (3 triệu), không phù hợp ngân sách",
+              "Không có view hồ",
+              "Thiếu các tiện nghi mong muốn",
+              "Không gần Nơi Biểu Diễn Văn Nghệ",
+              "Có nhiều tiện nghi đời đêm (câu lạc bộ đêm, sòng bạc, karaoke)"
+            ]
+          }
+        ]
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "ok": true
+        }
+      ],
+      "validated": {
+        "raw_item_count": 6,
+        "valid_item_ids": [
+          "161729",
+          "25773171",
+          "178195",
+          "1122450",
+          "11024791",
+          "22642078"
+        ],
+        "rejected_items": []
+      }
+    }
+  },
+  "ranked_items": [
+    {
+      "item_id": "1122450",
+      "name": "Pullman Vũng Tàu (Pullman Vung Tau)",
+      "final_score": 0.57,
+      "base_score": 0.596,
+      "llm_score": 0.51,
+      "feature_scores": {
+        "keyword": 0.9,
+        "budget": 0.75,
+        "amenity": 0.486,
+        "room_view": 0.18,
+        "review": 0.713,
+        "availability": 1.0,
+        "personalization": 0.627,
+        "location": 0.45,
+        "trend": 0.1
+      },
+      "negative_penalty": 0.0,
+      "reasons": [
+        "Phù hợp chuyến đi gia đình tại Vũng Tàu",
+        "Giá nằm trong khoảng 7.000.000 - 15.000.000 VND",
+        "Có phòng thay đồ và trạm nối ipod như mong muốn",
+        "Gần Nơi Biểu Diễn Văn Nghệ"
+      ],
+      "warnings": [
+        "Giá tối đa 5 triệu, thấp hơn ngân sách",
+        "Không có view hồ (chỉ view biển/thành phố)",
+        "Thiếu tắm suối nước nóng, bàn trang điểm khuyết tật",
+        "Có nhiều tiện nghi đời đêm (câu lạc bộ đêm, sòng bạc, quán bar) - vi phạm tránh nightlife"
+      ],
+      "rank": 1
+    },
+    {
+      "item_id": "161729",
+      "name": "Khách sạn The Imperial Vũng Tàu (The IMPERIAL Vung Tau Hotel )",
+      "final_score": 0.569,
+      "base_score": 0.522,
+      "llm_score": 0.68,
+      "feature_scores": {
+        "keyword": 0.8,
+        "budget": 0.75,
+        "amenity": 0.0,
+        "room_view": 0.3,
+        "review": 0.754,
+        "availability": 1.0,
+        "personalization": 0.627,
+        "location": 0.45,
+        "trend": 0.0
+      },
+      "negative_penalty": 0.0,
+      "reasons": [
+        "Phù hợp chuyến đi gia đình tại Vũng Tàu",
+        "Giá nằm trong khoảng 7.000.000 - 15.000.000 VND",
+        "Phù hợp gia đình có trẻ nhỏ với nhiều tiện ích cho trẻ em",
+        "Có view Hướng Thiên nhiên (gần nhất với mong muốn view hồ/ngoài trời)"
+      ],
+      "warnings": [
+        "Giá tối đa 5 triệu, thấp hơn ngân sách 7-15 triệu",
+        "Không có view hồ chính xác",
+        "Thiếu tắm suối nước nóng, bàn trang điểm khuyết tật",
+        "Có tiện nghi đời đêm (sòng bạc, quán bar) - có thể gây ồn"
+      ],
+      "rank": 2
+    },
+    {
+      "item_id": "25773171",
+      "name": "Khu nghỉ dưỡng Holiday Inn Hồ Tràm Beach By IHG (Holiday Inn Resort Ho Tram Beach By IHG)",
+      "final_score": 0.514,
+      "base_score": 0.486,
+      "llm_score": 0.58,
+      "feature_scores": {
+        "keyword": 0.6,
+        "budget": 0.75,
+        "amenity": 0.0,
+        "room_view": 0.12,
+        "review": 0.815,
+        "availability": 1.0,
+        "personalization": 0.627,
+        "location": 0.45,
+        "trend": 0.0
+      },
+      "negative_penalty": 0.0,
+      "reasons": [
+        "Phù hợp chuyến đi gia đình tại Vũng Tàu",
+        "Giá nằm trong khoảng 7.000.000 - 15.000.000 VND",
+        "Phù hợp gia đình có trẻ nhỏ với đầy đủ tiện ích trẻ em",
+        "Có view Hướng Thiên nhiên"
+      ],
+      "warnings": [
+        "Giá tối đa 5 triệu, thấp hơn ngân sách",
+        "Không có view hồ",
+        "Thiếu các tiện nghi mong muốn (tắm suối nóng, phòng thay đồ, trạm ipod, bàn trang điểm khuyết tật)",
+        "Không gần Nơi Biểu Diễn Văn Nghệ",
+        "Có tiện nghi đời đêm (câu lạc bộ đêm, sòng bạc, karaoke)"
+      ],
+      "rank": 3
+    },
+    {
+      "item_id": "178195",
+      "name": "Mercure Vũng Tàu (Mercure Vung Tau)",
+      "final_score": 0.484,
+      "base_score": 0.464,
+      "llm_score": 0.53,
+      "feature_scores": {
+        "keyword": 0.75,
+        "budget": 0.312,
+        "amenity": 0.0,
+        "room_view": 0.12,
+        "review": 0.754,
+        "availability": 1.0,
+        "personalization": 0.627,
+        "location": 0.45,
+        "trend": 0.1
+      },
+      "negative_penalty": 0.0,
+      "reasons": [
+        "Phù hợp chuyến đi gia đình tại Vũng Tàu",
+        "Phù hợp gia đình có trẻ nhỏ",
+        "Có view Hướng Thiên nhiên"
+      ],
+      "warnings": [
+        "Giá tối đa 1.5 triệu, thấp hơn ngân sách",
+        "Không có view hồ",
+        "Thiếu các tiện nghi mong muốn",
+        "Không gần Nơi Biểu Diễn Văn Nghệ",
+        "Có quán bar - tiềm ẩn ồn"
+      ],
+      "rank": 4
+    },
+    {
+      "item_id": "11024791",
+      "name": "ibis Styles Vũng Tàu (ibis Styles Vung Tau)",
+      "final_score": 0.471,
+      "base_score": 0.484,
+      "llm_score": 0.44,
+      "feature_scores": {
+        "keyword": 0.95,
+        "budget": 0.286,
+        "amenity": 0.0,
+        "room_view": 0.18,
+        "review": 0.775,
+        "availability": 1.0,
+        "personalization": 0.627,
+        "location": 0.45,
+        "trend": 0.0
+      },
+      "negative_penalty": 0.0,
+      "reasons": [
+        "Phù hợp chuyến đi gia đình tại Vũng Tàu",
+        "Gần Nơi Biểu Diễn Văn Nghệ",
+        "Phù hợp gia đình, riêng tư"
+      ],
+      "warnings": [
+        "Giá rất thấp (1.29 triệu), không phù hợp ngân sách",
+        "Không có view hồ",
+        "Thiếu hầu hết tiện nghi mong muốn",
+        "Có quán bar - tiềm ẩn ồn"
+      ],
+      "rank": 5
+    }
+  ]
+}
