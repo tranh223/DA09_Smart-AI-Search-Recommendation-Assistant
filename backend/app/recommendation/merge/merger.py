@@ -18,7 +18,9 @@ Bonus đa nguồn:
 """
 
 from __future__ import annotations
+
 import logging
+from collections import defaultdict
 from typing import Any
 
 from app.recommendation.models import CandidateHotel, MergedCandidate
@@ -45,8 +47,6 @@ def _normalize_scores(candidates: list[CandidateHotel]) -> dict[str, dict[int, f
     Min-max normalize scores per source (0→1) để so sánh được giữa các nguồn.
     Returns {source: {hotel_id: normalized_score}}.
     """
-    from collections import defaultdict
-
     source_scores: dict[str, list[tuple[int, float]]] = defaultdict(list)
     for c in candidates:
         source_scores[c.source].append((c.hotel_id, c.score))
@@ -73,8 +73,11 @@ def merge_candidates(candidates: list[CandidateHotel]) -> list[MergedCandidate]:
 
     normalized = _normalize_scores(candidates)
 
-    # Gộp theo hotel_id
+    # Gộp theo hotel_id.
+    # _seen_paths / _seen_reasons dùng set để dedup O(1) thay vì O(n) list scan.
     bucket: dict[int, dict[str, Any]] = {}
+    seen_paths: dict[int, set[str]] = {}
+    seen_reasons: dict[int, set[str]] = {}
 
     for c in candidates:
         hid = c.hotel_id
@@ -83,11 +86,13 @@ def merge_candidates(candidates: list[CandidateHotel]) -> list[MergedCandidate]:
                 "hotel_id": hid,
                 "hotel_name": c.hotel_name,
                 "sources": [],
-                "source_scores": {},          # {source: normalized_score}
+                "source_scores": {},
                 "matched_paths": [],
                 "reasons": [],
                 "metadata": c.metadata.copy(),
             }
+            seen_paths[hid] = set()
+            seen_reasons[hid] = set()
 
         entry = bucket[hid]
 
@@ -98,18 +103,18 @@ def merge_candidates(candidates: list[CandidateHotel]) -> list[MergedCandidate]:
         if c.source not in entry["sources"]:
             entry["sources"].append(c.source)
 
-        # Lấy normalized score của source này
-        norm_score = normalized.get(c.source, {}).get(hid, 0.0)
         # Nếu cùng source xuất hiện nhiều lần → giữ score cao nhất
-        if c.source not in entry["source_scores"] or norm_score > entry["source_scores"][c.source]:
+        norm_score = normalized.get(c.source, {}).get(hid, 0.0)
+        if norm_score > entry["source_scores"].get(c.source, -1.0):
             entry["source_scores"][c.source] = norm_score
 
-        # Gộp matched_paths không trùng
         for path in c.matched_paths:
-            if path not in entry["matched_paths"]:
+            if path not in seen_paths[hid]:
+                seen_paths[hid].add(path)
                 entry["matched_paths"].append(path)
 
-        if c.reason and c.reason not in entry["reasons"]:
+        if c.reason and c.reason not in seen_reasons[hid]:
+            seen_reasons[hid].add(c.reason)
             entry["reasons"].append(c.reason)
 
         # Gộp metadata (ưu tiên giá trị không None)

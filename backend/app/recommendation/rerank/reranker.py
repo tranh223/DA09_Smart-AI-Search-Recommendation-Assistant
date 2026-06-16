@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import time
 import logging
-from typing import Any
+import time
 from datetime import timedelta
+from typing import Any, TypedDict
 
 import requests
 
@@ -17,6 +17,14 @@ from .profile_normalizer import normalize_profile
 from .rule_scorer import score_candidate
 from .trend_scorer import apply_trend_scores
 from .utils import as_dict, clamp, normalize_text, round_score, to_str_id, utc_now
+
+
+class _ProfileLoadResult(TypedDict):
+    profile: dict[str, Any] | None
+    bookings: list[dict[str, Any]]
+    profile_source: str
+    booking_source: str
+    booking_counts: dict[str, int]
 
 
 SESSION_OPTION_KEYS = {
@@ -101,7 +109,7 @@ def _load_profile_and_bookings(
     user_context: dict | None,
     candidate_ids: list[str],
     settings: Any,
-) -> tuple[dict[str, Any] | None, list[dict[str, Any]], str, str, dict[str, int]]:
+) -> _ProfileLoadResult:
     # Prefer provided `user_context`. Do NOT fetch from Mongo here — upstream
     # now passes full profile when available. If not provided, proceed with
     # minimal profile (None) and no bookings.
@@ -114,24 +122,26 @@ def _load_profile_and_bookings(
 
     # Attempt to fetch recent bookings from the shared backend mongo client
     counts: dict[str, int] = {}
+    bookings: list[dict[str, Any]] = []
+    booking_source = "none"
     try:
-        from backend.mongo_client import get_collection
+        from app.db.mongo.mongo_client import get_collection
 
         ids = list({to_str_id(item) for item in candidate_ids})
         numeric_ids = [int(item) for item in ids if item.isdigit()]
         since = utc_now() - timedelta(days=30)
-        # Fetch bookings for the candidate hotels only (ignore user_id here)
         query = {
             "$and": [
                 {"hotel_id": {"$in": ids + numeric_ids}},
-                {"$or": [{"booked_at": {"$gte": since.isoformat()}}, {"booking_date": {"$gte": since.isoformat()}}]},
+                {"$or": [
+                    {"booked_at": {"$gte": since.isoformat()}},
+                    {"booking_date": {"$gte": since.isoformat()}},
+                ]},
             ]
         }
         coll = get_collection(settings.bookings_collection)
         bookings = list(coll.find(query))
         booking_source = "mongo_shared"
-        # summarize counts per hotel
-        counts: dict[str, int] = {}
         for b in bookings:
             hid = to_str_id(b.get("hotel_id") or b.get("item_id"))
             counts[hid] = counts.get(hid, 0) + 1
@@ -142,10 +152,15 @@ def _load_profile_and_bookings(
             {k: counts[k] for k in list(counts)[:10]},
         )
     except Exception:
-        bookings = []
-        booking_source = "none"
+        pass
 
-    return profile, bookings, profile_source, booking_source, counts
+    return _ProfileLoadResult(
+        profile=profile,
+        bookings=bookings,
+        profile_source=profile_source,
+        booking_source=booking_source,
+        booking_counts=counts,
+    )
 
 
 def _session_context_from_options(options: dict[str, Any]) -> dict[str, Any]:
@@ -394,9 +409,12 @@ def rerank(
     raw_candidates_by_id = {_candidate_id(candidate): _json_safe(candidate) for candidate in candidate_items}
     candidates = normalize_candidates(candidate_items)
     candidate_ids = [item["item_id"] for item in candidates]
-    raw_profile, bookings, profile_source, booking_source, booking_counts = _load_profile_and_bookings(
-        user_id, user_context, candidate_ids, settings
-    )
+    _loaded = _load_profile_and_bookings(user_id, user_context, candidate_ids, settings)
+    raw_profile = _loaded["profile"]
+    bookings = _loaded["bookings"]
+    profile_source = _loaded["profile_source"]
+    booking_source = _loaded["booking_source"]
+    booking_counts = _loaded["booking_counts"]
     profile = normalize_profile(_with_input_session_context(raw_profile, user_id, opts))
     signals = apply_trend_scores(compute_booking_signals(bookings, candidates, user_id))
 

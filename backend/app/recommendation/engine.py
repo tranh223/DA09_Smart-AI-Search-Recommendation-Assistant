@@ -94,13 +94,12 @@ def _build_rerank_candidate_items(merged_candidates: list[MergedCandidate]) -> l
     return items
 
 
-def run_recommend_and_rerank(
+def run_rerank_from_merged(
     inp: RecommendInput,
+    merged: list[MergedCandidate],
     options: dict[str, Any] | None = None,
-    trace: bool = False,
 ) -> dict[str, Any]:
-    """Chạy end-to-end: candidate generation, merge và rerank."""
-    merged = run_candidate_pipeline(inp, trace=trace)
+    """Chạy rerank từ danh sách merged candidates đã có sẵn."""
     candidate_items = _build_rerank_candidate_items(merged)
     opts = dict(options or {})
     if "session_context" not in opts:
@@ -119,3 +118,13 @@ def run_recommend_and_rerank(
         query=inp.original_query,
         options=opts,
     )
+
+
+def run_recommend_and_rerank(
+    inp: RecommendInput,
+    options: dict[str, Any] | None = None,
+    trace: bool = False,
+) -> dict[str, Any]:
+    """Chạy end-to-end: candidate generation, merge và rerank."""
+    merged = run_candidate_pipeline(inp, trace=trace)
+    return run_rerank_from_merged(inp=inp, merged=merged, options=options)

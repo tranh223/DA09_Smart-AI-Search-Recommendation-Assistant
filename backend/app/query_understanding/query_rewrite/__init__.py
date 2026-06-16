@@ -1,0 +1,2 @@
+"""Query rewrite module."""
+

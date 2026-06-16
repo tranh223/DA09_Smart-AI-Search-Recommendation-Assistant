@@ -60,10 +60,25 @@ def price_far_outside(profile: dict[str, Any], hotel: dict[str, Any]) -> bool:
     return hotel_min > user_max + width * 0.75 or hotel_max < user_min - width * 0.75
 
 
+def _neg_score(negative: dict, group: str, key: str | None) -> float:
+    """Lấy negative score an toàn, trả 0.0 nếu key là None."""
+    if not key:
+        return 0.0
+    return float(as_dict(negative.get(group)).get(key, 0.0) or 0.0)
+
+
+def _neg_any(negative: dict, group: str, keys: set[str], threshold: float) -> bool:
+    return any(
+        float(as_dict(negative.get(group)).get(item, 0.0) or 0.0) >= threshold
+        for item in keys
+    )
+
+
 def hard_filter(profile: dict[str, Any], hotel: dict[str, Any]) -> tuple[bool, str | None]:
     session = _session(profile)
     destination = session.get("destination")
-    if destination and hotel.get("destination") and normalize_text(hotel.get("destination")) != normalize_text(destination):
+    hotel_dest = hotel.get("destination")
+    if destination and hotel_dest and normalize_text(hotel_dest) != normalize_text(destination):
         return False, "destination_mismatch"
     if not bool(hotel.get("available")):
         return False, "not_available"
@@ -75,13 +90,13 @@ def hard_filter(profile: dict[str, Any], hotel: dict[str, Any]) -> tuple[bool, s
 
     for source in ("session", "long_term"):
         negative = _neg(profile, source)
-        if float(as_dict(negative.get("avoid_hotel_types")).get(hotel_type, 0.0) or 0.0) >= 0.85:
+        if _neg_score(negative, "avoid_hotel_types", hotel_type) >= 0.85:
             return False, "strong_avoid_hotel_type"
-        if any(float(as_dict(negative.get("avoid_amenities")).get(item, 0.0) or 0.0) >= 0.90 for item in amenities):
+        if _neg_any(negative, "avoid_amenities", amenities, 0.90):
             return False, "strong_avoid_amenity"
-        if any(float(as_dict(negative.get("avoid_preference_habits")).get(item, 0.0) or 0.0) >= 0.90 for item in habits):
+        if _neg_any(negative, "avoid_preference_habits", habits, 0.90):
             return False, "strong_avoid_preference_habit"
-        if any(float(as_dict(negative.get("avoid_locations")).get(item, 0.0) or 0.0) >= 0.90 for item in locations):
+        if _neg_any(negative, "avoid_locations", locations, 0.90):
             return False, "strong_avoid_location"
 
     if price_far_outside(profile, hotel):
@@ -116,17 +131,21 @@ def _blend_overlap(session_map: dict[str, float], long_map: dict[str, float], ac
 
 
 def amenity_score(profile: dict[str, Any], hotel: dict[str, Any]) -> float:
-    base = _blend_overlap(as_dict(_session(profile).get("amenities")), as_dict(_long(profile).get("amenities")), set(hotel.get("amenities", [])))
-    if _session(profile).get("boost_amenity_rich_hotels"):
-        amenities = set(hotel.get("amenities", []))
-        if amenities:
-            bonus = min(len(amenities) / 20.0, 0.25)
-            return clamp(base + bonus)
+    session, long = _session(profile), _long(profile)
+    actual = set(hotel.get("amenities", []))
+    base = _blend_overlap(as_dict(session.get("amenities")), as_dict(long.get("amenities")), actual)
+    if session.get("boost_amenity_rich_hotels") and actual:
+        return clamp(base + min(len(actual) / 20.0, 0.25))
     return base
 
 
 def room_view_score(profile: dict[str, Any], hotel: dict[str, Any]) -> float:
-    return _blend_overlap(as_dict(_session(profile).get("room_views")), as_dict(_long(profile).get("room_views")), set(hotel.get("room_views", [])))
+    session, long = _session(profile), _long(profile)
+    return _blend_overlap(
+        as_dict(session.get("room_views")),
+        as_dict(long.get("room_views")),
+        set(hotel.get("room_views", [])),
+    )
 
 
 def review_score(hotel: dict[str, Any]) -> float:
@@ -188,6 +207,13 @@ def location_score(profile: dict[str, Any], hotel: dict[str, Any]) -> float:
     return clamp(score)
 
 
+def _max_neg_score(negative: dict, group: str, keys: set[str]) -> float:
+    """Highest negative score across a set of keys; returns 0.0 for empty set."""
+    if not keys:
+        return 0.0
+    return max(float(as_dict(negative.get(group)).get(k, 0.0) or 0.0) for k in keys)
+
+
 def negative_penalty(profile: dict[str, Any], hotel: dict[str, Any]) -> float:
     hotel_type = hotel.get("hotel_type")
     amenities = set(hotel.get("amenities", []))
@@ -196,12 +222,12 @@ def negative_penalty(profile: dict[str, Any], hotel: dict[str, Any]) -> float:
     locations = set(hotel.get("location_tags", []))
     penalty = 0.0
     for source, weight in (("session", 0.70), ("long_term", 0.30)):
-        negative = _neg(profile, source)
-        penalty += weight * float(as_dict(negative.get("avoid_hotel_types")).get(hotel_type, 0.0) or 0.0) * 0.40
-        penalty += weight * max([float(as_dict(negative.get("avoid_amenities")).get(x, 0.0) or 0.0) for x in amenities] or [0]) * 0.18
-        penalty += weight * max([float(as_dict(negative.get("avoid_preference_habits")).get(x, 0.0) or 0.0) for x in habits] or [0]) * 0.30
-        penalty += weight * max([float(as_dict(negative.get("avoid_nearby_places")).get(x, 0.0) or 0.0) for x in nearby] or [0]) * 0.15
-        penalty += weight * max([float(as_dict(negative.get("avoid_locations")).get(x, 0.0) or 0.0) for x in locations] or [0]) * 0.25
+        neg = _neg(profile, source)
+        penalty += weight * _neg_score(neg, "avoid_hotel_types", hotel_type) * 0.40
+        penalty += weight * _max_neg_score(neg, "avoid_amenities", amenities) * 0.18
+        penalty += weight * _max_neg_score(neg, "avoid_preference_habits", habits) * 0.30
+        penalty += weight * _max_neg_score(neg, "avoid_nearby_places", nearby) * 0.15
+        penalty += weight * _max_neg_score(neg, "avoid_locations", locations) * 0.25
     return clamp(penalty, 0.0, 0.8)
 
 

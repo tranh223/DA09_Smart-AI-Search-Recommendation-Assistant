@@ -12,7 +12,7 @@ Dùng một Cypher template thống nhất kết hợp 3 yếu tố:
 from __future__ import annotations
 import logging
 
-from neo4j_client import run_read_query
+from neo4j_client import run_read_query  # neo4j_client lives at backend/ root in sys.path
 from app.recommendation.models import RecommendInput, CandidateHotel
 from app.recommendation.trace import RecommendTrace
 

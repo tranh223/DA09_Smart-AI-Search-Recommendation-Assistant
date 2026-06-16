@@ -6,7 +6,7 @@ from __future__ import annotations
 import logging
 import re
 
-from mongo_client import get_collection
+from app.db.mongo.mongo_client import get_collection
 from app.recommendation.models import CandidateHotel
 from app.recommendation.trace import RecommendTrace
 
@@ -53,7 +53,6 @@ def get_trending_candidates(
         return []
 
     destination = destination.strip()
-    collection = get_collection(TRENDING_COLLECTION)
 
     city_regex = {"$regex": re.escape(destination), "$options": "i"}
     match_stage = {
@@ -88,6 +87,7 @@ def get_trending_candidates(
     ]
 
     try:
+        collection = get_collection(TRENDING_COLLECTION)
         rows = [
             {
                 "hotel_id": r["_id"],

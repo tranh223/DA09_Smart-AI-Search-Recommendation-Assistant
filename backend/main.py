@@ -2,6 +2,7 @@ from fastapi import FastAPI
 import threading
 from contextlib import asynccontextmanager
 from backend.app.analytics.logging.logger import start_log_listener
+from app.api.routes.chat import router as chat_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -10,6 +11,7 @@ async def lifespan(app: FastAPI):
     yield 
 
 app = FastAPI(lifespan=lifespan)
+app.include_router(chat_router)
 
 @app.get("/")
 def read_root():

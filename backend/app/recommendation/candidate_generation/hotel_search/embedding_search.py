@@ -15,7 +15,6 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from dotenv import load_dotenv
 from rank_bm25 import BM25Okapi
 
 from app.db.vector_store.qdrant_store import get_qdrant_store
@@ -24,7 +23,6 @@ from app.recommendation.embedding.bge_embedder import get_embedder
 from app.recommendation.models import CandidateHotel, RecommendInput
 from app.recommendation.trace import RecommendTrace
 
-load_dotenv()
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[5]

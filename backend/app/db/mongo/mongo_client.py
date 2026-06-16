@@ -8,18 +8,20 @@ load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
 DATABASE_NAME = os.getenv("DATABASE_NAME")
 
+client = None
+db = None
+
 try:
-    # Khởi tạo Client dùng chung cho toàn hệ thống
     client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
     db = client[DATABASE_NAME]
-    
-    # Kiểm tra kết nối
     client.server_info()
     print("🚀 [MongoDB] Kết nối thành công!")
 except PyMongoError as e:
     print(f"❌ [MongoDB] Không thể kết nối: {e}")
-    raise e
+
 
 def get_collection(collection_name: str):
-    """Hàm tiện ích để lấy collection bất kỳ"""
+    """Hàm tiện ích để lấy collection bất kỳ."""
+    if db is None:
+        raise RuntimeError("MongoDB driver chưa được khởi tạo.")
     return db[collection_name]
