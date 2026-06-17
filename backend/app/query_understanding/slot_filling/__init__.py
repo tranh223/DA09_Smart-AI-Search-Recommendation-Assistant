@@ -1,2 +1,0 @@
-"""Slot filling module."""
-
