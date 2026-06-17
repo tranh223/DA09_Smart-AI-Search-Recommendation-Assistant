@@ -19,16 +19,66 @@ and then apply filter predicates in Python.
 from __future__ import annotations
 
 import json
+import re
+import unicodedata
 
 from utils.langsmith_tracer import tracer
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 
 import numpy as np
 
 _INDEX = None
 _META: Dict[str, Any] | None = None
 _CHUNKS: Dict[str, Any] | None = None
+
+
+def _normalize_lookup_text(value: str) -> str:
+    value = value.lower().replace("đ", "d")
+    value = unicodedata.normalize("NFD", value)
+    value = "".join(ch for ch in value if unicodedata.category(ch) != "Mn")
+    return re.sub(r"[^a-z0-9]+", " ", value).strip()
+
+
+def _resolve_hotel_ids(hotel_name: str) -> Set[int]:
+    """Resolve hotel ids from loaded vector metadata by hotel name."""
+
+    if not hotel_name or not hotel_name.strip():
+        return set()
+
+    global _META
+    if _META is None:
+        meta_path = Path(__file__).resolve().parents[1] / "data" / "faiss_hotels_meta.json"
+        _META = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
+
+    needle = _normalize_lookup_text(hotel_name)
+    needle_compact = needle.replace(" ", "")
+    if not needle:
+        return set()
+
+    resolved: Set[int] = set()
+    for meta in (_META or {}).values():
+        if not isinstance(meta, dict):
+            continue
+
+        candidate_name = meta.get("hotel_name")
+        hotel_id = meta.get("hotel_id")
+        if not candidate_name or hotel_id is None:
+            continue
+
+        haystack = _normalize_lookup_text(str(candidate_name))
+        haystack_compact = haystack.replace(" ", "")
+        if (
+            needle in haystack
+            or needle_compact in haystack_compact
+            or all(part in haystack.split() for part in needle.split())
+        ):
+            try:
+                resolved.add(int(hotel_id))
+            except (TypeError, ValueError):
+                continue
+
+    return resolved
 
 
 def _load_once() -> None:
@@ -112,6 +162,9 @@ def _metadata_match(meta: Dict[str, Any], filters: Optional[Dict[str, Any]]) -> 
                 if not all(x in actual for x in wanted):
                     return False
             else:
+                return False
+        elif isinstance(wanted, list):
+            if actual not in wanted:
                 return False
         else:
             if actual != wanted:

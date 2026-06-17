@@ -65,7 +65,10 @@ def build_tool_inputs_from_context(
     graph_top_k = plan_result.get("graph_top_k", 3)
 
     # hotel_sql need: keep same default
-    need = plan_result.get("hotel_sql_need", ["detail", "policies", "activities"])
+    need = plan_result.get(
+        "hotel_sql_needs",
+        plan_result.get("hotel_sql_need", ["detail", "policies", "activities"]),
+    )
     if not isinstance(need, list) or not need:
         need = ["detail", "policies", "activities"]
 

@@ -6,7 +6,7 @@ Short-term Memory và User Profile đã bị loại bỏ khỏi pipeline.
 
 from __future__ import annotations
 
-from typing import Optional, List, Dict
+from typing import Any, Optional, List, Dict
 import json
 
 from utils.logger import get_logger
@@ -33,7 +33,7 @@ class chatbot:
     @tracer.trace("rag_system_process")
     def process(
         self,
-        query: str,
+        query: str | dict[str, Any],
         enable_rag: bool = True,
         enable_graph: bool = True,
         return_detailed: bool = False,
@@ -41,9 +41,31 @@ class chatbot:
         logger.info(f"Processing query: {query}")
 
         try:
+            original_query = query
+            retrieval_query = query
+            structured_request = None
+
+            if isinstance(query, dict):
+                from rag_input import (
+                    build_retrieval_query,
+                    build_structured_plan,
+                    parse_rag_request,
+                )
+
+                structured_request = parse_rag_request(query)
+                original_query = structured_request.parameters.query
+                retrieval_query = build_retrieval_query(structured_request)
+                logger.info(f"Structured request normalized to query: {original_query}")
+            else:
+                original_query = str(query)
+                retrieval_query = original_query
+
             # Step 1: Planning
             logger.info("Step 1: Planning...")
-            plan_result = plan(query)
+            if structured_request is not None:
+                plan_result = build_structured_plan(structured_request)
+            else:
+                plan_result = plan(original_query)
             try:
                 logger.info(f"Plan: {json.dumps(plan_result, ensure_ascii=False)}")
             except Exception:
@@ -51,7 +73,7 @@ class chatbot:
 
             # Step 1.5: Skill agent routing (best-effort)
             try:
-                skill_result = route_intent(query)
+                skill_result = route_intent(original_query)
                 logger.info(f"Skill agent: {json.dumps(skill_result, ensure_ascii=False)}")
             except Exception as e:
                 logger.warning(f"Skill agent failed, continue without routing: {e}")
@@ -61,7 +83,7 @@ class chatbot:
             try:
                 from modules.planner_intents_aux import parse_aux_intents
 
-                aux_intents = parse_aux_intents(query)
+                aux_intents = parse_aux_intents(retrieval_query)
                 logger.info(
                     "Aux intents: "
                     f"{json.dumps(aux_intents, ensure_ascii=False) if isinstance(aux_intents, dict) else aux_intents}"
@@ -76,7 +98,7 @@ class chatbot:
                 from modules.planner_intent_toolschema import build_tool_inputs_from_context
 
                 std_tool_inputs = build_tool_inputs_from_context(
-                    query=query,
+                    query=retrieval_query,
                     plan_result=plan_result,
                     aux_intents=aux_intents,
                 )
@@ -125,17 +147,21 @@ class chatbot:
             hotel_sql_selector = ""
             if hotel_sql_entities:
                 hotel_sql_selector = "hotel_id=" + ",".join(str(x) for x in hotel_sql_entities)
+            elif structured_request is not None:
+                hotel_name = structured_request.parameters.features.hotel_name
+                if hotel_name:
+                    hotel_sql_selector = hotel_name
 
             if enable_rag and needs_rag:
 
 
                 logger.info("Retrieving from RAG...")
-                rag_results = retrieve_from_rag(query)
+                rag_results = retrieve_from_rag(retrieval_query)
                 logger.info(f"rag_results: {rag_results}")
 
             if enable_graph and needs_graph:
                 logger.info("Retrieving from Graph...")
-                graph_results = retrieve_from_graph(query)
+                graph_results = retrieve_from_graph(retrieval_query)
                 logger.info(f"graph_results: {graph_results}")
 
             if needs_hotel_sql:
@@ -143,11 +169,11 @@ class chatbot:
 
                 # Select hotel sql based on entity ids from planner/tool_inputs when available.
                 # If we found entities -> pass selector text to hotel_sql_utils best-effort extractor.
-                sql_query = query
+                sql_query = retrieval_query
                 if hotel_sql_selector:
                     sql_query = hotel_sql_selector
 
-                hotel_sql_results = retrieve_from_hotel_sql(sql_query)
+                hotel_sql_results = retrieve_from_hotel_sql(sql_query, need=hotel_sql_need)
                 logger.info(f"hotel_sql_results: {hotel_sql_results}")
 
 
@@ -168,7 +194,7 @@ class chatbot:
 
             logger.info("Step 3: Aggregating information...")
             aggregated_result = aggregate_information(
-                query,
+                original_query,
                 plan_result=plan_result,
                 rag_results=rag_results,
                 graph_results=graph_results,
@@ -181,18 +207,19 @@ class chatbot:
             # Step 4: Response Generation
             logger.info("Step 4: Generating response...")
             response = generate_response(
-                query,
+                original_query,
                 aggregated_result.get("aggregated_info", ""),
                 conversation_history=self.conversation_history,
             )
             logger.info("Response generated successfully")
 
-            self.conversation_history.append({"role": "user", "content": query})
+            self.conversation_history.append({"role": "user", "content": original_query})
             self.conversation_history.append({"role": "assistant", "content": response})
 
             if return_detailed:
                 return {
-                    "query": query,
+                    "query": original_query,
+                    "retrieval_query": retrieval_query,
                     "response": response,
                     "plan": plan_result,
                     "skill_agent": skill_result,

@@ -251,6 +251,42 @@ def _compact_trace(result: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _pipeline_errors(result: dict[str, Any], response: Any) -> list[str]:
+    errors: list[str] = []
+
+    if result.get("error"):
+        errors.append(str(result.get("error")))
+
+    response_text = str(response or "").lower()
+    response_error_markers = [
+        "error code:",
+        "incorrect api key",
+        "invalid_api_key",
+        "tôi gặp lỗi",
+        "có lỗi xảy ra",
+    ]
+    if any(marker in response_text for marker in response_error_markers):
+        errors.append("response contains generation/API error")
+
+    source_names = ("rag", "graph", "hotel_sql")
+    evidence_count = 0
+    for source_name in source_names:
+        source = result.get(source_name)
+        if not isinstance(source, dict):
+            continue
+        if source.get("error"):
+            errors.append(f"{source_name}: {source.get('error')}")
+        try:
+            evidence_count += int(source.get("count") or 0)
+        except (TypeError, ValueError):
+            pass
+
+    if evidence_count == 0:
+        errors.append("no retrieval evidence returned")
+
+    return errors
+
+
 def _run_case(system: chatbot, scenario: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
     payload = scenario["payload"]
     query = payload["parameters"]["query"]
@@ -266,10 +302,11 @@ def _run_case(system: chatbot, scenario: dict[str, Any], args: argparse.Namespac
         )
         latency_ms = round((time.perf_counter() - started) * 1000, 2)
         response = result.get("response") if isinstance(result, dict) else str(result)
+        errors = _pipeline_errors(result, response) if isinstance(result, dict) else []
         record = {
             "id": scenario["id"],
             "category": scenario["category"],
-            "status": "ok" if isinstance(result, dict) and not result.get("error") else "error",
+            "status": "ok" if isinstance(result, dict) and not errors else "error",
             "started_at": wall_started,
             "latency_ms": latency_ms,
             "input": payload,
@@ -277,8 +314,8 @@ def _run_case(system: chatbot, scenario: dict[str, Any], args: argparse.Namespac
             "response": response,
             "trace": _compact_trace(result) if isinstance(result, dict) else {},
         }
-        if isinstance(result, dict) and result.get("error"):
-            record["error"] = result.get("error")
+        if errors:
+            record["error"] = "; ".join(errors)
         return record
     except Exception as exc:
         return {
