@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     # OpenAI
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     OPENAI_API_KEY_BACKUP: str = os.getenv("OPENAI_API_KEY_BACKUP", "")
-    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    OPENAI_MODEL: str = "gpt-4-turbo-preview"
     OPENAI_TEMPERATURE: float = 0.7
     OPENAI_MAX_TOKENS: int = 2000
 
@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     GRAPH_DB_USER: str = os.getenv("GRAPH_DB_USER", os.getenv("NEO4J_USER", ""))
     GRAPH_DB_PASSWORD: str = os.getenv("GRAPH_DB_PASSWORD", os.getenv("NEO4J_PASSWORD", ""))
     GRAPH_DB_DATABASE: str = os.getenv("GRAPH_DB_DATABASE", os.getenv("NEO4J_DATABASE", "neo4j"))
+    MONGO_URI: str = os.getenv("MONGO_URI", "")
+    MONGO_TLS_ALLOW_INVALID: str = os.getenv("MONGO_TLS_ALLOW_INVALID", "false")
     DA10_OTA_API_KEY: str = os.getenv("DA10_OTA_API_KEY", "")
 
     # System

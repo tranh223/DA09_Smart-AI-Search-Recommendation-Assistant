@@ -1,101 +1,90 @@
 """
 RAG System - Main Entry Point
 Chỉ gồm: Planner -> (RAG, Graph, Hotel SQL) -> aggregate_information -> generate_response
-Chỉ sử dụng dữ liệu khách sạn từ RAG, Graph và Hotel SQL.
+Short-term Memory và User Profile đã bị loại bỏ khỏi pipeline.
 """
 
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor
-from typing import Any, Optional
+from typing import Optional, List, Dict
 import json
 
-from rag_input import (
-    RAGRequest,
-    build_retrieval_query,
-    build_structured_plan,
-    parse_rag_request,
-)
 from utils.logger import get_logger
 from utils.langsmith_tracer import tracer
 
 from modules.planner import plan
-from modules.retrieval import (
-    resolve_hotel_entity,
-    retrieve_from_graph,
-    retrieve_from_hotel_sql,
-    retrieve_from_rag,
-)
+from modules.retrieval import retrieve_from_rag, retrieve_from_graph, retrieve_from_hotel_sql
 from modules.skill_agent import route_intent
 from modules.total_info import aggregate_information
 from modules.generation import generate_response
 
+
 logger = get_logger(__name__)
-
-
-def _entity_resolution_response(resolution: dict[str, Any]) -> str:
-    candidates = resolution.get("candidates") or []
-    if resolution.get("status") == "ambiguous" and candidates:
-        names = ", ".join(
-            str(candidate.get("hotel_name"))
-            for candidate in candidates[:3]
-            if candidate.get("hotel_name")
-        )
-        return (
-            "Không thể xác định duy nhất khách sạn từ tên đã cung cấp. "
-            f"Các kết quả gần nhất: {names}."
-        )
-    return "Không tìm thấy khách sạn phù hợp với tên và điểm đến đã cung cấp."
 
 
 class chatbot:
     """Main RAG system."""
 
-    def __init__(self):
-        logger.info("Hotel RAG chatbot initialized")
+    def __init__(self, user_id: str = "default_user"):
+        self.user_id = user_id
+        self.conversation_history: List[Dict] = []
+        logger.info(f"Chatbot initialized for user: {user_id}")
 
     @tracer.trace("rag_system_process")
     def process(
         self,
-        query: str | dict[str, Any] | RAGRequest,
+        query: str,
         enable_rag: bool = True,
         enable_graph: bool = True,
         return_detailed: bool = False,
     ) -> str:
-        structured_request = (
-            parse_rag_request(query) if isinstance(query, (dict, RAGRequest)) else None
-        )
-        user_query = (
-            structured_request.parameters.query if structured_request else str(query)
-        )
-        retrieval_query = (
-            build_retrieval_query(structured_request) if structured_request else user_query
-        )
-        logger.info(f"Processing query: {user_query}")
+        logger.info(f"Processing query: {query}")
 
         try:
             # Step 1: Planning
             logger.info("Step 1: Planning...")
-            plan_result = (
-                build_structured_plan(structured_request)
-                if structured_request
-                else plan(user_query)
-            )
+            plan_result = plan(query)
             try:
                 logger.info(f"Plan: {json.dumps(plan_result, ensure_ascii=False)}")
             except Exception:
                 logger.info("Plan: <unserializable>")
 
-            # Structured input already contains routing and extracted entities.
-            if structured_request:
-                skill_result = structured_request.model_dump()
-            else:
-                try:
-                    skill_result = route_intent(user_query)
-                    logger.info(f"Skill agent: {json.dumps(skill_result, ensure_ascii=False)}")
-                except Exception as e:
-                    logger.warning(f"Skill agent failed, continue without routing: {e}")
-                    skill_result = {}
+            # Step 1.5: Skill agent routing (best-effort)
+            try:
+                skill_result = route_intent(query)
+                logger.info(f"Skill agent: {json.dumps(skill_result, ensure_ascii=False)}")
+            except Exception as e:
+                logger.warning(f"Skill agent failed, continue without routing: {e}")
+                skill_result = {}
+
+            # Step 1.6: Auxiliary entity intent extraction (hotel names)
+            try:
+                from modules.planner_intents_aux import parse_aux_intents
+
+                aux_intents = parse_aux_intents(query)
+                logger.info(
+                    "Aux intents: "
+                    f"{json.dumps(aux_intents, ensure_ascii=False) if isinstance(aux_intents, dict) else aux_intents}"
+                )
+            except Exception as e:
+                logger.warning(f"Aux intents extraction failed: {e}")
+                aux_intents = {}
+
+            # Step 1.7: Standardize tool inputs for planner schema completeness
+            # Ensures planner output always contains tool_inputs even if planner LLM didn't.
+            try:
+                from modules.planner_intent_toolschema import build_tool_inputs_from_context
+
+                std_tool_inputs = build_tool_inputs_from_context(
+                    query=query,
+                    plan_result=plan_result,
+                    aux_intents=aux_intents,
+                )
+                plan_result["tool_inputs"] = std_tool_inputs.get("tools", plan_result.get("tool_inputs", {}))
+            except Exception as e:
+                logger.warning(f"Failed to build standardized tool inputs: {e}")
+
+
 
             # Step 2: Retrievals (RAG, Graph, Hotel SQL)
             logger.info("Step 2: Retrieving (RAG, Graph, Hotel SQL)...")
@@ -113,135 +102,100 @@ class chatbot:
             rag_results = None
             graph_results = None
             hotel_sql_results = None
-            entity_resolution = None
 
-            if structured_request:
-                features = structured_request.parameters.features
-                rag_filters = {
-                    "section": plan_result.get("rag_sections", []),
-                }
-                resolved_hotel_id = None
-                resolved_hotel_name = features.hotel_name
-                if features.hotel_name:
-                    entity_resolution = resolve_hotel_entity(
-                        features.hotel_name,
-                        features.destination,
+            # Ensure aggregate_information receives dicts (avoid None type issues)
+            rag_results = rag_results if rag_results is not None else {"success": False, "source": "rag", "results": [], "count": 0}
+            graph_results = graph_results if graph_results is not None else {"success": False, "source": "graph", "results": [], "count": 0}
+            hotel_sql_results = hotel_sql_results if hotel_sql_results is not None else {"success": False, "source": "hotel_sql", "results": None, "count": 0}
+
+            # Build hotel_sql tool inputs from planner entities
+            # Tool input for Hotel SQL is driven by entities from planner/aux intent,
+            # not by raw query text as the primary selector.
+            tool_inputs = plan_result.get("tool_inputs") if isinstance(plan_result, dict) else None
+            hotel_sql_entities = []
+            hotel_sql_need = None
+            if isinstance(tool_inputs, dict):
+                hsql = tool_inputs.get("hotel_sql")
+                if isinstance(hsql, dict):
+                    hotel_sql_entities = hsql.get("hotel_ids") or []
+                    hotel_sql_need = hsql.get("need")
+
+            # Override `query` passed to hotel sql tool with entity ids when available.
+            # If no entities found, fallback to original query.
+            hotel_sql_selector = ""
+            if hotel_sql_entities:
+                hotel_sql_selector = "hotel_id=" + ",".join(str(x) for x in hotel_sql_entities)
+
+            if enable_rag and needs_rag:
+
+
+                logger.info("Retrieving from RAG...")
+                rag_results = retrieve_from_rag(query)
+                logger.info(f"rag_results: {rag_results}")
+
+            if enable_graph and needs_graph:
+                logger.info("Retrieving from Graph...")
+                graph_results = retrieve_from_graph(query)
+                logger.info(f"graph_results: {graph_results}")
+
+            if needs_hotel_sql:
+                logger.info("Retrieving from Hotel SQL...")
+
+                # Select hotel sql based on entity ids from planner/tool_inputs when available.
+                # If we found entities -> pass selector text to hotel_sql_utils best-effort extractor.
+                sql_query = query
+                if hotel_sql_selector:
+                    sql_query = hotel_sql_selector
+
+                hotel_sql_results = retrieve_from_hotel_sql(sql_query)
+                logger.info(f"hotel_sql_results: {hotel_sql_results}")
+
+
+            # Step 2.5: Use extracted entities to refine context (if any)
+            if isinstance(aux_intents, dict):
+                # Inject into aggregation plan_result context field
+                try:
+                    plan_result.setdefault("context", "")
+                    extra_ctx = aux_intents.get("hotel_entity_intent", {})
+                    plan_result["context"] = (
+                        plan_result.get("context", "")
+                        + f"\n[Hotel Entities Extracted] {extra_ctx}"
                     )
-                    if entity_resolution.get("status") == "resolved":
-                        resolved_hotel_id = entity_resolution.get("hotel_id")
-                        resolved_hotel_name = entity_resolution.get("canonical_name")
-                        rag_filters["hotel_id"] = resolved_hotel_id
-                    else:
-                        logger.warning(
-                            "Hotel entity was not uniquely resolved: %s",
-                            entity_resolution,
-                        )
-
-                jobs = {}
-                with ThreadPoolExecutor(max_workers=3) as executor:
-                    entity_ready = not features.hotel_name or resolved_hotel_id is not None
-                    if enable_rag and needs_rag and entity_ready:
-                        jobs["rag"] = executor.submit(
-                            retrieve_from_rag,
-                            retrieval_query,
-                            5,
-                            rag_filters,
-                        )
-                    if enable_graph and needs_graph and entity_ready:
-                        graph_query = retrieval_query
-                        if resolved_hotel_id is not None:
-                            graph_query += f"\nCanonical hotel_id: {resolved_hotel_id}"
-                        jobs["graph"] = executor.submit(
-                            retrieve_from_graph,
-                            graph_query,
-                            5,
-                            resolved_hotel_id,
-                        )
-                    if needs_hotel_sql and entity_ready:
-                        jobs["hotel_sql"] = executor.submit(
-                            retrieve_from_hotel_sql,
-                            user_query,
-                            plan_result.get("hotel_sql_needs"),
-                            hotel_id=resolved_hotel_id,
-                            hotel_name=resolved_hotel_name,
-                            city=features.destination,
-                        )
-
-                    rag_results = jobs["rag"].result() if "rag" in jobs else None
-                    graph_results = jobs["graph"].result() if "graph" in jobs else None
-                    hotel_sql_results = (
-                        jobs["hotel_sql"].result() if "hotel_sql" in jobs else None
-                    )
-                    if features.hotel_name and not entity_ready:
-                        resolution_error = {
-                            "success": False,
-                            "count": 0,
-                            "error": "Hotel name could not be uniquely resolved",
-                            "entity_resolution": entity_resolution,
-                        }
-                        if needs_rag:
-                            rag_results = {"source": "rag", "results": [], **resolution_error}
-                        if needs_graph:
-                            graph_results = {"source": "graph", "results": [], **resolution_error}
-                        if needs_hotel_sql:
-                            hotel_sql_results = {
-                                "source": "hotel_sql",
-                                "results": None,
-                                **resolution_error,
-                            }
-                        response = _entity_resolution_response(entity_resolution)
-                        if return_detailed:
-                            return {
-                                "query": user_query,
-                                "input": structured_request.model_dump(),
-                                "retrieval_query": retrieval_query,
-                                "response": response,
-                                "plan": plan_result,
-                                "skill_agent": skill_result,
-                                "entity_resolution": entity_resolution,
-                                "rag": rag_results,
-                                "graph": graph_results,
-                                "hotel_sql": hotel_sql_results,
-                                "aggregated_info": None,
-                            }
-                        return response
-            else:
-                if enable_rag and needs_rag:
-                    rag_results = retrieve_from_rag(user_query)
-                if enable_graph and needs_graph:
-                    graph_results = retrieve_from_graph(user_query)
-                if needs_hotel_sql:
-                    hotel_sql_results = retrieve_from_hotel_sql(user_query)
+                except Exception:
+                    pass
 
             # Step 3: Information Aggregation
+
             logger.info("Step 3: Aggregating information...")
             aggregated_result = aggregate_information(
-                user_query,
+                query,
                 plan_result=plan_result,
                 rag_results=rag_results,
                 graph_results=graph_results,
+                user_profile_results=None,
+                short_term_memory_results=None,
                 hotel_sql_results=hotel_sql_results,
-                single_pass=structured_request is not None,
             )
             logger.info(f"Aggregation result: {aggregated_result}")
 
             # Step 4: Response Generation
             logger.info("Step 4: Generating response...")
             response = generate_response(
-                user_query,
+                query,
                 aggregated_result.get("aggregated_info", ""),
+                conversation_history=self.conversation_history,
             )
             logger.info("Response generated successfully")
 
+            self.conversation_history.append({"role": "user", "content": query})
+            self.conversation_history.append({"role": "assistant", "content": response})
+
             if return_detailed:
                 return {
-                    "query": user_query,
-                    "input": structured_request.model_dump() if structured_request else query,
-                    "retrieval_query": retrieval_query,
+                    "query": query,
                     "response": response,
                     "plan": plan_result,
                     "skill_agent": skill_result,
-                    "entity_resolution": entity_resolution,
                     "rag": rag_results,
                     "graph": graph_results,
                     "hotel_sql": hotel_sql_results,
@@ -254,22 +208,27 @@ class chatbot:
             logger.error(f"Error processing query: {str(e)}", exc_info=True)
             if return_detailed:
                 return {
-                    "query": user_query,
+                    "query": query,
                     "response": f"Xin lỗi, có lỗi xảy ra: {str(e)}",
                     "error": str(e),
                 }
             return f"Xin lỗi, có lỗi xảy ra: {str(e)}"
 
-    def chat(self, query: str | dict[str, Any] | RAGRequest) -> str:
+    def chat(self, query: str) -> str:
         return self.process(query, return_detailed=False)
+
+    def clear_history(self) -> None:
+        self.conversation_history = []
+        logger.info("Conversation history cleared")
+
 
 # Global instance
 _chatbot_instance: Optional[chatbot] = None
 
 
-def get_chatbot() -> chatbot:
+def get_chatbot(user_id: str = "default_user") -> chatbot:
     global _chatbot_instance
     if _chatbot_instance is None:
-        _chatbot_instance = chatbot()
+        _chatbot_instance = chatbot(user_id)
     return _chatbot_instance
 

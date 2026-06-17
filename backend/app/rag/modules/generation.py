@@ -23,6 +23,7 @@ Based on the provided information, generate a response:
 def generate_response(
     query: str,
     aggregated_info: str,
+    conversation_history: list = None
 ) -> str:
     """
     Tạo phản hồi cuối cùng.
@@ -30,13 +31,22 @@ def generate_response(
     Args:
         query: Query gốc từ người dùng
         aggregated_info: Thông tin tổng hợp
+        conversation_history: Lịch sử cuộc trò chuyện (tùy chọn)
     
     Returns:
         Response text
     """
     logger.info(f"Generating response for query: {query}")
     
-    messages = [{
+    # Chuẩn bị messages
+    messages = []
+    
+    # Thêm conversation history nếu có
+    if conversation_history:
+        messages.extend(conversation_history)
+    
+    # Thêm query hiện tại
+    messages.append({
         "role": "user",
         "content": f"""Query: {query}
 
@@ -44,7 +54,7 @@ Thông tin để trả lời:
 {aggregated_info}
 
 Vui lòng trả lời query dựa trên thông tin được cung cấp."""
-    }]
+    })
     
     try:
         response = llm_client.call(

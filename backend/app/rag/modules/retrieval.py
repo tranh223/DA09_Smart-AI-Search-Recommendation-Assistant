@@ -1,8 +1,18 @@
-"""Retrieval layer for hotel vector, graph, and SQL sources."""
+"""modules.retrieval
+
+Retrieval layer: calls underlying tools.
+
+User-profile retrieval has been DISABLED per request.
+
+Notes
+- Per request: NO reranking.
+- Per request: only take top 3 from every retrieval tool.
+- For Hotel SQL: no reranking; pass `need` through to the tool and return raw results.
+"""
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Optional
 
 from utils.langsmith_tracer import tracer
 from utils.logger import get_logger
@@ -12,55 +22,18 @@ from tools.graph_tool import search_graph
 logger = get_logger(__name__)
 
 
-def _run_async(async_factory):
-    import asyncio
-
-    try:
-        asyncio.get_running_loop()
-    except RuntimeError:
-        return asyncio.run(async_factory())
-    raise RuntimeError("Async loop already running; call this retrieval from sync context only.")
-
-
-@tracer.trace("resolve_hotel_entity")
-def resolve_hotel_entity(hotel_name: str, city: Optional[str] = None) -> dict:
-    """Resolve an imperfect hotel name once before multi-source retrieval."""
-
-    try:
-        async def _run():
-            from config.settings import settings
-            from tools.hotel_sql_tool import HotelSqlTool
-
-            async with HotelSqlTool(api_key=settings.OTA_API_KEY) as tool:
-                return await tool.resolve_hotel(hotel_name, city=city)
-
-        resolution = _run_async(_run)
-        return resolution.model_dump()
-    except Exception as e:
-        logger.error(f"Error resolving hotel entity: {str(e)}")
-        return {
-            "status": "error",
-            "input_name": hotel_name,
-            "input_city": city,
-            "hotel_id": None,
-            "canonical_name": None,
-            "confidence": 0.0,
-            "candidates": [],
-            "error": str(e),
-        }
-
-
 @tracer.trace("retrieval_from_rag")
-def retrieve_from_rag(
-    query: str,
-    top_k: int = 3,
-    filters: Optional[dict[str, Any]] = None,
-) -> dict:
+def retrieve_from_rag(query: str, top_k: int = 3) -> dict:
     """Search from RAG vector DB."""
     logger.info(f"Retrieving from RAG for query: {query}")
 
     try:
-        results = search_rag(query, top_k, filters=filters)
+        candidates = search_rag(query, top_k * 4)
+        # rerank first, then take top 3
+        from modules.retrieval_rerank_pipeline import llm_rerank
+        results = llm_rerank(query, candidates, top_n=3)
+
+        results = (results or [])[: max(int(top_k), 0)]
         logger.info(f"Retrieved {len(results)} items from RAG")
         return {
             "success": True,
@@ -80,16 +53,13 @@ def retrieve_from_rag(
 
 
 @tracer.trace("retrieval_from_graph")
-def retrieve_from_graph(
-    query: str,
-    top_k: int = 5,
-    hotel_id: Optional[int] = None,
-) -> dict:
+def retrieve_from_graph(query: str, top_k: int = 3) -> dict:
     """Search from Neo4j knowledge graph."""
     logger.info(f"Retrieving from Graph for query: {query}")
 
     try:
-        results = search_graph(query, top_k, hotel_id=hotel_id)
+        results = search_graph(query, top_k)
+        results = (results or [])[: max(int(top_k), 0)]
         logger.info(f"Retrieved {len(results)} items from Graph")
         return {
             "success": True,
@@ -109,32 +79,23 @@ def retrieve_from_graph(
 
 
 @tracer.trace("retrieval_from_hotel_sql")
-def retrieve_from_hotel_sql(
-    query: str,
-    need: Optional[list[str]] = None,
-    *,
-    hotel_id: Optional[int] = None,
-    hotel_name: Optional[str] = None,
-    city: Optional[str] = None,
-) -> dict:
-    """Retrieve raw hotel policies/activities from DA10 via tools.hotel_sql_tool."""
+def retrieve_from_hotel_sql(query: str, need: Optional[list[str]] = None) -> dict:
+    """Retrieve raw hotel policies/activities from DA10 via tools.hotel_sql_tool.
+
+    Per request:
+    - no reranking
+    - keep raw outputs
+    - pass `need` through to the tool
+    """
     logger.info(f"Retrieving from Hotel SQL for query: {query}")
 
     try:
         from modules.hotel_sql_utils import build_hotel_lookup_input_from_query
 
         need_list = need or ["detail", "policies", "activities"]
-        if hotel_id is not None or hotel_name:
-            from tools.hotel_sql_tool import HotelLookupInput
+        payload = build_hotel_lookup_input_from_query(query, need_list)
 
-            payload = HotelLookupInput(
-                hotel_id=hotel_id,
-                hotel_name=hotel_name,
-                city=city,
-                need=need_list,
-            )
-        else:
-            payload = build_hotel_lookup_input_from_query(query, need_list)
+        import asyncio
 
         async def _run():
             from config.settings import settings
@@ -143,9 +104,17 @@ def retrieve_from_hotel_sql(
             async with HotelSqlTool(api_key=settings.OTA_API_KEY) as tool:
                 return await tool.lookup(payload)
 
-        output = _run_async(_run)
+        try:
+            asyncio.get_running_loop()
+            # If a loop is already running, we can't safely use asyncio.run here.
+            raise RuntimeError(
+                "Async loop already running; call retrieve_from_hotel_sql from sync context only."
+            )
+        except RuntimeError:
+            # No running loop: safe to use asyncio.run
+            output = asyncio.run(_run())
 
-        res = output.model_dump(exclude_none=True)
+        res = output.model_dump()
         return {
             "success": True,
             "source": "hotel_sql",
@@ -161,4 +130,17 @@ def retrieve_from_hotel_sql(
             "count": 0,
             "error": str(e),
         }
+
+
+# User profile retrieval removed entirely (Mongo disabled).
+@tracer.trace("retrieval_from_user_profile")
+def retrieve_from_user_profile(user_id: str, query: str) -> dict:
+    """User profile retrieval disabled."""
+    return {
+        "success": False,
+        "source": "user_profile",
+        "user_id": user_id,
+        "results": {},
+        "error": "User profile retrieval disabled",
+    }
 

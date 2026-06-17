@@ -17,19 +17,33 @@ PLANNER_SYSTEM_PROMPT = """You are a smart Planner. When given a user query, do 
 4. Clearly determine which information sources are needed to answer the question or complete the task:
    - RAG Database (vector search)
    - Knowledge Graph
+   - User Profile
+   - Short-term Memory
    - Hotel SQL (if policy/rules must be fetched precisely)
-5. Return the result as structured JSON with the following schema:
+Return the result as structured JSON with the following schema:
 {
     "query_type": "string",
     "main_object": "string",
     "sub_objects": ["string"],
+
+    "entities_to_analyze": ["string"],
+
     "needs_rag": boolean,
     "needs_graph": boolean,
+    "needs_user_profile": boolean,
+    "needs_short_term_memory": boolean,
     "needs_hotel_sql": boolean,
+
+    "tool_inputs": {
+        "rag": {"query": string, "top_k": number},
+        "graph": {"query": string, "top_k": number},
+        "hotel_sql": {"query": string, "need": string[]}
+    },
 
     "required_steps": ["string"],
     "context": "string"
 }
+
 
 Notes:
 - "main_object" is the main entity or the primary focus in the query.
@@ -75,6 +89,8 @@ def plan(query: str) -> dict:
             "sub_objects": [],
             "needs_rag": True,
             "needs_graph": True,
+            "needs_user_profile": True,
+            "needs_short_term_memory": True,
             "needs_hotel_sql": True,
             "required_steps": [
 

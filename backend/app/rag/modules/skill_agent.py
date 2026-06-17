@@ -13,7 +13,7 @@ from __future__ import annotations
 import os
 import time
 
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Dict, Literal
 
 from utils.langsmith_tracer import tracer
 from utils.logger import get_logger
@@ -68,7 +68,6 @@ def route_intent(query: str) -> Dict[str, Any]:
         system_prompt=SKILL_AGENT_SYSTEM_PROMPT,
         provider=provider,
     )
-
 
     elapsed_ms = int((time.perf_counter() - start) * 1000)
     if isinstance(result, dict):

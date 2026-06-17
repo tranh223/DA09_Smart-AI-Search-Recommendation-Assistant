@@ -3,12 +3,11 @@ langchain
 langsmith
 python-dotenv==1.0.0
 pydantic>=2.7.0,<3.0
-pydantic-settings
 requests==2.31.0
-httpx>=0.24.1,<0.28
+pymongo==4.4.0
+dnspython==2.4.2
+certifi==2026.5.20
 rapidfuzz
-faiss-cpu
-sentence-transformers
 
 # Groq LLM provider
 groq
