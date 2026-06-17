@@ -1,0 +1,154 @@
+{
+  "timestamp": "2026-06-09T17:08:15.288205",
+  "graph_info": {
+    "graph_source": {
+      "url": "http://34.158.39.31:7474",
+      "user": "neo4j",
+      "password": "***",
+      "database": "neo4j"
+    },
+    "node_count": 18361,
+    "labels": [
+      "Hotel",
+      "Room",
+      "Activity",
+      "City",
+      "Tag",
+      "Place",
+      "User",
+      "UserFeature",
+      "DebugEvent"
+    ],
+    "relationship_types": [
+      "LOCATED_IN",
+      "HAS_ROOM",
+      "OFFERS_ACTIVITY",
+      "NEAR",
+      "HAS_TAG",
+      "HAS_FEATURES",
+      "INTERESTED_IN",
+      "BOOKED"
+    ],
+    "database": "neo4j"
+  },
+  "total_scenarios": 8,
+  "successful_scenarios": 4,
+  "results": [
+    {
+      "scenario_id": "CONN_001",
+      "name": "Count all nodes",
+      "operation": "cypher",
+      "query": null,
+      "top_k": null,
+      "iterations": 3,
+      "latency_ms": 288.34811846415204,
+      "latency_total_ms": 865.044355392456,
+      "result_preview": {
+        "count": 1,
+        "first": {
+          "count": 18361
+        }
+      },
+      "expected_metric": "latency < 1000ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:07:57.205089"
+    },
+    {
+      "scenario_id": "CONN_002",
+      "name": "Count all relationships",
+      "operation": "cypher",
+      "query": null,
+      "top_k": null,
+      "iterations": 3,
+      "latency_ms": 216.7512575785319,
+      "latency_total_ms": 650.2537727355957,
+      "result_preview": {
+        "count": 1,
+        "first": {
+          "count": 232426
+        }
+      },
+      "expected_metric": "latency < 1000ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:07:57.855488"
+    },
+    {
+      "scenario_id": "META_001",
+      "name": "List labels",
+      "operation": "cypher",
+      "query": null,
+      "top_k": null,
+      "iterations": 5,
+      "latency_ms": 148.5909938812256,
+      "latency_total_ms": 742.9549694061279,
+      "result_preview": {
+        "count": 1,
+        "first": {
+          "labels": [
+            "Hotel",
+            "Room",
+            "Activity",
+            "City",
+            "Tag",
+            "Place",
+            "User",
+            "UserFeature",
+            "DebugEvent"
+          ]
+        }
+      },
+      "expected_metric": "latency < 500ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:07:58.598670"
+    },
+    {
+      "scenario_id": "SEARCH_001",
+      "name": "Get first 5 graph nodes",
+      "operation": "search",
+      "latency_ms": null,
+      "error": "'charmap' codec can't encode character '\\u1ea7' in position 143: character maps to <undefined>",
+      "timestamp": "2026-06-09T17:07:59.481625"
+    },
+    {
+      "scenario_id": "SEARCH_002",
+      "name": "Search Da Nang",
+      "operation": "search",
+      "latency_ms": null,
+      "error": "'charmap' codec can't encode character '\\u0110' in position 97: character maps to <undefined>",
+      "timestamp": "2026-06-09T17:08:01.093633"
+    },
+    {
+      "scenario_id": "SEARCH_003",
+      "name": "Search hotel",
+      "operation": "search",
+      "latency_ms": null,
+      "error": "'charmap' codec can't encode character '\\u01a1' in position 103: character maps to <undefined>",
+      "timestamp": "2026-06-09T17:08:02.554597"
+    },
+    {
+      "scenario_id": "SEARCH_004",
+      "name": "Search restaurant",
+      "operation": "search",
+      "latency_ms": null,
+      "error": "'charmap' codec can't encode character '\\u0110' in position 97: character maps to <undefined>",
+      "timestamp": "2026-06-09T17:08:03.864035"
+    },
+    {
+      "scenario_id": "EDGE_001",
+      "name": "Search top_k zero",
+      "operation": "search",
+      "query": "anything",
+      "top_k": 0,
+      "iterations": 50,
+      "latency_ms": 228.47322463989258,
+      "latency_total_ms": 11423.661231994629,
+      "result_preview": {
+        "count": 0,
+        "first": null
+      },
+      "expected_metric": "latency < 1ms",
+      "status": "SLOW",
+      "timestamp": "2026-06-09T17:08:15.287826"
+    }
+  ]
+}

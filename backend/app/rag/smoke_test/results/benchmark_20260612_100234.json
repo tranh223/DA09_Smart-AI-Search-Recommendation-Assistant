@@ -1,0 +1,77 @@
+{
+  "timestamp": "2026-06-12T10:02:34.719446",
+  "summary": {
+    "total_cases": 5,
+    "latency_avg_ms": 50655.569076538086,
+    "latency_min_ms": 37229.67481613159,
+    "latency_max_ms": 68433.20536613464,
+    "latency_p95_ms": 68433.20536613464,
+    "accuracy_avg": 0.7366666666666666,
+    "accuracy_min": 0.2,
+    "accuracy_max": 1.0,
+    "category_breakdown": {
+      "factual": {
+        "count": 3,
+        "avg_latency_ms": 40512.16228802999,
+        "avg_accuracy": 0.7166666666666667
+      },
+      "personalized": {
+        "count": 2,
+        "avg_latency_ms": 65870.67925930023,
+        "avg_accuracy": 0.7666666666666666
+      }
+    }
+  },
+  "detailed_results": [
+    {
+      "use_case_id": "UC01",
+      "use_case_name": "Simple destination info",
+      "category": "factual",
+      "query": "What are the best beaches in Da Nang?",
+      "response_preview": "<think>\nOkay, the user is asking for the best beaches in Da Nang. Let me start by recalling the information provided. The top three beaches are My Khe, Nui Thai, and An Bang. Each has its own unique f...",
+      "latency_ms": 37229.67481613159,
+      "accuracy_score": 1.0,
+      "timestamp": "2026-06-12T09:58:58.668042"
+    },
+    {
+      "use_case_id": "UC02",
+      "use_case_name": "Hotel search",
+      "category": "factual",
+      "query": "Find budget-friendly hotels near My Khe Beach",
+      "response_preview": "Xin lỗi, tôi gặp lỗi khi xử lý query của bạn: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3-32b` in organization `org_01k3n4ykk6fwqrsb62mmx9kzyb` service tier `on_d...",
+      "latency_ms": 45310.23716926575,
+      "accuracy_score": 0.2,
+      "timestamp": "2026-06-12T09:59:43.978804"
+    },
+    {
+      "use_case_id": "UC03",
+      "use_case_name": "Activity recommendation",
+      "category": "factual",
+      "query": "What activities are available in Ho Chi Minh City?",
+      "response_preview": "<think>\nOkay, let me try to work through this. The user is asking about activities in Ho Chi Minh City, and I need to use the provided information to generate a response. First, I should check the key...",
+      "latency_ms": 38996.57487869263,
+      "accuracy_score": 0.95,
+      "timestamp": "2026-06-12T10:00:22.975788"
+    },
+    {
+      "use_case_id": "UC04",
+      "use_case_name": "Personalized recommendation",
+      "category": "personalized",
+      "query": "Find accommodation for user_001 in Da Nang",
+      "response_preview": "<think>\nOkay, let's tackle the user's query to find accommodation for user_001 in Da Nang. First, I need to look at the information provided and the previous examples to understand the expected respon...",
+      "latency_ms": 63308.15315246582,
+      "accuracy_score": 0.5333333333333333,
+      "timestamp": "2026-06-12T10:01:26.284395"
+    },
+    {
+      "use_case_id": "UC05",
+      "use_case_name": "Budget-constrained search",
+      "category": "personalized",
+      "query": "Show me budget hotels under 1,500,000 VND",
+      "response_preview": "<think>\nOkay, let me tackle this. The user wants budget hotels in Da Nang under 1,500,000 VND. From the previous conversation, I know they’re looking for affordable options near My Khe Beach. The user...",
+      "latency_ms": 68433.20536613464,
+      "accuracy_score": 1.0,
+      "timestamp": "2026-06-12T10:02:34.718214"
+    }
+  ]
+}

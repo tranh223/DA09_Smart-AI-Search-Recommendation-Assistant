@@ -1,0 +1,190 @@
+{
+  "timestamp": "2026-06-12T10:58:18.325596",
+  "tool": "tools.hotel_sql_tool.HotelSqlTool",
+  "total_scenarios": 7,
+  "passed_scenarios": 4,
+  "results": [
+    {
+      "scenario_id": "RESOLVE_001",
+      "name": "Resolve hotel by fuzzy name",
+      "payload": {
+        "hotel_name": "Renaissance Riverside",
+        "city": "Hồ Chí Minh",
+        "need": []
+      },
+      "latency_ms": null,
+      "error": "Client error '401 Unauthorized' for url 'https://supabase-ota-travel.onrender.com/api/hotels?page=1&limit=100&city=H%E1%BB%93+Ch%C3%AD+Minh'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401",
+      "error_type": "HTTPStatusError",
+      "expected_error": null,
+      "expected_metric": "latency < 3000ms",
+      "status": "ERROR",
+      "timestamp": "2026-06-12T10:58:14.596590"
+    },
+    {
+      "scenario_id": "LOOKUP_001",
+      "name": "Lookup detail by hotel_id",
+      "payload": {
+        "hotel_id": 9195,
+        "need": [
+          "detail"
+        ]
+      },
+      "iterations": 3,
+      "latency_ms": 216.60776667219275,
+      "latency_total_ms": 649.8233000165783,
+      "result": {
+        "hotel_id": 9195,
+        "resolved_name": "9195",
+        "has_detail": false,
+        "has_policies": false,
+        "has_activities": false,
+        "errors": [
+          "detail: Client error '401 Unauthorized' for url 'https://supabase-ota-travel.onrender.com/api/hotels/9195'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401"
+        ],
+        "payload_sizes": {
+          "detail": 0,
+          "policies": 0,
+          "activities": 0
+        }
+      },
+      "expected_metric": "latency < 2000ms",
+      "status": "PASS",
+      "timestamp": "2026-06-12T10:58:15.247377"
+    },
+    {
+      "scenario_id": "LOOKUP_002",
+      "name": "Lookup policies by hotel_id",
+      "payload": {
+        "hotel_id": 9195,
+        "need": [
+          "policies"
+        ]
+      },
+      "iterations": 3,
+      "latency_ms": 394.06353333227645,
+      "latency_total_ms": 1182.1905999968294,
+      "result": {
+        "hotel_id": 9195,
+        "resolved_name": "9195",
+        "has_detail": false,
+        "has_policies": false,
+        "has_activities": false,
+        "errors": [
+          "policies: Client error '401 Unauthorized' for url 'https://supabase-ota-travel.onrender.com/api/hotels/9195/policies'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401"
+        ],
+        "payload_sizes": {
+          "detail": 0,
+          "policies": 0,
+          "activities": 0
+        }
+      },
+      "expected_metric": "latency < 2000ms",
+      "status": "PASS",
+      "timestamp": "2026-06-12T10:58:16.430702"
+    },
+    {
+      "scenario_id": "LOOKUP_003",
+      "name": "Lookup activities by hotel_id",
+      "payload": {
+        "hotel_id": 9195,
+        "need": [
+          "activities"
+        ]
+      },
+      "iterations": 3,
+      "latency_ms": 222.3641333306053,
+      "latency_total_ms": 667.0923999918159,
+      "result": {
+        "hotel_id": 9195,
+        "resolved_name": "9195",
+        "has_detail": false,
+        "has_policies": false,
+        "has_activities": false,
+        "errors": [
+          "activities: Client error '401 Unauthorized' for url 'https://supabase-ota-travel.onrender.com/api/hotels/9195/activities'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401"
+        ],
+        "payload_sizes": {
+          "detail": 0,
+          "policies": 0,
+          "activities": 0
+        }
+      },
+      "expected_metric": "latency < 2000ms",
+      "status": "PASS",
+      "timestamp": "2026-06-12T10:58:17.098694"
+    },
+    {
+      "scenario_id": "LOOKUP_004",
+      "name": "Lookup all hotel SQL data by hotel_id",
+      "payload": {
+        "hotel_id": 9195,
+        "need": [
+          "detail",
+          "policies",
+          "activities"
+        ]
+      },
+      "iterations": 3,
+      "latency_ms": 258.52053334043984,
+      "latency_total_ms": 775.5616000213195,
+      "result": {
+        "hotel_id": 9195,
+        "resolved_name": "9195",
+        "has_detail": false,
+        "has_policies": false,
+        "has_activities": false,
+        "errors": [
+          "detail: Client error '401 Unauthorized' for url 'https://supabase-ota-travel.onrender.com/api/hotels/9195'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401",
+          "policies: Client error '401 Unauthorized' for url 'https://supabase-ota-travel.onrender.com/api/hotels/9195/policies'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401",
+          "activities: Client error '401 Unauthorized' for url 'https://supabase-ota-travel.onrender.com/api/hotels/9195/activities'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401"
+        ],
+        "payload_sizes": {
+          "detail": 0,
+          "policies": 0,
+          "activities": 0
+        }
+      },
+      "expected_metric": "latency < 3500ms",
+      "status": "PASS",
+      "timestamp": "2026-06-12T10:58:17.875813"
+    },
+    {
+      "scenario_id": "LOOKUP_005",
+      "name": "Resolve by name and lookup all hotel SQL data",
+      "payload": {
+        "hotel_name": "Renaissance Riverside",
+        "city": "Hồ Chí Minh",
+        "need": [
+          "detail",
+          "policies",
+          "activities"
+        ]
+      },
+      "latency_ms": null,
+      "error": "Client error '401 Unauthorized' for url 'https://supabase-ota-travel.onrender.com/api/hotels?page=1&limit=100&city=H%E1%BB%93+Ch%C3%AD+Minh'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401",
+      "error_type": "HTTPStatusError",
+      "expected_error": null,
+      "expected_metric": "latency < 6000ms",
+      "status": "ERROR",
+      "timestamp": "2026-06-12T10:58:18.091590"
+    },
+    {
+      "scenario_id": "ERROR_001",
+      "name": "Unknown hotel name returns controlled error",
+      "payload": {
+        "hotel_name": "Definitely Unknown Hotel Name 000000",
+        "city": "Hồ Chí Minh",
+        "need": [
+          "detail"
+        ]
+      },
+      "latency_ms": null,
+      "error": "Client error '401 Unauthorized' for url 'https://supabase-ota-travel.onrender.com/api/hotels?page=1&limit=100&city=H%E1%BB%93+Ch%C3%AD+Minh'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401",
+      "error_type": "HTTPStatusError",
+      "expected_error": "HotelNotFoundError",
+      "expected_metric": "controlled HotelNotFoundError",
+      "status": "ERROR",
+      "timestamp": "2026-06-12T10:58:18.322000"
+    }
+  ]
+}

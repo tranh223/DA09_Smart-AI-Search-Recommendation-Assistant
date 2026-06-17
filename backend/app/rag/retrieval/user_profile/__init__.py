@@ -1,2 +1,0 @@
-"""User profile retrieval module."""
-

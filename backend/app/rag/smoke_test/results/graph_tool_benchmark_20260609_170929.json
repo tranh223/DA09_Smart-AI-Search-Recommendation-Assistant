@@ -1,0 +1,526 @@
+{
+  "timestamp": "2026-06-09T17:09:29.919532",
+  "graph_info": {
+    "graph_source": {
+      "url": "http://34.158.39.31:7474",
+      "user": "neo4j",
+      "password": "***",
+      "database": "neo4j"
+    },
+    "node_count": 18361,
+    "labels": [
+      "Hotel",
+      "Room",
+      "Activity",
+      "City",
+      "Tag",
+      "Place",
+      "User",
+      "UserFeature",
+      "DebugEvent"
+    ],
+    "relationship_types": [
+      "LOCATED_IN",
+      "HAS_ROOM",
+      "OFFERS_ACTIVITY",
+      "NEAR",
+      "HAS_TAG",
+      "HAS_FEATURES",
+      "INTERESTED_IN",
+      "BOOKED"
+    ],
+    "database": "neo4j"
+  },
+  "total_scenarios": 8,
+  "successful_scenarios": 8,
+  "results": [
+    {
+      "scenario_id": "CONN_001",
+      "name": "Count all nodes",
+      "operation": "cypher",
+      "query": null,
+      "top_k": null,
+      "iterations": 3,
+      "latency_ms": 69.08543904622395,
+      "latency_total_ms": 207.25631713867188,
+      "result_preview": {
+        "count": 1,
+        "first": {
+          "count": 18361
+        }
+      },
+      "expected_metric": "latency < 1000ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:09:25.007335"
+    },
+    {
+      "scenario_id": "CONN_002",
+      "name": "Count all relationships",
+      "operation": "cypher",
+      "query": null,
+      "top_k": null,
+      "iterations": 3,
+      "latency_ms": 172.19122250874838,
+      "latency_total_ms": 516.5736675262451,
+      "result_preview": {
+        "count": 1,
+        "first": {
+          "count": 232426
+        }
+      },
+      "expected_metric": "latency < 1000ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:09:25.523982"
+    },
+    {
+      "scenario_id": "META_001",
+      "name": "List labels",
+      "operation": "cypher",
+      "query": null,
+      "top_k": null,
+      "iterations": 5,
+      "latency_ms": 72.65739440917969,
+      "latency_total_ms": 363.28697204589844,
+      "result_preview": {
+        "count": 1,
+        "first": {
+          "labels": [
+            "Hotel",
+            "Room",
+            "Activity",
+            "City",
+            "Tag",
+            "Place",
+            "User",
+            "UserFeature",
+            "DebugEvent"
+          ]
+        }
+      },
+      "expected_metric": "latency < 500ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:09:25.887317"
+    },
+    {
+      "scenario_id": "SEARCH_001",
+      "name": "Get first 5 graph nodes",
+      "operation": "search",
+      "query": "",
+      "top_k": 5,
+      "iterations": 5,
+      "latency_ms": 84.88483428955078,
+      "latency_total_ms": 424.4241714477539,
+      "result_preview": {
+        "count": 5,
+        "first": {
+          "score": 0,
+          "relationships": [
+            {
+              "neighbor_properties": {
+                "address": "Cat Co 1, 2, Cat Hai, Hai Phong, Cát Bà, Quần Đảo Cát Bà, Việt Nam",
+                "accommodation_type": "Resort",
+                "city": "Quần Đảo Cát Bà",
+                "review_score": 8.6,
+                "latitude": 20.721899032592773,
+                "star_rating": 5.0,
+                "hotel_id": 21971824,
+                "name": "Khu nghỉ dưỡng Flamingo Cát Bà - Quản lý bởi Flamingo Hotels & Resorts (Flamingo Cat Ba Resort - Managed by Flamingo Hotels & Resorts)",
+                "review_count": 2950,
+                "longitude": 107.05561828613281
+              },
+              "neighbor_id": 938,
+              "neighbor_labels": [
+                "Hotel"
+              ],
+              "type": "LOCATED_IN",
+              "direction": "in"
+            }
+          ],
+          "matched_properties": [],
+          "id": 0,
+          "properties": {
+            "name": "Quần Đảo Cát Bà"
+          },
+          "labels": [
+            "City"
+          ]
+        }
+      },
+      "expected_metric": "latency < 1500ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:09:26.311802"
+    },
+    {
+      "scenario_id": "SEARCH_002",
+      "name": "Search Da Nang",
+      "operation": "search",
+      "query": "Da Nang",
+      "top_k": 5,
+      "iterations": 5,
+      "latency_ms": 257.5540542602539,
+      "latency_total_ms": 1287.7702713012695,
+      "result_preview": {
+        "count": 5,
+        "first": {
+          "score": 8,
+          "relationships": [
+            {
+              "neighbor_properties": {
+                "name": "Đà Nẵng"
+              },
+              "neighbor_id": 27,
+              "neighbor_labels": [
+                "City"
+              ],
+              "type": "LOCATED_IN",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 7136,
+                "max_occupancy": 3,
+                "room_size": "20 m²",
+                "price": 320000.0,
+                "bed_type": "1 giường đôi lớn",
+                "room_view": "Hướng Thành phố",
+                "name": "Phòng Giường Đôi Nhìn Ra Cảnh Thành Phố (Double Room with City View)",
+                "room_type_id": 1080692517
+              },
+              "neighbor_id": 8494,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 7129,
+                "max_occupancy": 2,
+                "room_size": "30 m²",
+                "price": 480000.0,
+                "bed_type": "1 giường đôi",
+                "room_view": "Hướng Thành phố",
+                "name": "Phòng Nghỉ Dưỡng 1 Phòng Ngủ (One Bedroom Retreat)",
+                "room_type_id": 1152560364
+              },
+              "neighbor_id": 8487,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 7142,
+                "bed_type": "1 giường đôi",
+                "name": "Phòng Nghỉ Dưỡng 1 Phòng Ngủ (One Bedroom Retreat)",
+                "room_type_id": 1152560364
+              },
+              "neighbor_id": 8500,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 7131,
+                "max_occupancy": 4,
+                "room_size": "22 m²",
+                "price": 350000.0,
+                "bed_type": "1 giường đôi lớn và 1 giường đơn",
+                "room_view": "Hướng Ngoài trời",
+                "name": "Phòng 3 Người Nhìn Ra Thành Phố (Triple Room with City View)",
+                "room_type_id": 1076330309
+              },
+              "neighbor_id": 8489,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            }
+          ],
+          "matched_properties": [
+            "address",
+            "name"
+          ],
+          "id": 1218,
+          "properties": {
+            "address": "04 Loseby, Phuoc My, Son Tra, Da Nang, An Hải Bắc, Đà Nẵng, Việt Nam",
+            "accommodation_type": "Khách sạn",
+            "city": "Đà Nẵng",
+            "review_score": 8.0,
+            "latitude": 16.073474884033203,
+            "hotel_id": 6185262,
+            "star_rating": 2.0,
+            "name": "Sunshine Beach Đà Nẵng (Sunshine Beach Da Nang)",
+            "review_count": 267,
+            "longitude": 108.24085235595703
+          },
+          "labels": [
+            "Hotel"
+          ]
+        }
+      },
+      "expected_metric": "latency < 1500ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:09:27.599895"
+    },
+    {
+      "scenario_id": "SEARCH_003",
+      "name": "Search hotel",
+      "operation": "search",
+      "query": "hotel",
+      "top_k": 5,
+      "iterations": 5,
+      "latency_ms": 256.3779830932617,
+      "latency_total_ms": 1281.8899154663086,
+      "result_preview": {
+        "count": 5,
+        "first": {
+          "score": 8,
+          "relationships": [
+            {
+              "neighbor_properties": {
+                "name": "Quy Nhơn"
+              },
+              "neighbor_id": 46,
+              "neighbor_labels": [
+                "City"
+              ],
+              "type": "LOCATED_IN",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 3726,
+                "bed_type": "1 giường đơn và 1 giường đôi lớn",
+                "name": "Phòng Tiêu chuẩn dành cho 4 người (Standard Quad)",
+                "room_type_id": 938463536
+              },
+              "neighbor_id": 5084,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 3763,
+                "max_occupancy": 2,
+                "room_size": "30 m²",
+                "price": 280000.0,
+                "bed_type": "1 giường đôi lớn",
+                "name": "Phòng 3 Người Có Bồn Tắm (Triple Room with Bath)",
+                "room_type_id": 921011427
+              },
+              "neighbor_id": 5121,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 3724,
+                "bed_type": "1 giường đôi lớn",
+                "name": "Phòng giường đôi có bồn tắm (Double Room with Bathtub)",
+                "room_type_id": 938455636
+              },
+              "neighbor_id": 5082,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 3760,
+                "max_occupancy": 3,
+                "room_size": "40 m²",
+                "price": 500000.0,
+                "review_score": 9.5,
+                "bed_type": "1 giường đơn và 1 giường đôi lớn",
+                "room_view": "Hướng Thành phố",
+                "name": "Studio",
+                "room_type_id": 754639631
+              },
+              "neighbor_id": 5118,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            }
+          ],
+          "matched_properties": [
+            "address",
+            "name"
+          ],
+          "id": 1034,
+          "properties": {
+            "address": "Khách Sạn Lucien Hotel Quy Nhơn , Trung tâm thành phố Quy Nhơn, Quy Nhơn (Bình Định), Việt Nam",
+            "accommodation_type": "Căn hộ dịch vụ",
+            "city": "Quy Nhơn",
+            "review_score": 9.1,
+            "latitude": 13.77525806427002,
+            "hotel_id": 34557033,
+            "star_rating": 1.0,
+            "name": "Khách sạn Lucien Quy Nhơn (Khách Sạn Lucien Hotel Quy Nhơn )",
+            "review_count": 1319,
+            "longitude": 109.2325668334961
+          },
+          "labels": [
+            "Hotel"
+          ]
+        }
+      },
+      "expected_metric": "latency < 1500ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:09:28.881905"
+    },
+    {
+      "scenario_id": "SEARCH_004",
+      "name": "Search restaurant",
+      "operation": "search",
+      "query": "restaurant",
+      "top_k": 5,
+      "iterations": 5,
+      "latency_ms": 207.47580528259277,
+      "latency_total_ms": 1037.3790264129639,
+      "result_preview": {
+        "count": 2,
+        "first": {
+          "score": 8,
+          "relationships": [
+            {
+              "neighbor_properties": {
+                "name": "Đà Nẵng"
+              },
+              "neighbor_id": 27,
+              "neighbor_labels": [
+                "City"
+              ],
+              "type": "LOCATED_IN",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 5357,
+                "max_occupancy": 2,
+                "room_size": "50 m²",
+                "price": 3000000.0,
+                "bed_type": "1 giường lớn",
+                "name": "Suite Executive (Executive Suite)",
+                "room_type_id": 746088705
+              },
+              "neighbor_id": 6715,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 5366,
+                "bed_type": "1 giường đôi lớn",
+                "name": "Phòng Loại Sang Giường Lớn (Deluxe King Room)",
+                "room_type_id": 739038105
+              },
+              "neighbor_id": 6724,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 5360,
+                "max_occupancy": 4,
+                "room_size": "39 m²",
+                "price": 2160000.0,
+                "bed_type": "2 giường đôi lớn",
+                "room_view": "Hướng Ngoài trời",
+                "name": "Phòng Gia Đình Tiêu Chuẩn (Standard Family Room)",
+                "room_type_id": 743201424
+              },
+              "neighbor_id": 6718,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            },
+            {
+              "neighbor_properties": {
+                "room_id": 5363,
+                "max_occupancy": 2,
+                "room_size": "50 m²",
+                "price": 3000000.0,
+                "bed_type": "1 giường sofa / 1 giường đôi lớn",
+                "room_view": "Hướng Thiên nhiên",
+                "name": "Suite Có Giường Cỡ King (King Suite)",
+                "room_type_id": 743201428
+              },
+              "neighbor_id": 6721,
+              "neighbor_labels": [
+                "Room"
+              ],
+              "type": "HAS_ROOM",
+              "direction": "out"
+            }
+          ],
+          "matched_properties": [
+            "address",
+            "name"
+          ],
+          "id": 1119,
+          "properties": {
+            "address": "Phu Long Tam Ky Hotel & Restaurant, 495 Phan Chau Trinh, Phuong Tam Ky, Tp Da Nang, Viet Nam, Hải Châu, Đà Nẵng, Việt Nam",
+            "accommodation_type": "Khách sạn",
+            "city": "Đà Nẵng",
+            "review_score": 8.6,
+            "latitude": 16.066599,
+            "hotel_id": 46187758,
+            "star_rating": 4.0,
+            "name": "Khách sạn & Nhà hàng Phú Long Tam Kỳ (Phú Long Tam Kỳ Hotel & Restaurant)",
+            "review_count": 124,
+            "longitude": 108.21224
+          },
+          "labels": [
+            "Hotel"
+          ]
+        }
+      },
+      "expected_metric": "latency < 1500ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:09:29.919365"
+    },
+    {
+      "scenario_id": "EDGE_001",
+      "name": "Search top_k zero",
+      "operation": "search",
+      "query": "anything",
+      "top_k": 0,
+      "iterations": 50,
+      "latency_ms": 0.0002288818359375,
+      "latency_total_ms": 0.011444091796875,
+      "result_preview": {
+        "count": 0,
+        "first": null
+      },
+      "expected_metric": "latency < 1ms",
+      "status": "PASS",
+      "timestamp": "2026-06-09T17:09:29.919403"
+    }
+  ]
+}

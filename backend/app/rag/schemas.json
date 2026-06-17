@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RAG Hotels System Schemas",
+  "type": "object",
+  "properties": {
+    "tool_schemas": {
+      "type": "object",
+      "properties": {
+        "tools.rag_tool.search_rag": {
+          "type": "object",
+          "properties": {
+            "request": {
+              "type": "object",
+              "properties": {
+                "query": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Natural language query"
+                },
+                "top_k": { "type": "integer", "minimum": 1, "default": 5 }
+              },
+              "required": ["query", "top_k"],
+              "additionalProperties": false
+            },
+            "response": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "score": { "type": "number" },
+                  "chunk_id": { "type": ["string", "integer", "null"] },
+                  "section": { "type": ["string", "null"] },
+                  "content": { "type": ["string", "null"] },
+                  "metadata": {
+                    "type": "object",
+                    "description": "Metadata dict (not embedded in vectors)"
+                  }
+                },
+                "required": ["score", "chunk_id", "section", "content", "metadata"],
+                "additionalProperties": true
+              }
+            }
+          },
+          "required": ["request", "response"],
+          "additionalProperties": false
+        },
+        "tools.graph_tool.search_graph": {
+          "type": "object",
+          "properties": {
+            "request": {
+              "type": "object",
+              "properties": {
+                "query": { "type": "string", "minLength": 1 },
+                "top_k": { "type": "integer", "minimum": 1, "default": 5 }
+              },
+              "required": ["query", "top_k"],
+              "additionalProperties": false
+            },
+            "response": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+          },
+          "required": ["request", "response"],
+          "additionalProperties": false
+        },
+        "tools.user_profile_tool.search_user_profile": {
+          "type": "object",
+          "properties": {
+            "request": {
+              "type": "object",
+              "properties": {
+                "user_id": { "type": "string" },
+                "query": { "type": "string", "minLength": 1 }
+              },
+              "required": ["user_id", "query"],
+              "additionalProperties": false
+            },
+            "response": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+          },
+          "required": ["request", "response"],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "layer_schemas": {
+      "type": "object",
+      "properties": {
+        "modules.retrieval.retrieve_from_rag": {
+          "type": "object",
+          "properties": {
+            "return": {
+              "type": "object",
+              "properties": {
+                "success": { "type": "boolean" },
+                "source": { "type": "string", "const": "rag" },
+                "results": {
+                  "type": "array",
+                  "items": { "type": "object", "additionalProperties": true }
+                },
+                "count": { "type": "integer", "minimum": 0 },
+                "error": { "type": "string" }
+              },
+              "required": ["success", "source", "results", "count"],
+              "additionalProperties": true
+            }
+          },
+          "required": ["return"],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}
+

@@ -1,0 +1,267 @@
+{
+  "summary": {
+    "timestamp": "2026-06-12T13:49:17.353346",
+    "total_cases": 5,
+    "avg_latency_ms": 62718.6155796051,
+    "avg_keyword_coverage": 0.2
+  },
+  "results": [
+    {
+      "case_id": "ES_01",
+      "case_name": "Hotel/activity relationship in HCM",
+      "query": "Trong dataset, nếu xét khách sạn 'Khách sạn Renaissance Riverside Sài Gòn (Renaissance Riverside Hotel Saigon)' thì khách sạn này có mối quan hệ thế nào với các hoạt động: 'Vé vào cửa Công viên giải trí VinWonders Cửa Hội' và 'Vé vào cổng Công viên Chủ đề Suối Tiên' ở Thành phố Hồ Chí Minh? Hãy so sánh mức độ liên quan giữa các hoạt động và nêu thêm thông tin về các hoạt động đó (không cần gợi ý khách sạn nào khác).",
+      "latency_s": 55.48246693611145,
+      "latency_ms": 55482.46693611145,
+      "response_preview": "Xin lỗi, có lỗi xảy ra: Error code: 413 - {'error': {'message': 'Request too large for model `qwen/qwen3-32b` in organization `org_01k48zmy6ce6nseqdv7jax34rn` service tier `on_demand` on tokens per minute (TPM): Limit 6000, Requested 6714, please reduce your message size and try again. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'cod",
+      "entity_keywords": [
+        "khách sạn",
+        "VinWonders Cửa Hội",
+        "Suối Tiên",
+        "Thành phố Hồ Chí Minh"
+      ],
+      "entity_highlights": {
+        "hit_count": 0,
+        "missed_keywords": [
+          "khách sạn",
+          "VinWonders Cửa Hội",
+          "Suối Tiên",
+          "Thành phố Hồ Chí Minh"
+        ],
+        "present_keywords": []
+      },
+      "keyword_coverage": 0.0,
+      "evidence_summary": {
+        "hotel_sql": {
+          "ok": false,
+          "has_detail": false,
+          "has_policies": false,
+          "has_activities": false
+        },
+        "rag": {
+          "ok": false,
+          "item_count": 0
+        },
+        "graph": {
+          "ok": false,
+          "item_count": 0
+        }
+      },
+      "plan_result": null,
+      "debug_detailed_keys": [
+        "query",
+        "response",
+        "error"
+      ]
+    },
+    {
+      "case_id": "ES_02",
+      "case_name": "Activity/Policy oriented - Da Nang",
+      "query": "Ở Đà Nẵng, hãy phân tích mối quan hệ giữa các hoạt động (activities) và ít nhất một khách sạn cụ thể trong dataset. Chọn một khách sạn bất kỳ trong Đà Nẵng và trả lời: khách sạn đó có những hoạt động nào được gắn kèm, và các hoạt động nào phù hợp cho gia đình? Nêu thêm thông tin về từng hoạt động.",
+      "latency_s": 5.711488723754883,
+      "latency_ms": 5711.488723754883,
+      "response_preview": "Xin lỗi, có lỗi xảy ra: Error code: 413 - {'error': {'message': 'Request too large for model `qwen/qwen3-32b` in organization `org_01k48zmy6ce6nseqdv7jax34rn` service tier `on_demand` on tokens per minute (TPM): Limit 6000, Requested 6711, please reduce your message size and try again. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'cod",
+      "entity_keywords": [
+        "hoạt động",
+        "gia đình",
+        "Đà Nẵng",
+        "tour"
+      ],
+      "entity_highlights": {
+        "hit_count": 0,
+        "missed_keywords": [
+          "hoạt động",
+          "gia đình",
+          "Đà Nẵng",
+          "tour"
+        ],
+        "present_keywords": []
+      },
+      "keyword_coverage": 0.0,
+      "evidence_summary": {
+        "hotel_sql": {
+          "ok": false,
+          "has_detail": false,
+          "has_policies": false,
+          "has_activities": false
+        },
+        "rag": {
+          "ok": false,
+          "item_count": 0
+        },
+        "graph": {
+          "ok": false,
+          "item_count": 0
+        }
+      },
+      "plan_result": null,
+      "debug_detailed_keys": [
+        "query",
+        "response",
+        "error"
+      ]
+    },
+    {
+      "case_id": "ES_03",
+      "case_name": "Hotel vs activity pair - HCM",
+      "query": "Trong dataset, với khách sạn 'Khách sạn Renaissance Riverside Sài Gòn (Renaissance Riverside Hotel Saigon)', so sánh mối quan hệ của khách sạn này với hai hoạt động: 'VIP Fast Track nhập cảnh tại sân bay Tân Sơn Nhất' và 'Dịch vụ Fast Track tại Sân bay Quốc tế Tân Sơn Nhất (SGN)'. Hoạt động nào liên quan hơn? Nêu thêm thông tin của từng hoạt động và giải thích quan hệ của chúng với khách sạn.",
+      "latency_s": 6.756041765213013,
+      "latency_ms": 6756.041765213013,
+      "response_preview": "Xin lỗi, có lỗi xảy ra: Error code: 413 - {'error': {'message': 'Request too large for model `qwen/qwen3-32b` in organization `org_01k48zmy6ce6nseqdv7jax34rn` service tier `on_demand` on tokens per minute (TPM): Limit 6000, Requested 6532, please reduce your message size and try again. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'cod",
+      "entity_keywords": [
+        "Renaissance Riverside",
+        "Fast Track",
+        "Tân Sơn Nhất",
+        "khách sạn"
+      ],
+      "entity_highlights": {
+        "hit_count": 0,
+        "missed_keywords": [
+          "Renaissance Riverside",
+          "Fast Track",
+          "Tân Sơn Nhất",
+          "khách sạn"
+        ],
+        "present_keywords": []
+      },
+      "keyword_coverage": 0.0,
+      "evidence_summary": {
+        "hotel_sql": {
+          "ok": false,
+          "has_detail": false,
+          "has_policies": false,
+          "has_activities": false
+        },
+        "rag": {
+          "ok": false,
+          "item_count": 0
+        },
+        "graph": {
+          "ok": false,
+          "item_count": 0
+        }
+      },
+      "plan_result": null,
+      "debug_detailed_keys": [
+        "query",
+        "response",
+        "error"
+      ]
+    },
+    {
+      "case_id": "ES_04",
+      "case_name": "Hotel vs activities - Nha Trang",
+      "query": "Với khách sạn 'Sunrise Nha Trang Beach Hotel & Spa', hãy mô tả mối quan hệ giữa khách sạn và các hoạt động: 'Vé vào cổng Công viên giải trí VinWonders Nha Trang' và 'Vé vào cổng Vinpearl Harbour Nha Trang'. So sánh hai hoạt động này về mức độ liên quan với khách sạn, và nêu thêm thông tin về từng hoạt động.",
+      "latency_s": 25.71907687187195,
+      "latency_ms": 25719.07687187195,
+      "response_preview": "Xin lỗi, có lỗi xảy ra: Error code: 413 - {'error': {'message': 'Request too large for model `qwen/qwen3-32b` in organization `org_01k48zmy6ce6nseqdv7jax34rn` service tier `on_demand` on tokens per minute (TPM): Limit 6000, Requested 6776, please reduce your message size and try again. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'cod",
+      "entity_keywords": [
+        "Sunrise Nha Trang",
+        "VinWonders Nha Trang",
+        "Vinpearl Harbour",
+        "khách sạn"
+      ],
+      "entity_highlights": {
+        "hit_count": 0,
+        "missed_keywords": [
+          "Sunrise Nha Trang",
+          "VinWonders Nha Trang",
+          "Vinpearl Harbour",
+          "khách sạn"
+        ],
+        "present_keywords": []
+      },
+      "keyword_coverage": 0.0,
+      "evidence_summary": {
+        "hotel_sql": {
+          "ok": false,
+          "has_detail": false,
+          "has_policies": false,
+          "has_activities": false
+        },
+        "rag": {
+          "ok": false,
+          "item_count": 0
+        },
+        "graph": {
+          "ok": false,
+          "item_count": 0
+        }
+      },
+      "plan_result": null,
+      "debug_detailed_keys": [
+        "query",
+        "response",
+        "error"
+      ]
+    },
+    {
+      "case_id": "ES_05",
+      "case_name": "Compare policies/activities mentions - HN",
+      "query": "Trong dataset, xét khách sạn 'Khách sạn Pullman Hà Nội (Pullman Hanoi Hotel)'. Khách sạn này được mô tả gắn kèm những hoạt động nào? Hãy so sánh mối quan hệ giữa ít nhất hai hoạt động cụ thể: 'Vé xem Múa rối nước Lotus tại Hà Nội' và 'Vé xem Múa rối nước Thăng Long tại Hà Nội'. Nêu thêm thông tin về từng hoạt động và trả lời chúng khác nhau thế nào.",
+      "latency_s": 219.92400360107422,
+      "latency_ms": 219924.00360107422,
+      "response_preview": "<think>\nOkay, let me try to figure out how to answer this question. The user is asking about the activities associated with the Pullman Hanoi Hotel and to compare two specific water puppet shows: \"Vé xem Múa rối nước Lotus tại Hà Nội\" and \"Vé xem Múa rối nước Thăng Long tại Hà Nội\". I need to highlight the differences between them and provide additional information for each.\n\nFirst, I should recal",
+      "entity_keywords": [
+        "Pullman Hanoi",
+        "Múa rối nước",
+        "Lotus",
+        "Thăng Long",
+        "khách sạn"
+      ],
+      "entity_highlights": {
+        "hit_count": 5,
+        "missed_keywords": [],
+        "present_keywords": [
+          "Pullman Hanoi",
+          "Múa rối nước",
+          "Lotus",
+          "Thăng Long",
+          "khách sạn"
+        ]
+      },
+      "keyword_coverage": 1.0,
+      "evidence_summary": {
+        "hotel_sql": {
+          "ok": false,
+          "has_detail": false,
+          "has_policies": false,
+          "has_activities": false
+        },
+        "rag": {
+          "ok": true,
+          "item_count": 5,
+          "first_sections": [
+            "activities",
+            "activities",
+            "activities"
+          ]
+        },
+        "graph": {
+          "ok": true,
+          "item_count": 5,
+          "sample_labels": [
+            [
+              "Hotel"
+            ],
+            [
+              "Hotel"
+            ]
+          ]
+        }
+      },
+      "plan_result": {
+        "raw": "<think>\nOkay, let's break this down. The user is asking about the activities associated with Pullman Hanoi Hotel in the dataset. They want a comparison between two specific activities: a water puppet show ticket from Lotus and another from Thang Long. \n\nFirst, I need to identify the main object here. That's clearly the hotel itself. The sub-objects would be the two activities mentioned. The user wants not just a comparison but additional information about each activity and their differences.\n\nNext, checking which data sources are needed. The Knowledge Graph would help link the hotel to the activities. The RAG Database might have the detailed descriptions of the activities. The Hotel SQL could store specific policies or relations. I don't think User Profile or Short-term Memory are needed here since it's about dataset information, not personal data.\n\nSteps would involve retrieving the hotel's related activities from the graph, fetching details on the two shows using RAG, and then comparing them. I need to make sure each step is logical and covers all required info. Let me structure this into JSON as specified.\n</think>\n\n{\n    \"query_type\": \"analysis_comparison\",\n    \"main_object\": \"Khách sạn Pullman Hà Nội\",\n    \"sub_objects\": [\"Vé xem Múa rối nước Lotus tại Hà Nội\", \"Vé xem Múa rối nước Thăng Long tại Hà Nội\"],\n    \"needs_rag\": true,\n    \"needs_graph\": true,\n    \"needs_user_profile\": false,\n    \"needs_short_term_memory\": false,\n    \"needs_hotel_sql\": true,\n\n    \"required_steps\": [\n        \"Truy vấn đồ thị tri thức để xác định mối liên hệ giữa khách sạn và các hoạt động gắn kèm\",\n        \"Tra cứu cơ sở dữ liệu RAG để lấy mô tả chi tiết từng hoạt động (Lotus & Thăng Long)\",\n        \"So sánh khác biệt về nội dung, hình thức, và đặc điểm nổi bật của hai hoạt động\",\n        \"Kiểm tra cơ sở dữ liệu SQL của khách sạn để xác nhận chính sách/dịch vụ liên quan đến các hoạt động này\"\n    ],\n    \"context\": \"Yêu cầu phân tích mối liên kết giữa khách sạn với hoạt động văn hóa, đồng thời so sánh phân biệt hai loại vé xem múa rối nước khác nhau về xuất xứ và chương trình biểu diễn.\"\n}"
+      },
+      "debug_detailed_keys": [
+        "query",
+        "response",
+        "plan",
+        "skill_agent",
+        "rag",
+        "graph",
+        "hotel_sql",
+        "aggregated_info"
+      ]
+    }
+  ]
+}

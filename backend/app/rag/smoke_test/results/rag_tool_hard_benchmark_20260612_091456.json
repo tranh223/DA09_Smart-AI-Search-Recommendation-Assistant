@@ -1,0 +1,845 @@
+{
+  "summary": {
+    "timestamp": "2026-06-12T09:14:56.439588",
+    "top_k": 5,
+    "per_case": 4,
+    "total_queries": 52,
+    "successful": 52,
+    "latency_avg_ms": 554.9033249800021,
+    "latency_p95_ms": 761.442244052887
+  },
+  "detailed": [
+    {
+      "query": "Khách sạn xông hơi có không? với ngân sách phù hợp.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 7191.342890262604,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Khách sạn breakfast có không? với ngân sách phù hợp.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 364.7555708885193,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Khách sạn car rental có không? với ngân sách phù hợp.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 372.56354093551636,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Có quy định liên quan đến wifi không? cho tôi.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 363.56598138809204,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Cho mình thông tin về pet. cho tôi.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 315.9205913543701,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Mình đang tìm valet và điều kiện như thế nào? mình muốn.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 519.646167755127,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Cho mình thông tin về spa. mình muốn.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 316.20484590530396,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Cho mình thông tin về spa. mình muốn.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 360.54158210754395,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Khách sạn pet có không? nếu có thì mức nào.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 360.5254888534546,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Cho mình thông tin về valet. có hay không.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 362.7050518989563,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "description"
+      ]
+    },
+    {
+      "query": "Mình đang tìm đặt cọc và điều kiện như thế nào? cho tôi.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 594.0485596656799,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Khách sạn parking có không? với ngân sách phù hợp.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 398.0586528778076,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Có quy định liên quan đến bữa sáng không? giúp tôi.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 301.93209648132324,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Khách sạn pool có không? cần biết.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 247.04521894454956,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "policy",
+        "description",
+        "policy"
+      ]
+    },
+    {
+      "query": "Khách sạn spa có không? tìm kiếm.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 243.6351776123047,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Khách sạn wifi có không? mình muốn.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 262.9098892211914,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Khách sạn car rental có không? giúp tôi.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 391.665518283844,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Cho mình thông tin về thú nuôi. tìm kiếm.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 398.22864532470703,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Có quy định liên quan đến wifi không? nếu có thì mức nào.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 419.34990882873535,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Khách sạn pool có không? mình muốn.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 311.12879514694214,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Có quy định liên quan đến gym không? nếu có thì mức nào.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 393.76938343048096,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Có quy định liên quan đến thuê xe không? cho tôi.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 515.6030654907227,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Cho mình thông tin về gym. tìm kiếm.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 324.28884506225586,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Có quy định liên quan đến trẻ em miễn phí không? có hay không.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 434.81892347335815,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Có quy định liên quan đến children free không? với ngân sách phù hợp.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 485.9299063682556,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Mình đang tìm trẻ em miễn phí và điều kiện như thế nào? cho tôi.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 813.2069110870361,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Mình đang tìm deposit và điều kiện như thế nào? cho tôi.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 566.1599636077881,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Khách sạn phòng tập gym có không? nếu có thì mức nào.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 520.4823613166809,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Khách sạn thú nuôi có không? cho tôi.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 324.0877389907837,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Mình đang tìm children free và điều kiện như thế nào? mình muốn.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 686.9125962257385,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Có quy định liên quan đến sauna không? có hay không.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 450.60795545578003,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Có quy định liên quan đến đưa đón sân bay không? mình muốn.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 628.0741095542908,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Khách sạn airport transfer có không? cho tôi.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 384.24378633499146,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "description",
+        "policy",
+        "description",
+        "policy"
+      ]
+    },
+    {
+      "query": "Mình đang tìm đưa đón sân bay và điều kiện như thế nào? cần biết.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 625.5136728286743,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Có quy định liên quan đến valet không? giúp tôi.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 371.191143989563,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Khách sạn spa có không? với ngân sách phù hợp.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 375.3178119659424,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Mình đang tìm wifi và điều kiện như thế nào? mình muốn.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 535.0680351257324,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Mình đang tìm hồ bơi và điều kiện như thế nào? tìm kiếm.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 761.442244052887,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Có quy định liên quan đến đặt cọc không? với ngân sách phù hợp.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 547.3375916481018,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Cho mình thông tin về bãi đỗ xe. cho tôi.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 320.19805908203125,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "policy",
+        "description",
+        "policy",
+        "description"
+      ]
+    },
+    {
+      "query": "Khách sạn xông hơi có không? với ngân sách phù hợp.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 497.8165030479431,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Cho mình thông tin về hồ bơi. cho tôi.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 346.82315587997437,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Khách sạn valet có không? nếu có thì mức nào.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 314.95022773742676,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Mình đang tìm phòng tập gym và điều kiện như thế nào? cho tôi.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 359.6677780151367,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Mình đang tìm airport transfer và điều kiện như thế nào? giúp tôi.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 366.862952709198,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "policy",
+        "description",
+        "description",
+        "activities"
+      ]
+    },
+    {
+      "query": "Cho mình thông tin về deposit. nếu có thì mức nào.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 425.2811074256897,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Khách sạn bữa sáng có không? có hay không.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 324.3563175201416,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "description",
+        "policy"
+      ]
+    },
+    {
+      "query": "Mình đang tìm bãi đỗ xe và điều kiện như thế nào? với ngân sách phù hợp.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 419.58385705947876,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Mình đang tìm breakfast và điều kiện như thế nào? mình muốn.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 435.19169092178345,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    },
+    {
+      "query": "Có quy định liên quan đến thuê xe không? với ngân sách phù hợp.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 403.23805809020996,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Có quy định liên quan đến sauna không? cần biết.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 475.6927490234375,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ]
+    },
+    {
+      "query": "Khách sạn parking có không? với ngân sách phù hợp.",
+      "top_k": 5,
+      "per_case": 4,
+      "avg_latency_ms": 325.48022270202637,
+      "got_count": 5,
+      "error": null,
+      "missing_first_item": null,
+      "top_sections": [
+        "description",
+        "description",
+        "description",
+        "description",
+        "description"
+      ]
+    }
+  ]
+}
