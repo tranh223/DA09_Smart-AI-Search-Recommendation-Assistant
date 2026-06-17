@@ -6,6 +6,7 @@ import logging
 import threading
 from typing import Any
 
+from app.agent.latency import build_latency_summary
 from app.agent.qu_adapter import pipeline_result_to_state
 from app.agent.response_builder import build_response_with_llm
 from app.agent.state import AgentState
@@ -340,5 +341,5 @@ def format_response_node(state: AgentState) -> dict[str, Any]:
 
 
 def analytics_node(state: AgentState) -> dict[str, Any]:
-    """Analytics hook — chờ Kafka/Mongo logging được wire vào."""
-    return {}
+    """Tổng hợp latency từng giai đoạn và xác định bottleneck."""
+    return {"latency_summary": build_latency_summary(state)}

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 from fastapi import APIRouter
@@ -75,6 +76,11 @@ async def chat(req: ChatRequest):
         "user_profile": user_profile,
         "slots": req.slots,
         "rerank_options": req.rerank_options,
+        "request_started_at": time.perf_counter(),
     }
     result = await graph.ainvoke(state)
-    return result.get("final_response", result)
+    response = result.get("final_response", result)
+    latency = result.get("latency_summary")
+    if latency and isinstance(response, dict):
+        return {**response, "latency": latency}
+    return response

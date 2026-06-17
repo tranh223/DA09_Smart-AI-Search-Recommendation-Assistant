@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from typing import Any, TypedDict
 
+from typing_extensions import Annotated
+
+from app.agent.latency import merge_latency_trace
 from app.recommendation.models import MergedCandidate, RecommendInput
+
+LatencyTrace = Annotated[dict[str, float], merge_latency_trace]
 
 
 class AgentState(TypedDict, total=False):
@@ -13,6 +18,9 @@ class AgentState(TypedDict, total=False):
     session_id: str
     conversation_id: str
     raw_query: str
+    request_started_at: float
+    latency_trace: LatencyTrace
+    latency_summary: dict[str, Any]
 
     # Raw user profile dict từ client — được coerce sang QU UserProfile
     # bởi QueryUnderstandingPipeline._coerce_user_profile()

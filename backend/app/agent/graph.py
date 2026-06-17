@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from langgraph.graph import END, START, StateGraph
 
+from app.agent.latency import with_timing
 from app.agent.nodes import (
     analytics_node,
     clarify_node,
@@ -26,18 +27,18 @@ def build_graph():
     """Compile and return OTA LangGraph app."""
     graph = StateGraph(AgentState)
 
-    graph.add_node("session", session_node)
-    graph.add_node("intent", intent_node)
-    graph.add_node("slot_check", slot_check_node)
-    graph.add_node("clarify", clarify_node)
-    graph.add_node("rewrite", rewrite_node)
-    graph.add_node("rag", rag_node)
-    graph.add_node("recommend", recommend_node)
-    graph.add_node("rerank", rerank_node)
-    graph.add_node("response_builder", response_builder_node)
-    graph.add_node("explain", explain_node)
-    graph.add_node("format_response", format_response_node)
-    graph.add_node("analytics", analytics_node)
+    graph.add_node("session", with_timing("session", session_node))
+    graph.add_node("intent", with_timing("intent", intent_node))
+    graph.add_node("slot_check", with_timing("slot_check", slot_check_node))
+    graph.add_node("clarify", with_timing("clarify", clarify_node))
+    graph.add_node("rewrite", with_timing("rewrite", rewrite_node))
+    graph.add_node("rag", with_timing("rag", rag_node))
+    graph.add_node("recommend", with_timing("recommend", recommend_node))
+    graph.add_node("rerank", with_timing("rerank", rerank_node))
+    graph.add_node("response_builder", with_timing("response_builder", response_builder_node))
+    graph.add_node("explain", with_timing("explain", explain_node))
+    graph.add_node("format_response", with_timing("format_response", format_response_node))
+    graph.add_node("analytics", with_timing("analytics", analytics_node))
 
     graph.add_edge(START, "session")
     graph.add_edge("session", "intent")

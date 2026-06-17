@@ -327,6 +327,7 @@ async def test_full(
         "user_profile": profile,
         "slots": slots or {},
         "rerank_options": rerank_options or {},
+        "request_started_at": time.perf_counter(),
     }
 
     t0 = time.perf_counter()
@@ -348,4 +349,8 @@ async def test_full(
         else:
             safe_result[k] = v
 
-    return {"elapsed_ms": elapsed_ms, "state": safe_result}
+    return {
+        "elapsed_ms": elapsed_ms,
+        "latency_summary": safe_result.get("latency_summary"),
+        "state": safe_result,
+    }
