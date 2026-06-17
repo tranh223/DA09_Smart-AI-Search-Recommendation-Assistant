@@ -1,2 +1,0 @@
-"""Graph retrieval module."""
-

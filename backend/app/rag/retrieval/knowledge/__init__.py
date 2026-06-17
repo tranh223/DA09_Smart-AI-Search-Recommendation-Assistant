@@ -1,2 +1,0 @@
-"""Knowledge retrieval module."""
-
