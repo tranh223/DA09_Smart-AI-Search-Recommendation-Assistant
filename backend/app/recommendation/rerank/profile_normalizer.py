@@ -10,7 +10,11 @@ def normalize_count_group(group: Any) -> dict[str, float]:
         return {}
     counts: dict[str, float] = {}
     for key, payload in group.items():
-        count = to_float(as_dict(payload).get("count"), 0.0)
+        if isinstance(payload, (int, float)):
+            # Pre-normalized weight (e.g. qu_adapter._neg_to_float → dict[str, float])
+            count = max(0.0, float(payload))
+        else:
+            count = to_float(as_dict(payload).get("count"), 0.0)
         counts[str(key)] = max(0.0, count or 0.0)
     max_count = max(counts.values(), default=0.0)
     if max_count <= 0:

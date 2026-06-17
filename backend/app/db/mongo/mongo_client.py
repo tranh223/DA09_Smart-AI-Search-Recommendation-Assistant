@@ -15,9 +15,9 @@ try:
     client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
     db = client[DATABASE_NAME]
     client.server_info()
-    print("🚀 [MongoDB] Kết nối thành công!")
+    print("[MongoDB] Ket noi thanh cong!")
 except PyMongoError as e:
-    print(f"❌ [MongoDB] Không thể kết nối: {e}")
+    print(f"[MongoDB] Khong the ket noi: {e}")
 
 
 def get_collection(collection_name: str):

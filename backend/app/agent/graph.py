@@ -10,10 +10,10 @@ from app.agent.nodes import (
     explain_node,
     format_response_node,
     intent_node,
-    merge_result_node,
     rag_node,
     recommend_node,
     rerank_node,
+    response_builder_node,
     rewrite_node,
     session_node,
     slot_check_node,
@@ -34,7 +34,7 @@ def build_graph():
     graph.add_node("rag", rag_node)
     graph.add_node("recommend", recommend_node)
     graph.add_node("rerank", rerank_node)
-    graph.add_node("merge_result", merge_result_node)
+    graph.add_node("response_builder", response_builder_node)
     graph.add_node("explain", explain_node)
     graph.add_node("format_response", format_response_node)
     graph.add_node("analytics", analytics_node)
@@ -52,13 +52,17 @@ def build_graph():
         },
     )
 
+    # rewrite fan-out → RAG và Recommend chạy song song
     graph.add_edge("clarify", END)
     graph.add_edge("rewrite", "rag")
     graph.add_edge("rewrite", "recommend")
     graph.add_edge("recommend", "rerank")
-    graph.add_edge("rag", "merge_result")
-    graph.add_edge("rerank", "merge_result")
-    graph.add_edge("merge_result", "explain")
+
+    # response_builder chờ cả rag và rerank hoàn thành (LangGraph fan-in tự động)
+    graph.add_edge("rag", "response_builder")
+    graph.add_edge("rerank", "response_builder")
+
+    graph.add_edge("response_builder", "explain")
     graph.add_edge("explain", "format_response")
     graph.add_edge("format_response", "analytics")
     graph.add_edge("analytics", END)

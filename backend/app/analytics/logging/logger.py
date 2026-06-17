@@ -10,13 +10,30 @@ from app.analytics.metrics.evaluator import evaluate_session
 
 load_dotenv()
 
-KAFKA_URL = os.getenv('KAFKA_URL')
-producer = KafkaProducer(
-    bootstrap_servers=[KAFKA_URL],
-    value_serializer=lambda v: json.dumps(v).encode('utf-8')
-)
+def _normalize_kafka_url(raw_url: str | None) -> str:
+    """
+    Chuẩn hóa KAFKA_URL từ env để tránh lỗi parse port
+    khi có ký tự thừa như dấu "\\" ở cuối.
+    """
+    if not raw_url:
+        return "localhost:9092"
+    return raw_url.strip().strip("\"'").rstrip("\\/")
+
+
+KAFKA_URL = _normalize_kafka_url(os.getenv("KAFKA_URL"))
+
+try:
+    producer = KafkaProducer(
+        bootstrap_servers=[KAFKA_URL],
+        value_serializer=lambda v: json.dumps(v).encode("utf-8")
+    )
+except Exception as e:
+    producer = None
+    print(f"[Kafka] Producer init failed with KAFKA_URL='{KAFKA_URL}': {e}")
 
 def producer_send(session_id: str, value):
+    if producer is None:
+        raise RuntimeError("Kafka producer chưa được khởi tạo.")
     producer.send(
         topic='users-topic', 
         key=session_id.encode('utf-8'), 
@@ -102,16 +119,23 @@ def log_booking(session_id: str):
     producer_send(session_id, value)
 
 def start_log_listener():
-    consumer = KafkaConsumer(
-        'users-topic',
-        bootstrap_servers=[KAFKA_URL],
-        value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-        auto_offset_reset='earliest',
-        enable_auto_commit=True,
-        group_id='backend-log-processor'
-    )
+    if not KAFKA_URL:
+        print("[Kafka] Missing KAFKA_URL, skip listener.")
+        return
+    try:
+        consumer = KafkaConsumer(
+            'users-topic',
+            bootstrap_servers=[KAFKA_URL],
+            value_deserializer=lambda m: json.loads(m.decode('utf-8')),
+            auto_offset_reset='earliest',
+            enable_auto_commit=True,
+            group_id='backend-log-processor'
+        )
+    except Exception as e:
+        print(f"[Kafka] Consumer init failed with KAFKA_URL='{KAFKA_URL}': {e}")
+        return
     sessions_collection = get_collection("Sessions")
-    print("📥 Kafka Listener bắt đầu chạy...")
+    print("[Kafka] Listener started.")
     for message in consumer:
         try:
             log_data = message.value
@@ -164,7 +188,7 @@ def start_log_listener():
                 if update_query:
                     update_query["$setOnInsert"] = default_fields
                     sessions_collection.update_one(filter_query, update_query, upsert=True)
-                    print(f"💾 Cập nhật {msg_type} thành công cho session: {session_id}")
+                    print(f"[Kafka] Updated {msg_type} for session: {session_id}")
             else:
                 end_time = datetime.fromisoformat(log) if isinstance(log, str) else datetime.now()
                 default_fields.pop("end", None)
@@ -173,10 +197,10 @@ def start_log_listener():
                     "$setOnInsert": default_fields
                 }
                 sessions_collection.update_one(filter_query, update_query, upsert=True)
-                print(f"🔔 Đánh giá phiên: {session_id}")
+                print(f"[Kafka] Evaluate session: {session_id}")
                 evaluate_session(session_id=session_id)
         except Exception as e:
-            print(f"❌ [Log] Lỗi xử lý tin nhắn: {str(e)}")
+            print(f"[Log] Message processing error: {str(e)}")
 
 def log_booking_for_graph(hotel_id, user_id, hotel_name):
     '''
@@ -191,10 +215,10 @@ def log_booking_for_graph(hotel_id, user_id, hotel_name):
     }
     try:
         result = bookings_collection.insert_one(booking_data)
-        print(f"✅ [Mongo] Đã ghi nhận booking thành công. ID: {result.inserted_id}")
+        print(f"[Mongo] Booking logged. ID: {result.inserted_id}")
         return result.inserted_id
     except Exception as e:
-        print(f"❌ [Mongo] Lỗi khi log booking: {str(e)}")
+        print(f"[Mongo] Booking log error: {str(e)}")
         return None
     
 

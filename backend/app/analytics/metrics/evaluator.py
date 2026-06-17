@@ -1,21 +1,36 @@
 from datasets import Dataset
 from openai import OpenAI
 import os
-from ragas import evaluate
-from ragas.llms import llm_factory
-from ragas.embeddings import OpenAIEmbeddings
 import random
 from datetime import datetime
 from app.db.mongo.mongo_client import get_collection
 from bson import ObjectId
 from app.utils.util import transform_id
-from app.analytics.logging.logger import clear_log
+
+try:
+    from ragas import evaluate
+    from ragas.llms import llm_factory
+    from ragas.embeddings import OpenAIEmbeddings
+    HAS_RAGAS = True
+except ImportError:
+    evaluate = None
+    llm_factory = None
+    OpenAIEmbeddings = None
+    HAS_RAGAS = False
+
+
+def _ensure_ragas_available():
+    if not HAS_RAGAS:
+        raise RuntimeError(
+            "Ragas is not installed. Install it with `pip install ragas` to use ragas evaluation."
+        )
 
 def ragas_at_deploy(questions: list, ground_truths: list, llm_answers: list, contexts_list: list) -> dict:
     """
     chạy ragas trước khi deploy bằng golden dataset (hỏi DATA)
     output: 4 metric ragas (đơn vị %)
     """
+    _ensure_ragas_available()
     dataset = Dataset.from_dict({
         "question": questions,
         "answer": llm_answers,
@@ -41,6 +56,7 @@ def ragas_at_weekend():
     tính xong lưu luôn 4 metric ragas (đơn vị %) vào mongodb
     * chỉ lấy random từ những session mà có end < now() và evaluated = true, chạy xong xóa session
     '''
+    _ensure_ragas_available()
     sessions_collection = get_collection('Sessions')
     evals_collection = get_collection('Eval')
     now = datetime.now()
@@ -173,6 +189,25 @@ def session_csat(session_id: str, collection):
         csat = (num_like / total) * 0.3 +  final_reaction * 0.7
 
     return csat
+
+
+def clear_log(session_id: str, collection):
+    '''
+    xóa reaction, final reaction, latency, ttft, booking của phiên chat sau khi đánh giá
+    '''
+    collection.update_one(
+        {"_id": ObjectId(session_id)},
+        {
+            "$unset": {
+                "num_like": "",
+                "num_dislike": "",
+                "final_reaction": "",
+                "latency": "",
+                "ttft": "",
+                "booking": ""
+            }
+        }
+    )
 
 
 def save_evaluation_result(
