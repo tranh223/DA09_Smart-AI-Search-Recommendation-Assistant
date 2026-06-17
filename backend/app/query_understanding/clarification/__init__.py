@@ -1,2 +1,0 @@
-"""Clarification question module."""
-

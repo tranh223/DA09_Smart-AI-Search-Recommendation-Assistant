@@ -6,10 +6,10 @@ from ragas.llms import llm_factory
 from ragas.embeddings import OpenAIEmbeddings
 import random
 from datetime import datetime
-from backend.app.db.mongo.mongo_client import get_collection
+from app.db.mongo.mongo_client import get_collection
 from bson import ObjectId
-from backend.app.utils.util import transform_id
-from backend.app.analytics.logging.logger import clear_log
+from app.utils.util import transform_id
+from app.analytics.logging.logger import clear_log
 
 def ragas_at_deploy(questions: list, ground_truths: list, llm_answers: list, contexts_list: list) -> dict:
     """

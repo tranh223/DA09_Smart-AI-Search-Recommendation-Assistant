@@ -3,10 +3,10 @@ from dotenv import load_dotenv
 import json
 from kafka import KafkaProducer, KafkaConsumer
 from datetime import datetime
-from backend.app.db.mongo.mongo_client import get_collection
-from backend.app.utils.util import transform_id
+from app.db.mongo.mongo_client import get_collection
+from app.utils.util import transform_id
 from bson import ObjectId
-from backend.app.analytics.metrics.evaluator import evaluate_session
+from app.analytics.metrics.evaluator import evaluate_session
 
 load_dotenv()
 
