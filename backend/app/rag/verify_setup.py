@@ -114,10 +114,13 @@ def check_configuration():
     try:
         from config.settings import settings
         
-        print(f"   • OPENAI_MODEL: {settings.OPENAI_MODEL}")
+        key = settings.OPENAI_API_KEY
+        masked = f"{key[:8]}...{key[-4:]}" if len(key) > 12 else ("set" if key else "NOT SET")
+        print(f"   • OPENAI_API_KEY: {masked}")
+        print(f"   • LLM_MODEL: {settings.LLM_MODEL}")
         print(f"   • LOG_LEVEL: {settings.LOG_LEVEL}")
-        print(f"   • LANGSMITH_ENABLED: {settings.LANGSMITH_ENABLED}")
-        print(f"   • CHUNK_SIZE: {settings.CHUNK_SIZE}")
+        print(f"   • LANGSMITH_TRACING: {settings.LANGSMITH_TRACING}")
+        print(f"   • GRAPH_DB_URL: {settings.GRAPH_DB_URL}")
         
         return True
     except Exception as e:

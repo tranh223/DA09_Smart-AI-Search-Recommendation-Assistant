@@ -19,6 +19,17 @@ except ImportError:
     HAS_RAGAS = False
 
 
+def _ragas_openai_client() -> OpenAI:
+    return OpenAI(
+        api_key=os.getenv("OPENAI_API_KEY"),
+        base_url=os.getenv("OPENAI_CHAT_BASE_URL") or os.getenv("BASE_URL"),
+    )
+
+
+def _ragas_model() -> str:
+    return os.getenv("LLM_MODEL", "gpt-4o-mini")
+
+
 def _ensure_ragas_available():
     if not HAS_RAGAS:
         raise RuntimeError(
@@ -37,8 +48,8 @@ def ragas_at_deploy(questions: list, ground_truths: list, llm_answers: list, con
         "contexts": contexts_list,
         "ground_truth": ground_truths
     })
-    custom_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv("BASE_URL"))
-    ragas_llm = llm_factory(model="gpt-4o-mini", client=custom_client)
+    custom_client = _ragas_openai_client()
+    ragas_llm = llm_factory(model=_ragas_model(), client=custom_client)
     ragas_emb = OpenAIEmbeddings(client=custom_client)
     if hasattr(ragas_emb, 'embed_text'):
         ragas_emb.embed_query = ragas_emb.embed_text
@@ -96,8 +107,8 @@ def ragas_at_weekend():
         "contexts": contexts_list,
         "ground_truth": ground_truths
     })
-    custom_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv("BASE_URL"))
-    ragas_llm = llm_factory(model="gpt-4o-mini", client=custom_client)
+    custom_client = _ragas_openai_client()
+    ragas_llm = llm_factory(model=_ragas_model(), client=custom_client)
     ragas_emb = OpenAIEmbeddings(client=custom_client)
     if hasattr(ragas_emb, 'embed_text'):
         ragas_emb.embed_query = ragas_emb.embed_text

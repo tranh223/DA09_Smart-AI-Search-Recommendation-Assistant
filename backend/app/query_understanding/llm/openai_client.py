@@ -16,15 +16,24 @@ class OpenAIResponsesClient:
         self,
         api_key: str | None = None,
         base_url: str | None = None,
-        timeout_seconds: float = 60.0,
-        max_retries: int = 2,
-        retry_delay_seconds: float = 1.0,
+        timeout_seconds: float | None = None,
+        max_retries: int | None = None,
+        retry_delay_seconds: float | None = None,
     ) -> None:
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        self.base_url = base_url or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1/responses")
-        self.timeout_seconds = timeout_seconds
-        self.max_retries = max_retries
-        self.retry_delay_seconds = retry_delay_seconds
+        self.base_url = (
+            base_url
+            or os.getenv("OPENAI_RESPONSES_BASE_URL")
+            or os.getenv("OPENAI_BASE_URL")
+            or "https://api.openai.com/v1/responses"
+        )
+        self.timeout_seconds = timeout_seconds or float(os.getenv("LLM_TIMEOUT_SECONDS", "60") or "60")
+        self.max_retries = max_retries if max_retries is not None else int(os.getenv("LLM_MAX_RETRIES", "2") or "2")
+        self.retry_delay_seconds = (
+            retry_delay_seconds
+            if retry_delay_seconds is not None
+            else float(os.getenv("LLM_RETRY_DELAY_SECONDS", "1.0") or "1.0")
+        )
         if not self.api_key:
             raise RuntimeError("OPENAI_API_KEY is required for LLM-backed query understanding.")
 

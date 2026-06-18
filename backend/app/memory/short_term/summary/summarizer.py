@@ -8,7 +8,10 @@ from datetime import datetime
 
 load_dotenv()
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv('BASE_URL'))
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY"),
+    base_url=os.getenv("OPENAI_CHAT_BASE_URL") or os.getenv("BASE_URL"),
+)
 
 def summarize_chat(summary: str, history: list, user_id: str) -> tuple[str, list]:
     '''
@@ -46,12 +49,13 @@ def summarize_chat(summary: str, history: list, user_id: str) -> tuple[str, list
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            temperature=0.3
+            temperature=float(os.getenv("SUMMARY_LLM_TEMPERATURE", "0.3") or "0.3"),
+            timeout=float(os.getenv("SUMMARY_LLM_TIMEOUT_SECONDS", os.getenv("LLM_TIMEOUT_SECONDS", "30")) or "30"),
         )
         new_summary = response.choices[0].message.content.strip()        
         if new_summary != summary:

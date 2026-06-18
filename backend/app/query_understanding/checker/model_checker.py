@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass, field
 from datetime import date
 
@@ -46,10 +47,13 @@ class ModelChecker:
     def __init__(
         self,
         recommendation_client: OpenAIResponsesClient | None = None,
-        recommendation_model: str = "gpt-4o-mini",
+        recommendation_model: str | None = None,
     ) -> None:
         self.recommendation_client = recommendation_client or OpenAIResponsesClient()
-        self.recommendation_model = recommendation_model
+        self.recommendation_model = (
+            recommendation_model
+            or os.getenv("LLM_MODEL", "gpt-4o-mini")
+        )
 
     def check_current_profile(self, current_profile: UserProfile) -> ProfileCheckResult:
         return ProfileCheckResult(

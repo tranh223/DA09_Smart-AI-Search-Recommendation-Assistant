@@ -1,12 +1,19 @@
-import os
-from dotenv import load_dotenv
 import json
-from kafka import KafkaProducer, KafkaConsumer
+import os
 from datetime import datetime
+
+from dotenv import load_dotenv
+
 from app.db.mongo.mongo_client import get_collection
 from app.utils.util import transform_id
 from bson import ObjectId
 from app.analytics.metrics.evaluator import evaluate_session
+
+try:
+    from kafka import KafkaConsumer, KafkaProducer
+except ModuleNotFoundError:  # pragma: no cover - optional analytics dependency
+    KafkaConsumer = None  # type: ignore[assignment]
+    KafkaProducer = None  # type: ignore[assignment]
 
 load_dotenv()
 
@@ -22,23 +29,29 @@ def _normalize_kafka_url(raw_url: str | None) -> str:
 
 KAFKA_URL = _normalize_kafka_url(os.getenv("KAFKA_URL"))
 
-try:
-    producer = KafkaProducer(
-        bootstrap_servers=[KAFKA_URL],
-        value_serializer=lambda v: json.dumps(v).encode("utf-8")
-    )
-except Exception as e:
+if KafkaProducer is None:
     producer = None
-    print(f"[Kafka] Producer init failed with KAFKA_URL='{KAFKA_URL}': {e}")
+    print("[Kafka] kafka-python not installed, analytics producer disabled.")
+else:
+    try:
+        producer = KafkaProducer(
+            bootstrap_servers=[KAFKA_URL],
+            value_serializer=lambda v: json.dumps(v).encode("utf-8")
+        )
+    except Exception as e:
+        producer = None
+        print(f"[Kafka] Producer init failed with KAFKA_URL='{KAFKA_URL}': {e}")
 
 def producer_send(session_id: str, value):
     if producer is None:
-        raise RuntimeError("Kafka producer chưa được khởi tạo.")
+        print("[Kafka] Producer unavailable, skip analytics event.")
+        return False
     producer.send(
-        topic='users-topic', 
-        key=session_id.encode('utf-8'), 
+        topic='users-topic',
+        key=session_id.encode('utf-8'),
         value=value
     ).get(timeout=10)
+    return True
     
 def end_session(session_id: str):
     value = {
@@ -47,7 +60,8 @@ def end_session(session_id: str):
         "log": datetime.now().isoformat()
     }
     producer_send(session_id, value)
-    producer.flush()
+    if producer is not None:
+        producer.flush(timeout=1)
     
 def log_chat(question: str, answer: str, session_id: str):
     '''
@@ -119,6 +133,9 @@ def log_booking(session_id: str):
     producer_send(session_id, value)
 
 def start_log_listener():
+    if KafkaConsumer is None:
+        print("[Kafka] kafka-python not installed, skip listener.")
+        return
     if not KAFKA_URL:
         print("[Kafka] Missing KAFKA_URL, skip listener.")
         return

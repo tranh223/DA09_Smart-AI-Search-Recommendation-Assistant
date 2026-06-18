@@ -14,11 +14,14 @@ LatencyTrace = Annotated[dict[str, float], merge_latency_trace]
 
 class AgentState(TypedDict, total=False):
     # ── Request / session ────────────────────────────────────────────────────
+    request_id: str          # UUIDv4 hex từ RequestIDMiddleware — dùng để trace log
     user_id: str
     session_id: str
     conversation_id: str
     raw_query: str
+    # time.perf_counter() tại thời điểm nhận request — dùng để tính total_ms
     request_started_at: float
+    # Annotated với merge_latency_trace reducer — cho phép parallel nodes cùng ghi
     latency_trace: LatencyTrace
     latency_summary: dict[str, Any]
 

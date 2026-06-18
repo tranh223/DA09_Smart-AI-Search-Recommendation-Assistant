@@ -1,63 +1,212 @@
+"""OTA Smart AI — FastAPI application entry point."""
+
 from __future__ import annotations
 
+import importlib
+import logging
 import os
 import sys
 import threading
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
-# Backward-compatible path for legacy absolute imports like "query_understanding.*"
+
+# ── Logging configuration ─────────────────────────────────────────────────────
+# Must run before any other import that creates a logger.
+# Uvicorn configures root logger handlers on startup; we only set levels here
+# so our app namespaces emit at the right verbosity without double-handling.
+
+def _configure_logging() -> None:
+    log_level = getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO)
+
+    # Dedicated formatter for the ota.flow trace logger (not propagated to root)
+    _flow_fmt = logging.Formatter(
+        fmt="%(asctime)s.%(msecs)03d  %(levelname)-5s  %(name)s  %(message)s",
+        datefmt="%H:%M:%S",
+    )
+    flow_log = logging.getLogger("ota.flow")
+    flow_log.setLevel(log_level)
+    if not flow_log.handlers:
+        _h = logging.StreamHandler(sys.stdout)
+        _h.setFormatter(_flow_fmt)
+        flow_log.addHandler(_h)
+    flow_log.propagate = False  # avoid double output with uvicorn root handler
+
+    # App-wide namespaces inherit root handler (uvicorn stdout)
+    for _ns in ("app", "ota", "api"):
+        logging.getLogger(_ns).setLevel(log_level)
+
+
+_configure_logging()
+
+# ── LangChain compatibility patch (must run before any langgraph import) ──────
+langchain_load = importlib.import_module("langchain_core.load.load")
+
+
+def _patch_langchain_reviver_default() -> None:
+    original_reviver = langchain_load.Reviver
+
+    class ReviverWithAllowedObjects(original_reviver):
+        def __init__(self, *args, **kwargs):
+            if not args and "allowed_objects" not in kwargs:
+                kwargs["allowed_objects"] = "core"
+            super().__init__(*args, **kwargs)
+
+    langchain_load.Reviver = ReviverWithAllowedObjects
+
+
+_patch_langchain_reviver_default()
+
+# ── sys.path: allow legacy absolute imports like "query_understanding.*" ──────
 BASE_DIR = os.path.dirname(__file__)
 APP_DIR = os.path.join(BASE_DIR, "app")
 if APP_DIR not in sys.path:
     sys.path.append(APP_DIR)
 
-from app.analytics.logging.logger import start_log_listener
-from app.api.routes.chat import router as chat_router
-from app.api.routes.health import router as health_router
-from app.api.routes.test import router as test_router
+# ── Application imports ───────────────────────────────────────────────────────
+from app.analytics.logging.logger import start_log_listener  # noqa: E402
+from app.api.middleware import RequestIDMiddleware, get_request_id  # noqa: E402
+from app.api.routes.chat import router as chat_router  # noqa: E402
+from app.api.routes.health import router as health_router  # noqa: E402
+from app.api.routes.test import router as test_router  # noqa: E402
 
+logger = logging.getLogger(__name__)
+
+# ── Environment config ────────────────────────────────────────────────────────
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development").lower()
+IS_PRODUCTION = ENVIRONMENT == "production"
+
+# CORS — comma-separated origins; "*" allowed only in development
+_raw_origins = os.getenv("CORS_ORIGINS", "" if IS_PRODUCTION else "*")
+CORS_ORIGINS: list[str] = (
+    [o.strip() for o in _raw_origins.split(",") if o.strip()]
+    if _raw_origins != "*"
+    else ["*"]
+)
+
+# Test endpoints — disabled by default in production
+ENABLE_TEST_ENDPOINTS = (
+    os.getenv("ENABLE_TEST_ENDPOINTS", "false" if IS_PRODUCTION else "true").lower()
+    == "true"
+)
+
+
+# ── Startup validation ────────────────────────────────────────────────────────
+
+def _check_required_env() -> list[str]:
+    """Return list of missing critical env vars."""
+    required = ["OPENAI_API_KEY", "MONGO_URI", "NEO4J_URI", "NEO4J_PASSWORD"]
+    return [v for v in required if not os.getenv(v)]
+
+
+# ── Lifespan ──────────────────────────────────────────────────────────────────
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    worker_thread = threading.Thread(target=start_log_listener, daemon=True)
-    worker_thread.start()
-    yield
+    missing = _check_required_env()
+    if missing:
+        logger.warning(
+            "[startup] Missing env vars (some features may degrade): %s",
+            ", ".join(missing),
+        )
+    else:
+        logger.info("[startup] All required env vars present.")
 
+    worker = threading.Thread(target=start_log_listener, daemon=True)
+    worker.start()
+    logger.info("[startup] Kafka log listener started.")
+    logger.info(
+        "[startup] OTA Smart AI ready — env=%s  log_level=%s  test_endpoints=%s",
+        ENVIRONMENT,
+        os.getenv("LOG_LEVEL", "INFO"),
+        ENABLE_TEST_ENDPOINTS,
+    )
+    yield
+    logger.info("[shutdown] Application shutting down.")
+
+
+# ── App factory ───────────────────────────────────────────────────────────────
 
 app = FastAPI(
     title="OTA Smart AI Search & Recommendation",
     description=(
         "AI-powered hotel search and recommendation assistant.\n\n"
-        "**Luồng chính**: `/chat`\n\n"
-        "**Debug/Test**: `/test/*` endpoints để kiểm tra từng module riêng lẻ.\n\n"
-        "**Health**: `/health` để kiểm tra trạng thái toàn hệ thống."
+        "**Main endpoint**: `POST /chat`\n\n"
+        "**Health**: `GET /health/ready` (readiness), `GET /health/live` (liveness)\n\n"
+        "**Test/Debug**: `POST /test/*` — disabled in production."
     ),
     version="1.0.0",
     lifespan=lifespan,
-    docs_url="/docs",
-    redoc_url="/redoc",
+    # Swagger/ReDoc disabled in production
+    docs_url=None if IS_PRODUCTION else "/docs",
+    redoc_url=None if IS_PRODUCTION else "/redoc",
+    openapi_url=None if IS_PRODUCTION else "/openapi.json",
 )
+
+# ── Middleware (order matters — outermost first) ──────────────────────────────
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=CORS_ORIGINS,
+    # allow_credentials must be False when allow_origins contains "*"
+    allow_credentials=CORS_ORIGINS != ["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Request-ID"],
+    expose_headers=["X-Request-ID", "X-Response-Time-Ms"],
 )
+
+app.add_middleware(RequestIDMiddleware)
+
+
+# ── Global exception handler ─────────────────────────────────────────────────
+
+@app.exception_handler(Exception)
+async def _global_error_handler(request: Request, exc: Exception) -> JSONResponse:
+    req_id = get_request_id()
+    logger.error(
+        "[%s] Unhandled exception on %s %s: %s",
+        req_id,
+        request.method,
+        request.url.path,
+        exc,
+        exc_info=True,
+    )
+    return JSONResponse(
+        status_code=500,
+        content={
+            "success": False,
+            "request_id": req_id,
+            "error": {
+                "code": "INTERNAL_ERROR",
+                "message": "An unexpected error occurred. Please try again.",
+            },
+        },
+        headers={"X-Request-ID": req_id},
+    )
+
+
+# ── Routers ───────────────────────────────────────────────────────────────────
 
 app.include_router(chat_router)
 app.include_router(health_router)
-app.include_router(test_router)
+
+if ENABLE_TEST_ENDPOINTS:
+    app.include_router(test_router)
+    logger.info("[startup] Test endpoints enabled at /test/*")
+else:
+    logger.info("[startup] Test endpoints disabled (ENVIRONMENT=%s)", ENVIRONMENT)
 
 
-@app.get("/", tags=["root"], summary="Root")
-def read_root():
+# ── Root ─────────────────────────────────────────────────────────────────────
+
+@app.get("/", include_in_schema=False)
+def root():
     return {
-        "message": "OTA Smart AI — Still alive",
-        "docs": "/docs",
-        "health": "/health",
+        "service": "OTA Smart AI Search & Recommendation",
+        "version": "1.0.0",
+        "environment": ENVIRONMENT,
+        "health": "/health/ready",
     }
