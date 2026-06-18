@@ -104,8 +104,9 @@ def build_latency_summary(state: dict[str, Any]) -> dict[str, Any]:
     }
     qu_bottleneck = max(qu_timing, key=qu_timing.get) if qu_timing else None
 
-    rerank_debug = (state.get("rerank_result") or {}).get("debug") or {}
-    rerank_latency_ms = rerank_debug.get("latency_ms")
+    rerank_result = state.get("rerank_result") or {}
+    rerank_latency_ms = rerank_result.get("latency_ms")
+    rerank_breakdown = rerank_result.get("latency_breakdown") or {}
 
     return {
         "total_ms": total_ms,
@@ -118,4 +119,5 @@ def build_latency_summary(state: dict[str, Any]) -> dict[str, Any]:
         "qu_bottleneck": qu_bottleneck,
         "qu_bottleneck_ms": qu_timing.get(qu_bottleneck) if qu_bottleneck else None,
         "rerank_reported_ms": rerank_latency_ms,
+        "rerank_breakdown_ms": rerank_breakdown,
     }

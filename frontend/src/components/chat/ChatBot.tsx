@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { t } from '../../styles/theme';
 import { sendChatMessage, type BackendChatData } from '../../services/backendApi';
-import { type Hotel, type HotelListParams, type RecoQuery } from '../../services/hotels';
+import { type Hotel, type HotelListParams, type RecoQuery, extractImages } from '../../services/hotels';
 
 // Bề rộng chat dock bên phải — trang chừa đúng khoảng này để không bị che.
 export const CHAT_DOCK_WIDTH = 440;
@@ -111,7 +111,7 @@ function backendRecommendationToHotel(item: Record<string, unknown>): Hotel | nu
     country: firstString(item.country, metadata.country) ?? 'Việt Nam',
     description: firstString(item.description, item.ai_reason, metadata.description),
     min_price: toNumber(item.min_price ?? item.price_min ?? metadata.price_min ?? metadata.min_price),
-    images: [],
+    images: extractImages({ ...metadata, ...item }),
     amenities: [],
   };
 }

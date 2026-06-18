@@ -203,6 +203,9 @@ cython_debug/
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
 
+# Runtime rerank logs
+**/logs/*.jsonl
+
 # Ruff stuff:
 .ruff_cache/
 

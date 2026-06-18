@@ -104,7 +104,7 @@ def run_rerank_from_merged(
     opts = dict(options or {})
     if "session_context" not in opts:
         opts["session_context"] = inp.session_context.model_dump()
-    opts.setdefault("top_k", inp.limit_per_source or 5)
+    opts.setdefault("top_k", 8)
 
     user_context = {
         "session_context": inp.session_context.model_dump(),
