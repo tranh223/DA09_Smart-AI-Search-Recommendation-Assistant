@@ -57,7 +57,7 @@ export interface RecoQuery {
 
 // ---- Trích ảnh từ một bản ghi bất kỳ (API có thể trả nhiều dạng) ----
 
-function extractImages(raw: any): HotelImage[] {
+export function extractImages(raw: any): HotelImage[] {
   const out: HotelImage[] = [];
   const arr = raw?.images ?? raw?.hotel_images ?? raw?.photos;
   if (Array.isArray(arr)) {

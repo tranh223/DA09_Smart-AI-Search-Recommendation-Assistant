@@ -420,6 +420,7 @@ def rerank_node(state: AgentState) -> dict[str, Any]:
             "sources": item.get("sources", []),
             "reasons": item.get("reasons", []),
             "warnings": item.get("warnings", []),
+            "primary_image": item.get("primary_image"),
             "metadata": {
                 "destination": item.get("destination"),
                 "price_min": item.get("price_min"),
@@ -427,6 +428,7 @@ def rerank_node(state: AgentState) -> dict[str, Any]:
                 "currency": item.get("currency"),
                 "feature_scores": item.get("feature_scores"),
                 "negative_penalty": item.get("negative_penalty"),
+                "primary_image": item.get("primary_image"),
             },
         }
         for item in ranked_hotels
