@@ -31,6 +31,43 @@ const inputStyle: React.CSSProperties = {
 
 type Mode = 'reco' | 'all';
 
+function normalizeText(value?: string): string {
+  return (value ?? '').trim().toLowerCase();
+}
+
+function filterRecommendedHotels(hotels: Hotel[], filters: HotelListParams): Hotel[] {
+  const city = normalizeText(filters.city);
+  const minStars = filters.star_rating_min;
+
+  let result = hotels.filter((hotel) => {
+    if (city && !normalizeText(`${hotel.city ?? ''} ${hotel.area ?? ''} ${hotel.address ?? ''}`).includes(city)) {
+      return false;
+    }
+    if (minStars != null && (hotel.star_rating ?? 0) < minStars) {
+      return false;
+    }
+    return true;
+  });
+
+  switch (filters.sort_by) {
+    case 'price:asc':
+      result = [...result].sort((a, b) => (a.min_price ?? Number.MAX_SAFE_INTEGER) - (b.min_price ?? Number.MAX_SAFE_INTEGER));
+      break;
+    case 'price:desc':
+      result = [...result].sort((a, b) => (b.min_price ?? 0) - (a.min_price ?? 0));
+      break;
+    case 'star_rating:desc':
+      result = [...result].sort((a, b) => (b.star_rating ?? 0) - (a.star_rating ?? 0));
+      break;
+    case 'review_score:desc':
+    default:
+      result = [...result].sort((a, b) => (b.review_score ?? 0) - (a.review_score ?? 0));
+      break;
+  }
+
+  return result;
+}
+
 export function HotelsPage({ onNavigate, chatOpen = false, recoQuery = null }: { onNavigate?: (route: Route) => void; chatOpen?: boolean; recoQuery?: RecoQuery | null }) {
   const [selected, setSelected] = useState<Hotel | null>(null);
   const [mode, setMode] = useState<Mode>('all');
@@ -58,7 +95,14 @@ export function HotelsPage({ onNavigate, chatOpen = false, recoQuery = null }: {
   const base = mode === 'reco' && recoQuery ? recoQuery.params : {};
   const query: HotelListParams = { ...base, ...userFilters, page, limit: PAGE_SIZE };
 
-  const { hotels, total, loading, error } = useHotels(query);
+  const directRecoHotels = mode === 'reco' && recoQuery?.hotels?.length ? recoQuery.hotels : null;
+  const directFilteredHotels = directRecoHotels ? filterRecommendedHotels(directRecoHotels, userFilters) : null;
+  const directPageHotels = directFilteredHotels?.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) ?? null;
+  const hotelState = useHotels(query, !directRecoHotels);
+  const hotels = directPageHotels ?? hotelState.hotels;
+  const total = directFilteredHotels?.length ?? hotelState.total;
+  const loading = directRecoHotels ? false : hotelState.loading;
+  const error = directRecoHotels ? null : hotelState.error;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   function applyFilters() {

@@ -1,2 +1,0 @@
-"""Recommendation explanation module."""
-

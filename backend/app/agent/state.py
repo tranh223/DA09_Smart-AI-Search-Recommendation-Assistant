@@ -49,6 +49,7 @@ class AgentState(TypedDict, total=False):
     recommend_input: RecommendInput
     merged_candidates: list[MergedCandidate]
     ranked_recommendations: list[dict[str, Any]]
+    candidate_limit_per_source: int
     rerank_options: dict[str, Any]
     rerank_result: dict[str, Any]
 

@@ -8,11 +8,16 @@ interface State {
   error: string | null;
 }
 
-export function useHotels(params: HotelListParams = {}) {
+export function useHotels(params: HotelListParams = {}, enabled = true) {
   const [state, setState] = useState<State>({ hotels: [], total: 0, loading: true, error: null });
   const key = JSON.stringify(params);
 
   useEffect(() => {
+    if (!enabled) {
+      setState({ hotels: [], total: 0, loading: false, error: null });
+      return;
+    }
+
     let alive = true;
     setState((s) => ({ ...s, loading: true, error: null }));
     listHotels(params)
@@ -26,7 +31,7 @@ export function useHotels(params: HotelListParams = {}) {
       alive = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [key, enabled]);
 
   return state;
 }

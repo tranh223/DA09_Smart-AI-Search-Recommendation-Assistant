@@ -92,6 +92,7 @@ class FullGraphRequest(BaseModel):
     query: str = Field(default="Tìm khách sạn ở Đà Nẵng", min_length=1)
     user_profile: dict[str, Any] = Field(default_factory=dict)
     slots: dict[str, Any] = Field(default_factory=dict)
+    candidate_limit_per_source: int = Field(default=10, ge=1, le=50)
     rerank_options: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -326,6 +327,7 @@ async def test_full(req: FullGraphRequest):
         "raw_query": req.query,
         "user_profile": profile,
         "slots": req.slots,
+        "candidate_limit_per_source": req.candidate_limit_per_source,
         "rerank_options": req.rerank_options,
         "request_started_at": time.perf_counter(),
     }

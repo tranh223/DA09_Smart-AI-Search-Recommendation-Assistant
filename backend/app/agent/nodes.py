@@ -15,6 +15,9 @@ from app.recommendation.models import PriceRange, Profile, RecommendInput, Sessi
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_CANDIDATE_LIMIT_PER_SOURCE = 10
+MAX_CANDIDATE_LIMIT_PER_SOURCE = 50
+
 
 # ── QueryUnderstandingPipeline singleton ─────────────────────────────────────
 # Khởi tạo một lần duy nhất (lazy, thread-safe) để tránh load lại
@@ -48,6 +51,16 @@ def _get_pipeline() -> Any:
                 exc,
             )
     return _pipeline
+
+
+def _candidate_limit_per_source(state: AgentState) -> int:
+    """Read candidate retrieval fanout independently from rerank top_k."""
+    raw_limit = state.get("candidate_limit_per_source", DEFAULT_CANDIDATE_LIMIT_PER_SOURCE)
+    try:
+        limit = int(raw_limit or DEFAULT_CANDIDATE_LIMIT_PER_SOURCE)
+    except (TypeError, ValueError):
+        limit = DEFAULT_CANDIDATE_LIMIT_PER_SOURCE
+    return min(max(limit, 1), MAX_CANDIDATE_LIMIT_PER_SOURCE)
 
 
 # ── Session node ─────────────────────────────────────────────────────────────
@@ -170,7 +183,7 @@ def intent_node(state: AgentState) -> dict[str, Any]:
         user_profile_raw = {**user_profile_raw, "user_id": user_id}
 
     chat_history: list[dict[str, str]] = state.get("chat_history") or []
-    limit = int(((state.get("rerank_options") or {}).get("top_k") or 10))
+    limit = _candidate_limit_per_source(state)
 
     req_id = state.get("request_id") or state.get("session_id") or "-"
     pipeline = _get_pipeline()

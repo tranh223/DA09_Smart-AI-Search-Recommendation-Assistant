@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { t } from '../../styles/theme';
 import { sendChatMessage, type BackendChatData } from '../../services/backendApi';
-import { type HotelListParams, type RecoQuery } from '../../services/hotels';
+import { type Hotel, type HotelListParams, type RecoQuery } from '../../services/hotels';
 
 // Bề rộng chat dock bên phải — trang chừa đúng khoảng này để không bị che.
 export const CHAT_DOCK_WIDTH = 440;
@@ -76,6 +76,50 @@ function suggestionChips(data: BackendChatData): string[] | undefined {
     .filter(Boolean)
     .slice(0, 3);
   return suggestions.length ? suggestions : undefined;
+}
+
+function toNumber(value: unknown): number | undefined {
+  if (value === null || value === undefined || value === '') return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+function firstString(...values: unknown[]): string | undefined {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return undefined;
+}
+
+function backendRecommendationToHotel(item: Record<string, unknown>): Hotel | null {
+  const metadata = (item.metadata && typeof item.metadata === 'object' ? item.metadata : {}) as Record<string, unknown>;
+  const id = toNumber(item.hotel_id ?? item.item_id ?? item.id);
+  if (id == null) return null;
+
+  return {
+    id,
+    name: firstString(item.hotel_name, item.name, metadata.hotel_name, metadata.name) ?? `Khách sạn #${id}`,
+    property_type: firstString(item.property_type, metadata.property_type),
+    accommodation_type: firstString(item.accommodation_type, item.hotel_type, metadata.accommodation_type, metadata.hotel_type),
+    star_rating: toNumber(item.star_rating ?? metadata.star_rating),
+    is_luxury: Boolean(item.is_luxury ?? metadata.is_luxury),
+    review_score: toNumber(item.review_score ?? metadata.review_score ?? item.score),
+    review_count: toNumber(item.review_count ?? metadata.review_count),
+    address: firstString(item.address, metadata.address),
+    city: firstString(item.city, item.destination, metadata.city, metadata.destination),
+    area: firstString(item.area, metadata.area),
+    country: firstString(item.country, metadata.country) ?? 'Việt Nam',
+    description: firstString(item.description, item.ai_reason, metadata.description),
+    min_price: toNumber(item.min_price ?? item.price_min ?? metadata.price_min ?? metadata.min_price),
+    images: [],
+    amenities: [],
+  };
+}
+
+function hotelsFromBackend(data: BackendChatData): Hotel[] {
+  return (data.recommendations ?? [])
+    .map((item) => backendRecommendationToHotel(item))
+    .filter((item): item is Hotel => item !== null);
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -259,6 +303,14 @@ export function ChatBot({ isOpen, onOpen, onClose, onRecommend, onClearRecommend
         text: formatBackendReply(data),
         chips: suggestionChips(data),
       });
+      const recommendedHotels = hotelsFromBackend(data);
+      if (recommendedHotels.length > 0) {
+        onRecommend({
+          label: `VinBot · ${txt}`,
+          params: {},
+          hotels: recommendedHotels,
+        });
+      }
       setStep(3);
     } catch (error) {
       setIsTyping(false);
