@@ -1,6 +1,7 @@
 """FastAPI backend cho frontend chat: POST /chat (SSE) -> gợi ý cá nhân hóa.
 
 Hợp đồng SSE khớp frontend (frontend/src/api/chat.ts):
+    event: step    data: {"name": str, "ms": int, "depth": int}   # bước reasoning (live)
     event: token   data: {"text": "..."}      # các mẩu chữ giới thiệu (tuỳ chọn)
     event: result  data: {"clarifying_question": str|null, "cards": [...]}
     (kết thúc stream = done)
@@ -12,12 +13,15 @@ Chạy:
 from __future__ import annotations
 
 import json
+import queue
+import threading
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
 from app.api.schemas import CTA, ChatRequest, Price, RecommendationCard
+from app.core import trace
 from app.services.chat import chat as chat_turn
 
 app = FastAPI(title="OTA Travel Assistant API")
@@ -33,6 +37,16 @@ app.add_middleware(
 
 def _sse(event: str, data: dict) -> str:
     return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+def _step_payload(event: dict) -> dict:
+    """Rút gọn sự kiện trace cho frontend: tên bước + thời gian (ms) + độ sâu.
+    (Các `notes` chi tiết kỹ thuật chỉ giữ ở terminal, không gửi ra UI.)"""
+    return {
+        "name": event["name"],
+        "ms": round(event["seconds"] * 1000),
+        "depth": event["depth"],
+    }
 
 
 def _to_card(rec: dict) -> RecommendationCard:
@@ -83,17 +97,47 @@ def _chat_stream(req: ChatRequest):
         })
         return
 
-    try:
-        # chat() giữ ngữ cảnh theo session_id và suy ra yêu cầu độc lập.
-        result = chat_turn(req.session_id, user_id, message, top_k=5)
-    except ValueError as exc:
-        yield _sse("result", {"clarifying_question": str(exc), "cards": []})
+    # chat_turn() chặn (blocking) và phát trace bên trong, nên chạy ở THREAD riêng và
+    # đẩy từng sự kiện bước qua hàng đợi -> generator này stream `step` xuống frontend
+    # NGAY khi mỗi bước xong (live), rồi mới gửi kết quả cuối.
+    events: queue.Queue = queue.Queue()
+    box: dict = {}
+
+    def _sink(event: dict) -> None:
+        trace.stdout_sink(event)  # vẫn in ra terminal server
+        events.put(("step", event))
+
+    def _worker() -> None:
+        trace.set_sink(_sink)  # sink riêng cho thread/request này (ContextVar)
+        try:
+            box["result"] = chat_turn(req.session_id, user_id, message, top_k=5)
+        except ValueError as exc:
+            box["clarify"] = str(exc)
+        except Exception:  # noqa: BLE001
+            box["clarify"] = "Xin lỗi, có lỗi khi tạo gợi ý. Bạn thử lại nhé."
+        finally:
+            events.put(("done", None))
+
+    threading.Thread(target=_worker, daemon=True).start()
+
+    # Bơm các bước reasoning ra frontend cho tới khi worker báo xong.
+    while True:
+        kind, payload = events.get()
+        if kind == "done":
+            break
+        yield _sse("step", _step_payload(payload))
+
+    if "clarify" in box:
+        yield _sse("result", {"clarifying_question": box["clarify"], "cards": []})
         return
-    except Exception:  # noqa: BLE001
-        yield _sse("result", {
-            "clarifying_question": "Xin lỗi, có lỗi khi tạo gợi ý. Bạn thử lại nhé.",
-            "cards": [],
-        })
+    result = box["result"]
+
+    # Hỏi đáp / chitchat: trả lời trực tiếp bằng văn bản, không có thẻ khách sạn.
+    reply = result.get("reply")
+    if reply:
+        for word in reply.split(" "):
+            yield _sse("token", {"text": word + " "})
+        yield _sse("result", {"clarifying_question": None, "cards": []})
         return
 
     cards = [_to_card(r) for r in result["recommendations"]]

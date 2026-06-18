@@ -1,11 +1,12 @@
 // SSE client for POST /chat. EventSource only supports GET, so we POST with fetch and
 // parse the Server-Sent Events stream manually: token* → result → done.
 
-import type { ChatResult } from "../types";
+import type { ChatResult, ReasoningStep } from "../types";
 
 const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? "/api";
 
 export interface ChatStreamHandlers {
+  onStep: (step: ReasoningStep) => void;
   onToken: (text: string) => void;
   onResult: (result: ChatResult) => void;
   onDone: () => void;
@@ -58,7 +59,8 @@ function dispatch(raw: string, h: ChatStreamHandlers): void {
   if (!data) return;
 
   const payload = JSON.parse(data);
-  if (event === "token") h.onToken(payload.text ?? "");
+  if (event === "step") h.onStep(payload as ReasoningStep);
+  else if (event === "token") h.onToken(payload.text ?? "");
   else if (event === "result") h.onResult(payload as ChatResult);
   // "done" is signaled by the stream ending (onDone in streamChat).
 }

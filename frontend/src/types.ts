@@ -37,6 +37,13 @@ export interface ChatResult {
   cards: RecommendationCard[];
 }
 
+// Một bước trong "quá trình suy luận" mà backend stream qua SSE event `step`.
+export interface ReasoningStep {
+  name: string;
+  ms: number;
+  depth: number;
+}
+
 export type ChatRole = "user" | "assistant";
 
 export interface ChatMessage {
@@ -44,5 +51,6 @@ export interface ChatMessage {
   role: ChatRole;
   text: string;
   cards?: RecommendationCard[];
+  steps?: ReasoningStep[];
   pending?: boolean;
 }

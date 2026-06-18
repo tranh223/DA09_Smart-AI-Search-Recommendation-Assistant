@@ -17,6 +17,7 @@ import re
 
 from neo4j.exceptions import Neo4jError
 
+from app.core import trace
 from app.core.llm_client import OPENAI_MODEL, get_openai
 from app.core.neo4j_client import run_cypher_nodes
 from app.retrieval.schema import get_schema
@@ -49,11 +50,14 @@ Quy tắc:
   schema (ánh xạ cách người dùng diễn đạt sang đúng tên tag, vd "wifi" -> "Wi-Fi miễn phí").
   Nếu không có tag nào khớp ý người dùng, mới fallback sang so khớp property bằng
   toLower(...) CONTAINS toLower(...).
-- PHÂN BIỆT ngữ nghĩa nhiều điều kiện:
-  - Người dùng cần CẢ nhiều tiện nghi (vd "wifi VÀ bể bơi"): khách sạn phải có TẤT CẢ tag đó.
-    Dùng: MATCH (h)-[:HAS_TAG]->(t:Tag) WHERE t.name IN [...] WITH h, count(DISTINCT t) AS k
-    WHERE k = <số tag yêu cầu> ... KHÔNG dùng IN đơn thuần vì IN cho ngữ nghĩa HOẶC.
-  - Người dùng chấp nhận BẤT KỲ tiện nghi nào (vd "wifi hoặc bể bơi"): dùng t.name IN [...].
+- Khi người dùng nêu NHIỀU tiện nghi (KỂ CẢ khi nói "và", vd "wifi và bể bơi"): KHÔNG bắt buộc
+  khách sạn phải có ĐỦ tất cả. Mặc định dùng ngữ nghĩa HOẶC — lấy khách sạn khớp BẤT KỲ tiện
+  nghi nào bằng t.name IN [...], rồi ƯU TIÊN nơi khớp NHIỀU tiện nghi hơn:
+    MATCH (h:Hotel)-[:HAS_TAG]->(t:Tag) WHERE t.name IN [...]
+    WITH h, count(DISTINCT t) AS matched
+    RETURN h AS result ORDER BY matched DESC, h.review_score DESC LIMIT $limit
+  (h đã DUY NHẤT sau WITH nên KHÔNG dùng DISTINCT. CHỈ khi người dùng NHẤN MẠNH phải có ĐỦ tất
+  cả mới thêm WHERE matched = <số tiện nghi yêu cầu>.)
 - Với so khớp văn bản tự do khác, dùng toLower(...) CONTAINS toLower(...) để không phân biệt
   hoa/thường.
 - GIÁ khách sạn = giá phòng thấp nhất của nó. Property giá nằm trên Room.price (KHÔNG có giá
@@ -212,20 +216,31 @@ def search(user_query: str, limit: int = 10, max_retries: int = 2) -> list[dict]
         >>> search("Tôi muốn tìm khách sạn có view biển")   # -> Hotel
         >>> search("những địa điểm gần khách sạn X")          # -> Place
     """
-    plan = generate_cypher(user_query, limit=limit)
+    with trace.step("Sinh Cypher từ câu hỏi") as s:
+        plan = generate_cypher(user_query, limit=limit)
+        s.note(f"params={plan.get('params')}")
+        if plan.get("reasoning"):
+            s.note(f"lý do: {plan['reasoning']}")
+        s.note("Cypher:\n" + plan["cypher"].strip())
 
     for attempt in range(max_retries + 1):
         try:
-            return run_plan(plan)
+            with trace.step("Chạy Cypher trên Neo4j") as s:
+                rows = run_plan(plan)
+                s.note(f"{len(rows)} node trả về")
+            return rows
         except Neo4jError as exc:
             if attempt == max_retries:
                 raise
-            plan = generate_cypher(
-                user_query,
-                limit=limit,
-                error_feedback=str(exc),
-                prev_cypher=plan["cypher"],
-            )
+            with trace.step(f"Cypher lỗi, nhờ LLM sửa (lần {attempt + 1})") as s:
+                s.note(f"lỗi Neo4j: {exc}")
+                plan = generate_cypher(
+                    user_query,
+                    limit=limit,
+                    error_feedback=str(exc),
+                    prev_cypher=plan["cypher"],
+                )
+                s.note("Cypher sửa lại:\n" + plan["cypher"].strip())
 
     return []  # không tới được (vòng lặp luôn return hoặc raise)
 

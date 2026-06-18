@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 
 from app.config import CANDIDATE_LIMIT
+from app.core import trace
 from app.core.llm_client import OPENAI_MODEL, get_openai
 from app.core.neo4j_client import run_cypher
 from app.retrieval.graph_search import search
@@ -165,6 +166,36 @@ def _candidates_from_query(user_id: str, query: str) -> list[dict]:
     return merged
 
 
+def get_hotel_facts(hotel_id: int | None = None, name: str | None = None) -> list[dict]:
+    """Chi tiết một khách sạn để TRẢ LỜI câu hỏi: tiện nghi/đặc điểm (tag theo nhóm như
+    view, hồ bơi...), các hạng phòng + giá, hạng sao, điểm đánh giá.
+
+    Tìm theo `hotel_id` (ưu tiên, chính xác) hoặc `name` (CONTAINS, không phân biệt hoa
+    thường — dùng khi chỉ biết tên). Trả danh sách (có thể >1 nếu tên mơ hồ) để bên gọi
+    chọn đúng. Rỗng nếu không khớp khách sạn nào.
+    """
+    if hotel_id is None and not name:
+        return []
+    return run_cypher(
+        """
+        MATCH (h:Hotel)
+        WHERE ($hid IS NOT NULL AND h.hotel_id = $hid)
+           OR ($name IS NOT NULL AND toLower(h.name) CONTAINS toLower($name))
+        OPTIONAL MATCH (h)-[:HAS_TAG]->(t:Tag)
+        WITH h, collect(DISTINCT {category: t.category, name: t.name}) AS tags
+        OPTIONAL MATCH (h)-[:HAS_ROOM]->(r:Room)
+        WITH h, tags, collect(DISTINCT {type: r.room_type, name: r.name, price: r.price}) AS rooms
+        RETURN h.hotel_id AS hotel_id, h.name AS name, h.city AS city,
+               h.star_rating AS star_rating, h.review_score AS review_score,
+               h.review_count AS review_count,
+               [x IN tags WHERE x.name IS NOT NULL] AS tags,
+               [x IN rooms WHERE x.price IS NOT NULL] AS rooms
+        LIMIT 5
+        """,
+        {"hid": hotel_id, "name": name},
+    )
+
+
 def get_candidates_for_hotels(user_id: str, hotel_ids: list[int]) -> list[dict]:
     """Với một tập hotel_id (đã lọc cứng), tính thông tin cá nhân hóa so với user.
 
@@ -229,7 +260,7 @@ def _merge_candidates(*lists: list[dict], limit: int = CANDIDATE_LIMIT) -> list[
 # Gọi GPT-4o chọn top 5 + giải thích
 # --------------------------------------------------------------------------- #
 _SYSTEM_PROMPT = """\
-Bạn là CHUYÊN GIA TƯ VẤN KHÁCH SẠN CAO CẤP, tinh tế và thấu hiểu khách hàng — như một
+Bạn là CHUYÊN GIA TƯ VẤN KHÁCH SẠN, tinh tế và thấu hiểu khách hàng — như một
 concierge riêng đã quen gu của họ. Nhiệm vụ: từ HỒ SƠ người dùng (sở thích, ngân sách,
 thói quen, kiểu du khách, lịch sử đặt phòng) và DANH SÁCH khách sạn ứng viên (kèm tag khớp
 sở thích, giá phòng thấp nhất, hạng sao, điểm đánh giá), chọn TOP 5 khách sạn PHÙ HỢP NHẤT
@@ -340,25 +371,38 @@ def recommend(user_id: str, query: str | None = None, top_k: int = 5) -> dict:
         }
     Raise ValueError nếu user không tồn tại hoặc không đủ dữ liệu để gợi ý.
     """
-    profile = get_user_profile(user_id)
-    if profile is None:
-        raise ValueError(f"Không tìm thấy user '{user_id}'.")
-    if not profile["interests"]:
-        raise ValueError(f"User '{user_id}' chưa có sở thích (INTERESTED_IN) để gợi ý.")
+    with trace.step("Lấy hồ sơ người dùng") as s:
+        profile = get_user_profile(user_id)
+        if profile is None:
+            raise ValueError(f"Không tìm thấy user '{user_id}'.")
+        if not profile["interests"]:
+            raise ValueError(f"User '{user_id}' chưa có sở thích (INTERESTED_IN) để gợi ý.")
+        s.note(
+            f"{profile.get('name') or user_id}: {len(profile['interests'])} sở thích, "
+            f"{len(profile['booked'])} lần đặt"
+        )
 
     if query:
-        candidates = _candidates_from_query(user_id, query)
-        if not candidates:
-            raise ValueError(f"Không có khách sạn nào khớp điều kiện '{query}'.")
+        with trace.step("Tìm khách sạn theo yêu cầu của bạn") as s:
+            candidates = _candidates_from_query(user_id, query)
+            if not candidates:
+                raise ValueError(f"Không có khách sạn nào khớp điều kiện '{query}'.")
+            strict = sum(1 for c in candidates if c.get("_strict"))
+            s.note(f"{len(candidates)} ứng viên (khớp cứng {strict}, CF thêm {len(candidates) - strict})")
+            s.note("Top: " + ", ".join(f"#{c['hotel_id']} {c['name']}" for c in candidates[:5]))
     else:
         # Hợp nhất 2 nguồn retrieval: khớp sở thích (interest) + Collaborative Filtering.
         # CF rỗng nếu user chưa từng đặt phòng -> rơi về interest-based như cũ.
-        candidates = _merge_candidates(
-            get_candidates(user_id),
-            get_candidates_collaborative(user_id),
-        )
-        if not candidates:
-            raise ValueError(f"Không có khách sạn ứng viên phù hợp cho user '{user_id}'.")
+        with trace.step("Tìm khách sạn hợp gu của bạn") as s:
+            interest = get_candidates(user_id)
+            collaborative = get_candidates_collaborative(user_id)
+            candidates = _merge_candidates(interest, collaborative)
+            if not candidates:
+                raise ValueError(f"Không có khách sạn ứng viên phù hợp cho user '{user_id}'.")
+            s.note(
+                f"interest {len(interest)} + CF {len(collaborative)} -> gộp {len(candidates)} ứng viên"
+            )
+            s.note("Top: " + ", ".join(f"#{c['hotel_id']} {c['name']}" for c in candidates[:5]))
 
     cand_by_id = {c["hotel_id"]: c for c in candidates}
 
@@ -378,17 +422,20 @@ def recommend(user_id: str, query: str | None = None, top_k: int = 5) -> dict:
         f"Hãy chọn TOP {top_k} khách sạn phù hợp nhất và giải thích lý do."
     )
 
-    client = get_openai()
-    response = client.chat.completions.create(
-        model=OPENAI_MODEL,
-        temperature=0.3,
-        messages=[
-            {"role": "system", "content": _SYSTEM_PROMPT},
-            {"role": "user", "content": user_content},
-        ],
-        response_format={"type": "json_schema", "json_schema": _RESPONSE_SCHEMA},
-    )
-    data = json.loads(response.choices[0].message.content)
+    with trace.step(f"Chọn {top_k} gợi ý tốt nhất & viết lý do") as s:
+        client = get_openai()
+        response = client.chat.completions.create(
+            model=OPENAI_MODEL,
+            temperature=0.3,
+            messages=[
+                {"role": "system", "content": _SYSTEM_PROMPT},
+                {"role": "user", "content": user_content},
+            ],
+            response_format={"type": "json_schema", "json_schema": _RESPONSE_SCHEMA},
+        )
+        data = json.loads(response.choices[0].message.content)
+        chosen = data.get("recommendations", [])[:top_k]
+        s.note("Chọn: " + ", ".join(f"#{r.get('hotel_id')} {r.get('name')}" for r in chosen))
 
     recs = []
     for rank, rec in enumerate(data.get("recommendations", [])[:top_k], 1):

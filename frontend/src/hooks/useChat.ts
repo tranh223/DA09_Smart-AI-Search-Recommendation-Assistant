@@ -21,7 +21,7 @@ export function useChat() {
     setMessages((m) => [
       ...m,
       { id: uid(), role: "user", text },
-      { id: botId, role: "assistant", text: "", pending: true },
+      { id: botId, role: "assistant", text: "", steps: [], pending: true },
     ]);
     setLoading(true);
 
@@ -33,6 +33,10 @@ export function useChat() {
         user_id: localStorage.getItem("user_id"),
       },
       {
+        onStep: (s) =>
+          setMessages((m) =>
+            m.map((x) => (x.id === botId ? { ...x, steps: [...(x.steps ?? []), s] } : x)),
+          ),
         onToken: (t) => {
           acc += t;
           update(botId, { text: acc });
