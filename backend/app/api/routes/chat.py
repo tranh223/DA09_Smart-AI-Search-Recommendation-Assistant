@@ -53,6 +53,10 @@ class ChatRequest(BaseModel):
     # Values are injected into session_context only when destination is missing.
     slots: dict[str, Any] = Field(default_factory=dict)
 
+    # Number of raw candidates to request from each recommendation source.
+    # Kept separate from rerank_options.top_k, which controls final ranked output size.
+    candidate_limit_per_source: int = Field(default=10, ge=1, le=50)
+
     rerank_options: dict[str, Any] = Field(default_factory=dict)
 
     @field_validator("query")
@@ -170,6 +174,7 @@ async def chat(req: ChatRequest, request: Request) -> APIResponse:
         "raw_query": req.query,
         "user_profile": user_profile,
         "slots": req.slots,
+        "candidate_limit_per_source": req.candidate_limit_per_source,
         "rerank_options": req.rerank_options,
         "request_started_at": time.perf_counter(),
     }

@@ -52,6 +52,7 @@ export interface HotelListParams {
 export interface RecoQuery {
   label: string;
   params: HotelListParams;
+  hotels?: Hotel[];
 }
 
 // ---- Trích ảnh từ một bản ghi bất kỳ (API có thể trả nhiều dạng) ----

@@ -10,6 +10,7 @@ export interface BackendChatRequest {
   query: string;
   user_profile?: Record<string, unknown>;
   slots?: Record<string, unknown>;
+  candidate_limit_per_source?: number;
   rerank_options?: Record<string, unknown>;
 }
 
