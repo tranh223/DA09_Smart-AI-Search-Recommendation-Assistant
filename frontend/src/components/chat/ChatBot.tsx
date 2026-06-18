@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { t } from '../../styles/theme';
+import { sendChatMessage, type BackendChatData } from '../../services/backendApi';
 import { type HotelListParams, type RecoQuery } from '../../services/hotels';
 
 // Bề rộng chat dock bên phải — trang chừa đúng khoảng này để không bị che.
@@ -45,6 +46,37 @@ const STEP1_MSG: BotMsg = {
   text: 'Xin chào! Mình là VinBot — trợ lý du lịch thông minh của VinJourney. Bạn muốn đi dạng nào?',
   chips: ['Biển', 'Núi', 'Phố cổ', 'Vui chơi'],
 };
+
+function createSessionId(): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+  return `web-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function formatBackendReply(data: BackendChatData): string {
+  const answer = data.clarification_question || data.answer || data.explanation;
+  if (answer) return answer;
+
+  const recommendations = data.recommendations ?? [];
+  if (recommendations.length > 0) {
+    const names = recommendations
+      .slice(0, 3)
+      .map((item) => String(item.hotel_name ?? item.name ?? item.hotel_id ?? 'khách sạn phù hợp'))
+      .join(', ');
+    return `Mình tìm thấy ${recommendations.length} gợi ý phù hợp. Một vài lựa chọn nổi bật: ${names}.`;
+  }
+
+  return 'Mình chưa tìm thấy câu trả lời phù hợp. Bạn có thể nói rõ hơn về điểm đến, ngày đi hoặc ngân sách không?';
+}
+
+function suggestionChips(data: BackendChatData): string[] | undefined {
+  const suggestions = (data.next_suggestions ?? [])
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 3);
+  return suggestions.length ? suggestions : undefined;
+}
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -168,6 +200,7 @@ export function ChatBot({ isOpen, onOpen, onClose, onRecommend, onClearRecommend
   const [disabledChipMsgIds, setDisabledChipMsgIds] = useState<Set<string>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
   const hasOpened = useRef(false);
+  const sessionId = useRef(createSessionId());
 
   useEffect(() => {
     if (isOpen && !hasOpened.current) {
@@ -207,6 +240,37 @@ export function ChatBot({ isOpen, onOpen, onClose, onRecommend, onClearRecommend
 
   const disableLastChips = (msgId: string) => {
     setDisabledChipMsgIds(prev => new Set([...prev, msgId]));
+  };
+
+  const sendBackendQuery = async (txt: string) => {
+    setIsTyping(true);
+    try {
+      const data = await sendChatMessage({
+        user_id: 'frontend-user',
+        session_id: sessionId.current,
+        query: txt,
+        user_profile: {},
+        slots: {},
+        rerank_options: { top_k: 5 },
+      });
+      setIsTyping(false);
+      addBotMsg({
+        kind: 'bot',
+        text: formatBackendReply(data),
+        chips: suggestionChips(data),
+      });
+      setStep(3);
+    } catch (error) {
+      setIsTyping(false);
+      addBotMsg({
+        kind: 'bot',
+        text: error instanceof Error
+          ? `Mình chưa kết nối được backend: ${error.message}`
+          : 'Mình chưa kết nối được backend. Vui lòng thử lại sau.',
+        chips: ['Biển', 'Núi', 'Phố cổ', 'Vui chơi'],
+      });
+      setStep(1);
+    }
   };
 
   const handleChip = (chip: string, fromMsgId: string) => {
@@ -249,24 +313,17 @@ export function ChatBot({ isOpen, onOpen, onClose, onRecommend, onClearRecommend
       }, 1400);
     } else if (chip.includes('Bắt đầu lại')) {
       handleReset();
+    } else {
+      void sendBackendQuery(chip);
     }
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
     const txt = input;
     setInput('');
     addUserMsg(txt);
-    setIsTyping(true);
-    setTimeout(() => {
-      setIsTyping(false);
-      addBotMsg({
-        kind: 'bot',
-        text: 'Mình đang tìm kiếm gợi ý phù hợp cho bạn! Hãy thử chọn loại hình du lịch để mình tư vấn chính xác hơn nhé.',
-        chips: ['Biển', 'Núi', 'Phố cổ', 'Vui chơi'],
-      });
-      setStep(1);
-    }, 1000);
+    await sendBackendQuery(txt);
   };
 
   const handleReset = () => {
@@ -274,6 +331,7 @@ export function ChatBot({ isOpen, onOpen, onClose, onRecommend, onClearRecommend
     setStep(0);
     setDestType('');
     setDisabledChipMsgIds(new Set());
+    sessionId.current = createSessionId();
     onClearRecommend();
     hasOpened.current = false;
     setIsTyping(true);

@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import date
 
 from query_understanding.llm import OpenAIResponsesClient
@@ -272,10 +273,10 @@ FORMAT
 class LLMIntentExtractor:
     def __init__(
         self,
-        model: str = "gpt-4o-mini",
+        model: str | None = None,
     ) -> None:
         self.client = OpenAIResponsesClient()
-        self.model = model
+        self.model = model or os.getenv("LLM_MODEL", "gpt-4o-mini")
         self.last_trace: dict[str, object] = {}
 
     def extract(

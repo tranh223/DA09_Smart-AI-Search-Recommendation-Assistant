@@ -18,7 +18,8 @@ load_dotenv()
 
 logger = get_logger(__name__)
 
-DEFAULT_GRAPH_URL = "http://34.158.39.31:7474"
+# Safe local default — override via GRAPH_DB_URL in .env
+DEFAULT_GRAPH_URL = "http://localhost:7474"
 DEFAULT_DATABASE = "neo4j"
 DEFAULT_TIMEOUT_SECONDS = 15
 DEFAULT_RELATIONSHIP_LIMIT = 5
@@ -39,7 +40,10 @@ def _get_env_value(names: List[str], default: str = "") -> str:
 
 
 def _normalize_graph_url(url: str) -> str:
-    """Convert browser/Bolt-ish inputs into the Neo4j HTTP base URL."""
+    """Convert any Neo4j URL variant into the HTTP transaction base URL.
+
+    Converts bolt:// and neo4j:// schemes to http://, strips /browser suffix.
+    """
     url = (url or DEFAULT_GRAPH_URL).strip().strip('"\'')
     if not url:
         url = DEFAULT_GRAPH_URL
@@ -47,6 +51,15 @@ def _normalize_graph_url(url: str) -> str:
         url = f"http://{url}"
 
     parsed = urlparse(url)
+
+    # Convert Bolt / neo4j+s:// → HTTP (swap scheme, keep host, use port 7474)
+    scheme = parsed.scheme.lower()
+    if scheme in ("bolt", "bolt+s", "bolt+routing", "neo4j", "neo4j+s", "neo4j+routing"):
+        host = parsed.hostname or "localhost"
+        port = 7474  # Neo4j HTTP API default
+        netloc = f"{host}:{port}"
+        parsed = parsed._replace(scheme="http", netloc=netloc)
+
     path = parsed.path.rstrip("/")
     if path.endswith("/browser"):
         path = path[: -len("/browser")]
@@ -55,10 +68,14 @@ def _normalize_graph_url(url: str) -> str:
 
 
 def get_graph_config() -> Dict[str, str]:
-    """Return Neo4j connection settings sourced from .env."""
+    """Return Neo4j connection settings sourced from .env.
+
+    URL priority: GRAPH_DB_URL (HTTP) → NEO4J_URI (Bolt, auto-converted) → default.
+    Credentials priority: NEO4J_USER/PASSWORD → GRAPH_DB_USER/PASSWORD.
+    """
     return {
         "url": _normalize_graph_url(
-            _get_env_value(["NEO4J_URI", "NEO4J_URL", "GRAPH_DB_URL"], DEFAULT_GRAPH_URL)
+            _get_env_value(["GRAPH_DB_URL", "NEO4J_URI", "NEO4J_URL"], DEFAULT_GRAPH_URL)
         ),
         "user": _get_env_value(["NEO4J_USER", "NEO4J_USERNAME", "GRAPH_DB_USER", "GRAPH_DB_USERNAME"]),
         "password": _get_env_value(["NEO4J_PASSWORD", "GRAPH_DB_PASSWORD"]),

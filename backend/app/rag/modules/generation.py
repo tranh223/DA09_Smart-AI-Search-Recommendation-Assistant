@@ -2,7 +2,6 @@
 Generation Module
 Tạo kết quả cuối cùng dựa trên thông tin tổng hợp
 """
-import os
 from utils.llm_client import llm_client
 
 from utils.langsmith_tracer import tracer
@@ -60,7 +59,6 @@ Vui lòng trả lời query dựa trên thông tin được cung cấp."""
         response = llm_client.call(
             messages,
             system_prompt=GENERATION_SYSTEM_PROMPT,
-            provider=os.getenv("LLM_PROVIDER", "openai"),
         )
         logger.info("Response generation successful")
         return response

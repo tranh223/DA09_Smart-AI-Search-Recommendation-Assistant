@@ -13,6 +13,7 @@ tĩnh để luồng không bị block.
 from __future__ import annotations
 
 import logging
+import os
 import threading
 from typing import Any
 
@@ -36,7 +37,10 @@ def _get_llm_client() -> Any:
             return _llm_client
         try:
             from app.query_understanding.llm.openai_client import OpenAIResponsesClient
-            _llm_client = OpenAIResponsesClient(timeout_seconds=25.0, max_retries=1)
+            _llm_client = OpenAIResponsesClient(
+                timeout_seconds=float(os.getenv("RESPONSE_BUILDER_TIMEOUT_SECONDS", "25") or "25"),
+                max_retries=int(os.getenv("RESPONSE_BUILDER_MAX_RETRIES", "1") or "1"),
+            )
             logger.info("[response_builder] OpenAIResponsesClient initialized.")
         except Exception as exc:  # noqa: BLE001
             _llm_init_failed = True
@@ -191,7 +195,7 @@ def build_response_with_llm(
 
     try:
         raw = client.create_structured_output(
-            model="gpt-4o-mini",
+            model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
             instructions=_SYSTEM_INSTRUCTIONS,
             input_text=prompt,
             schema_name="ota_response_builder",

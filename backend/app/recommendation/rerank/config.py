@@ -20,8 +20,9 @@ class Settings:
     postgres_dsn: str = ""
     hotel_api_base_url: str = ""
     hotel_api_key: str = ""
-    openrouter_api_key: str = ""
-    openrouter_model: str = "nvidia/nemotron-3-ultra-550b-a55b:free"
+    openai_api_key: str = ""
+    llm_model: str = "gpt-4o-mini"
+    rerank_temperature: float = 0.1
     llm_timeout_seconds: int = 30
     llm_max_retries: int = 2
     base_dir: Path = PACKAGE_ROOT
@@ -52,15 +53,16 @@ def load_settings() -> Settings:
     load_dotenv(PACKAGE_ROOT / ".env")
     return Settings(
         
-        mongodb_uri=os.getenv("MONGODB_URI", "mongodb://localhost:27017"),
-        mongodb_db=os.getenv("MONGODB_DB", "VinSmartFuture"),
+        mongodb_uri=os.getenv("MONGO_URI", "mongodb://localhost:27017"),
+        mongodb_db=os.getenv("DATABASE_NAME", "VinSmartFuture"),
         user_profile_collection=os.getenv("MONGODB_USER_PROFILE_COLLECTION", "Users"),
         bookings_collection=os.getenv("MONGODB_BOOKINGS_COLLECTION", "Booking"),
         postgres_dsn=os.getenv("POSTGRES_DSN", ""),
         hotel_api_base_url=os.getenv("HOTEL_API_BASE_URL", ""),
         hotel_api_key=os.getenv("HOTEL_API_KEY", ""),
-        openrouter_api_key=os.getenv("OPENROUTER_API_KEY", ""),
-        openrouter_model=os.getenv("OPENROUTER_MODEL", "nvidia/nemotron-3-ultra-550b-a55b:free"),
+        openai_api_key=os.getenv("OPENAI_API_KEY", ""),
+        llm_model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
+        rerank_temperature=float(os.getenv("RERANK_TEMPERATURE", "0.1") or "0.1"),
         llm_timeout_seconds=int(os.getenv("LLM_TIMEOUT_SECONDS", "30") or "30"),
         llm_max_retries=int(os.getenv("LLM_MAX_RETRIES", "2") or "2"),
         base_dir=PACKAGE_ROOT,
