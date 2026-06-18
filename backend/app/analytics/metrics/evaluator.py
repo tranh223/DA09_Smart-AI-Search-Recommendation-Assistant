@@ -249,7 +249,9 @@ def save_evaluation_result(
                 "csat": csat,
                 "latency": average_latency,
                 "ttft": average_ttft,
-                "booking": booking
+                "booking": booking,
+                'input_token': session.get('input_token', 0),
+                'output_token': session.get('output_token', 0)
             }
         },
         upsert=True
