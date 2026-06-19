@@ -227,3 +227,7 @@ node_modules/
 dist/
 build/
 *.log
+
+# backendlog
+backend/logs/
+backend/app/recommendation/rerank/logs/

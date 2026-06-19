@@ -76,7 +76,7 @@ def log_chat(question: str, answer: str, session_id: str):
             'llm_answer': answer
         }
     }
-    producer_send(session_id, value)
+    return producer_send(session_id, value)
 
 def log_reaction(reaction: bool, session_id: str):
     '''

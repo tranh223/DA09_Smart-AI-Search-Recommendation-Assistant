@@ -1,5 +1,6 @@
 import json
 import os
+import unicodedata
 from datetime import date
 
 from query_understanding.llm import OpenAIResponsesClient
@@ -131,23 +132,29 @@ Given the current user query and the current_date, extract:
 CONTEXT
 - This component only extracts information.
 - Search planning, routing, retrieval, ranking, and recommendation execution are handled elsewhere.
-- Intent extraction receives only the current user query.
-- Follow-up context is carried by session_context outside this extractor.
+- Intent extraction receives the current user query plus up to 10 recent conversation turns.
+- Use conversation_history only to resolve follow-up references, ellipsis, corrections, and carried-over facts.
+- The current user query has highest priority. Do not invent facts from history unless the current query clearly depends on them.
+- Assistant answers in history are context only; do not treat assistant suggestions as user preferences unless the user accepted or repeated them.
+- Follow-up context may also be carried by session_context outside this extractor.
 
 STRICT OUTPUT POLICY
 - Do not output normalized hotel tags, normalized amenities, or normalized hotel types.
 - Do not decide search intent, planner task, router branch, retrieval source, or execution plan.
-- Only return values directly supported by the current query.
+- Only return values directly supported by the current query, except structured trip facts carried over from conversation_history for a clear follow-up.
+- When the current query is a follow-up that adds budget, preferences, traveler type, or constraints, preserve prior structured trip facts from conversation_history such as destination, check_in, check_out, number_of_guests, and nearby_place unless the current query contradicts them.
 - If uncertain, omit the field instead of guessing.
 - Use sparse output inside entities and constraints: include only fields that have non-null values.
 - Still return the top-level groups `entities`, `constraints`, and `semantic_preferences`.
 
 STRUCTURED FACT RULES
 - Extract destination when the city, area, or place is explicit.
+- If destination was explicit in conversation_history and the current query is a follow-up, carry it over.
 - Extract hotel_name only when a specific property is referenced.
 - Extract nearby_place only when the location anchor is explicit and concrete enough to use directly.
 - Extract number_of_guests when explicit.
 - Extract check_in and check_out in YYYY-MM-DD format only.
+- If check_in/check_out were explicit in conversation_history and the current query is a follow-up, carry them over.
 - Extract budget_min and budget_max as VND numbers when money is clearly mentioned.
 - Extract constraints.budget_level as `low`, `medium`, or `high` when the query gives a hotel budget amount or clear budget wording.
 - Use `low` for budget-sensitive, cheap, affordable, low-cost, or clearly low hotel price requests. Use `high` for luxury, premium, high-end, expensive requests. Use `medium` for middle-range neutral budgets. Use null only when budget information is absent or insufficient.
@@ -212,6 +219,7 @@ IMPORTANT DISTINCTIONS
 - Prefer catalog-friendly Vietnamese hotel wording: include the hotel object, guest context, and concrete attribute when user wording is too short.
 - A good semantic phrase should be specific enough to map against tag text formatted as `Tag + Category + Description`.
 - Use the examples below as patterns, not as a closed list. Generalize the same style to similar user wording.
+- If the user combines service and cleanliness in one phrase, such as `dịch vụ sạch sẽ`, extract both the service-quality semantic item and the cleanliness semantic item. Do not collapse cleanliness into service.
 - For generic nice-view requests like `view đẹp`, output `hướng nhìn từ phòng đẹp` with target_field=session_preference_habits and category=REVIEW_TAG. Do not use ROOM_VIEW unless the user names a concrete view type.
 - Use ROOM_VIEW only when the requested view is explicit, such as biển, núi, thành phố, sông, hồ, or vườn.
 - For generic amenity requests like `nhiều tiện nghi`, set constraints.note_amenities=`max` and do not add a semantic item for that generic request.
@@ -283,14 +291,17 @@ class LLMIntentExtractor:
         self,
         query: str,
         user_id: str | None = None,
+        conversation_history: list[dict[str, str]] | None = None,
     ) -> IntentResult:
         current_date = date.today().isoformat()
+        normalized_history = self._normalize_history(conversation_history)
         payload = self.client.create_structured_output(
             model=self.model,
             instructions=INTENT_INSTRUCTIONS,
             input_text=self._build_input_text(
                 current_date=current_date,
                 query=query,
+                conversation_history=normalized_history,
             ),
             schema_name="intent_result",
             schema=INTENT_SCHEMA,
@@ -301,6 +312,7 @@ class LLMIntentExtractor:
         self.last_trace = {
             "path": "llm",
             "model": self.model,
+            "conversation_history": normalized_history,
             "payload": payload,
         }
 
@@ -324,9 +336,9 @@ class LLMIntentExtractor:
             check_in=entities_payload.get("check_in"),
             check_out=entities_payload.get("check_out"),
         )
-        semantic_preferences = SemanticPreferenceSet(
-            items=self._normalize_semantic_items(semantic_payload.get("items", [])),
-        )
+        semantic_items = self._normalize_semantic_items(semantic_payload.get("items", []))
+        semantic_items = self._augment_common_semantic_items(query, semantic_items)
+        semantic_preferences = SemanticPreferenceSet(items=semantic_items)
         constraints = ConstraintSet(
             budget_level=constraints_payload.get("budget_level"),
             location_hint=constraints_payload.get("location_hint"),
@@ -399,13 +411,124 @@ class LLMIntentExtractor:
         return normalized
 
     @staticmethod
+    def _augment_common_semantic_items(
+        query: str,
+        items: list[SemanticPreferenceItem],
+    ) -> list[SemanticPreferenceItem]:
+        normalized_query = _fold_vietnamese_text(query)
+        additions: list[SemanticPreferenceItem] = []
+        if any(pattern in normalized_query for pattern in ("sach se", "ve sinh tot", "phong sach")):
+            additions.append(
+                SemanticPreferenceItem(
+                    text="độ sạch sẽ của phòng và không gian nghỉ ngơi",
+                    target_field="session_preference_habits",
+                    category="REVIEW_TAG",
+                    priority="soft",
+                )
+            )
+        if any(
+            pattern in normalized_query
+            for pattern in (
+                "dich vu tot",
+                "dich vu sach se",
+                "phuc vu tot",
+                "nhan vien tot",
+                "nhan vien chu dao",
+            )
+        ):
+            additions.append(
+                SemanticPreferenceItem(
+                    text="dịch vụ khách sạn tốt, nhân viên phục vụ chu đáo, hỗ trợ khách hiệu quả",
+                    target_field="session_preference_habits",
+                    category="REVIEW_TAG",
+                    priority="soft",
+                )
+            )
+        if any(pattern in normalized_query for pattern in ("view dep", "huong nhin dep", "tam nhin dep")):
+            additions.append(
+                SemanticPreferenceItem(
+                    text="hướng nhìn từ phòng đẹp",
+                    target_field="session_preference_habits",
+                    category="REVIEW_TAG",
+                    priority="soft",
+                )
+            )
+
+        existing = {(item.text, item.target_field, item.category) for item in items}
+        for item in additions:
+            key = (item.text, item.target_field, item.category)
+            if key not in existing:
+                items.append(item)
+                existing.add(key)
+        return items
+
+    @staticmethod
     def _build_input_text(
         *,
         current_date: str,
         query: str,
+        conversation_history: list[dict[str, str]],
     ) -> str:
         payload = {
             "current_date": current_date,
+            "conversation_history": conversation_history,
             "query": query,
         }
         return json.dumps(payload, ensure_ascii=False)
+
+    @staticmethod
+    def _normalize_history(conversation_history: list[dict[str, str]] | None) -> list[dict[str, str]]:
+        if not conversation_history:
+            return []
+
+        legacy_turns: list[dict[str, str]] = []
+        role_messages: list[dict[str, str]] = []
+        for item in conversation_history:
+            if not isinstance(item, dict):
+                continue
+            user_query = str(item.get("user_query", "")).strip()
+            llm_answer = str(item.get("llm_answer", "")).strip()
+            if user_query or llm_answer:
+                legacy_turns.append(
+                    {
+                        "user_query": user_query,
+                        "llm_answer": llm_answer,
+                    }
+                )
+                continue
+
+            role = str(item.get("role", "")).strip().lower()
+            content = str(item.get("content", "")).strip()
+            if role in {"user", "assistant"} and content:
+                role_messages.append({"role": role, "content": content})
+
+        if legacy_turns:
+            return legacy_turns[-10:]
+
+        turns: list[dict[str, str]] = []
+        current_user_query: str | None = None
+        for message in role_messages:
+            role = message["role"]
+            content = message["content"]
+            if role == "user":
+                if current_user_query is not None:
+                    turns.append({"user_query": current_user_query, "llm_answer": ""})
+                current_user_query = content
+                continue
+            if role == "assistant" and current_user_query is not None:
+                turns.append({"user_query": current_user_query, "llm_answer": content})
+                current_user_query = None
+
+        if current_user_query is not None:
+            turns.append({"user_query": current_user_query, "llm_answer": ""})
+
+        return turns[-10:]
+
+
+def _fold_vietnamese_text(value: str) -> str:
+    lowered = str(value or "").lower().replace("đ", "d").replace("Đ", "d")
+    return "".join(
+        char
+        for char in unicodedata.normalize("NFD", lowered)
+        if unicodedata.category(char) != "Mn"
+    )

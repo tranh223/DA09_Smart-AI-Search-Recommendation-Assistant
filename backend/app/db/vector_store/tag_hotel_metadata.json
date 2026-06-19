@@ -1,0 +1,2893 @@
+{
+  "source": "data/tag_hotel.json",
+  "embedding_input_field": "tagName/TagName + tagCategory/Category + Description",
+  "embedding_template": "Tag: {tag_name}\n\nCategory: {category}\n\nDescription:\n{description}",
+  "metadata_fields": [
+    "tagCategory/Category",
+    "Description"
+  ],
+  "vector_db": "faiss",
+  "distance": "cosine_similarity_via_normalized_inner_product",
+  "items": [
+    {
+      "id": 0,
+      "tag_name": "Ban công sân hiên",
+      "category": "HOTEL_AMENITY",
+      "description": "Ban công sân hiên là không gian ngoài trời riêng hoặc bán riêng gắn với phòng hoặc khu lưu trú, nơi khách có thể ngồi thư giãn, hóng gió hoặc ngắm cảnh. Tag này hữu ích khi khách muốn có khu vực mở ngoài phòng. Không dùng để chỉ cách âm, điều hòa, bàn làm việc hoặc hoạt động thể thao."
+    },
+    {
+      "id": 1,
+      "tag_name": "Bi-a",
+      "category": "HOTEL_AMENITY",
+      "description": "Bi-a là tiện ích giải trí trong nhà, nơi khách có thể chơi bida hoặc tham gia hoạt động thư giãn tại khu giải trí của khách sạn. Tag này hữu ích khi khách tìm khách sạn có trò chơi hoặc hoạt động rảnh rỗi tại chỗ. Không dùng để chỉ bếp, nhà hàng, dịch vụ vé, ngôn ngữ hỗ trợ hoặc tiện nghi phòng."
+    },
+    {
+      "id": 2,
+      "tag_name": "Bàn không gian làm việc",
+      "category": "HOTEL_AMENITY",
+      "description": "Bàn không gian làm việc là khu vực trong khách sạn dành riêng cho việc làm việc, với không gian và trang thiết bị cần thiết để làm việc hiệu quả. Khách có nhu cầu làm việc trong thời gian lưu trú có thể tìm kiếm khách sạn có tiện ích này. Không dùng để chỉ phòng họp hoặc dịch vụ văn phòng."
+    },
+    {
+      "id": 3,
+      "tag_name": "Bàn tiếp tân 24 giờ",
+      "category": "HOTEL_AMENITY",
+      "description": "Bàn tiếp tân 24 giờ cung cấp dịch vụ lễ tân sẵn sàng hỗ trợ khách bất cứ lúc nào trong ngày, từ việc nhận phòng đến trả lời các yêu cầu. Tag này hữu ích cho khách cần sự hỗ trợ liên tục. Không dùng để chỉ dịch vụ phòng hoặc nhà hàng."
+    },
+    {
+      "id": 4,
+      "tag_name": "Bàn trang điểm phù hợp cho người khuyết tật",
+      "category": "HOTEL_AMENITY",
+      "description": "Bàn trang điểm phù hợp cho người khuyết tật là thiết kế tiện ích tại khách sạn, với chiều cao và cấu trúc phù hợp để dễ tiếp cận. Tag này hữu ích cho khách khuyết tật cần sử dụng các tiện ích này. Không dùng để chỉ thảm trải sàn hoặc trang trí nội thất."
+    },
+    {
+      "id": 5,
+      "tag_name": "Bác sĩ y tá trực",
+      "category": "HOTEL_AMENITY",
+      "description": "Bác sĩ y tá trực là dịch vụ y tế cung cấp tại khách sạn, giúp khách hàng yên tâm với sự hỗ trợ sức khỏe ngay khi cần. Hữu ích cho khách ưu tiên an toàn sức khỏe trong kỳ nghỉ. Không dùng để chỉ bảo hiểm du lịch hoặc dịch vụ chăm sóc cá nhân."
+    },
+    {
+      "id": 6,
+      "tag_name": "Báo hằng ngày",
+      "category": "HOTEL_AMENITY",
+      "description": "Báo hằng ngày là dịch vụ cung cấp các ấn phẩm báo chí để khách cập nhật tin tức và giải trí hàng ngày khi lưu trú tại khách sạn. Tag này hữu ích cho khách muốn theo dõi thông tin hàng ngày. Không dùng để chỉ sách hoặc truyện."
+    },
+    {
+      "id": 7,
+      "tag_name": "Báo động trực quan",
+      "category": "HOTEL_AMENITY",
+      "description": "Báo động trực quan là hệ thống cảnh báo dùng hình ảnh như đèn nhấp nháy, giúp khách nhận thấy những nguy hiểm hoặc tình huống khẩn cấp. Rất hữu ích trong môi trường âm thanh ồn hoặc dành cho người khiếm thính. Không dùng để chỉ bình cứu hỏa hoặc hệ thống chống cháy."
+    },
+    {
+      "id": 8,
+      "tag_name": "Báo động âm thanh",
+      "category": "HOTEL_AMENITY",
+      "description": "Báo động âm thanh là hệ thống cảnh báo để thông báo cho khách bằng âm thanh trong các tình huống khẩn cấp. Hữu ích khi khách tìm kiếm sự an toàn đáng tin cậy trong nơi lưu trú. Không dùng để chỉ hệ thống âm nhạc hoặc loa phát thanh."
+    },
+    {
+      "id": 9,
+      "tag_name": "Bát cho thú cưng",
+      "category": "HOTEL_AMENITY",
+      "description": "Bát cho thú cưng là tiện nghi dành cho động vật đi cùng khách, cho phép thú cưng có chỗ ăn uống riêng biệt. Tag này hữu ích khi khách du lịch đi cùng thú cưng đang tìm kiếm nơi thân thiện với vật nuôi. Không dùng để chỉ dịch vụ chăm sóc thú cưng hoặc đi dạo."
+    },
+    {
+      "id": 10,
+      "tag_name": "Bát đĩa và dụng cụ ăn uống",
+      "category": "HOTEL_AMENITY",
+      "description": "Bát đĩa và dụng cụ ăn uống được cung cấp để khách tự phục vụ bữa ăn hoặc khi mang theo thức ăn ngoài vào khách sạn. Tag này hữu ích cho những khách thích ăn uống tại phòng. Không dùng để chỉ dịch vụ nhà hàng hay đặt món ăn ngoài."
+    },
+    {
+      "id": 11,
+      "tag_name": "Bãi biển riêng",
+      "category": "HOTEL_AMENITY",
+      "description": "Bãi biển riêng là khu vực bãi biển thuộc quyền sử dụng độc quyền của khách sạn, đảm bảo sự riêng tư và tiện lợi cho các khách hưởng thụ không gian biển. Không dùng để chỉ hồ bơi hay công viên nước."
+    },
+    {
+      "id": 12,
+      "tag_name": "Bãi chơi bowling",
+      "category": "HOTEL_AMENITY",
+      "description": "Bãi chơi bowling là nơi trong khách sạn cung cấp trò chơi bowling cho khách tham gia và giải trí. Thích hợp cho khách tìm kiếm hoạt động vui chơi trong nhà. Không dùng để chỉ sân chơi thể thao khác hay phòng gym."
+    },
+    {
+      "id": 13,
+      "tag_name": "Bãi tự đỗ xe phù hợp cho người khuyết tật tại chỗ nghỉ",
+      "category": "HOTEL_AMENITY",
+      "description": "Bãi tự đỗ xe phù hợp cho người khuyết tật là nơi đỗ xe có thiết kế đặc biệt để dễ tiếp cận cho khách khuyết tật ngay tại chỗ nghỉ. Hữu ích cho khách cần sự tiện nghi lái xe riêng. Không dùng để chỉ dịch vụ đỗ xe thuê hoặc khu vực đỗ xe thường."
+    },
+    {
+      "id": 14,
+      "tag_name": "Bãi đậu xe tính phí",
+      "category": "HOTEL_AMENITY",
+      "description": "Bãi đậu xe tính phí cung cấp chỗ đỗ xe có thu phí cho khách, thông thường có an ninh bảo đảm. Thích hợp cho những khách có xe riêng tìm kiếm nơi đậu an toàn. Không dùng để chỉ bãi đậu xe miễn phí hay dịch vụ valet."
+    },
+    {
+      "id": 15,
+      "tag_name": "Bóng bàn",
+      "category": "HOTEL_AMENITY",
+      "description": "Bóng bàn là hoạt động thể thao giải trí với bàn bóng và vợt, tạo cơ hội cho khách chơi và thư giãn tại khách sạn. Hữu ích cho những ai muốn vận động nhẹ hoặc giao lưu. Không dùng để chỉ sân tennis hoặc phòng tập gym."
+    },
+    {
+      "id": 16,
+      "tag_name": "Bảng chỉ dẫn chữ nổi và sờ được",
+      "category": "HOTEL_AMENITY",
+      "description": "Bảng chỉ dẫn chữ nổi và sờ được là biển chỉ dẫn sử dụng chữ nổi hoặc bề mặt có thể sờ, giúp người khiếm thị dễ dàng định hướng trong khách sạn. Hữu ích trong các không gian cần định hướng trực quan. Không dùng để chỉ biển tên phòng thường hoặc bảng thông báo số phòng."
+    },
+    {
+      "id": 17,
+      "tag_name": "Bảng phi tiêu",
+      "category": "HOTEL_AMENITY",
+      "description": "Bảng phi tiêu là trò chơi phổ biến trong các khu vực giải trí của khách sạn, nơi khách có thể thử tài và đánh bóng kỹ năng nhắm đích. Tag này hữu ích cho khách yêu thích các hoạt động thư giãn trong nhà. Không dùng để chỉ trò chơi điện tử hay hoạt động ngoài trời."
+    },
+    {
+      "id": 18,
+      "tag_name": "Bảo vệ 24 giờ",
+      "category": "HOTEL_AMENITY",
+      "description": "Bảo vệ 24 giờ là dịch vụ đảm bảo an ninh liên tục khắp khách sạn, bảo vệ khách và tài sản suốt ngày đêm. Tag này hữu ích cho khách ưu tiên an toàn. Không dùng để chỉ dịch vụ bảo vệ như ổ khóa phòng hay két sắt cá nhân."
+    },
+    {
+      "id": 19,
+      "tag_name": "Bếp",
+      "category": "HOTEL_AMENITY",
+      "description": "Bếp là khu vực trang bị đầy đủ dụng cụ nấu ăn, cho phép khách tự chuẩn bị bữa ăn trong thời gian lưu trú tại khách sạn. Thích hợp cho khách muốn tự nấu nướng. Không dùng để chỉ nhà hàng hay quầy bar trong khách sạn."
+    },
+    {
+      "id": 20,
+      "tag_name": "Bếp nướng",
+      "category": "HOTEL_AMENITY",
+      "description": "Bếp nướng là khu vực hoặc thiết bị tại khách sạn dành cho việc nướng thực phẩm, thường sử dụng trong những bữa tiệc ngoài trời hoặc hoạt động nhóm. Khách tìm kiếm nơi có bếp nướng có thể mong muốn tổ chức tiệc BBQ hoặc sự kiện tự phục vụ. Không dùng để chỉ nhà hàng, quầy bar hoặc dịch vụ ăn uống khác."
+    },
+    {
+      "id": 21,
+      "tag_name": "Bể bơi",
+      "category": "HOTEL_AMENITY",
+      "description": "Bể bơi là tiện ích với khu vực nước lớn trong khách sạn, được thiết kế cho việc bơi lội và thư giãn. Khi lựa chọn khách sạn, khách có thể tìm nơi có bể bơi để giải trí hoặc tập thể dục. Không dùng để chỉ hồ nước nhỏ, spa hoặc dịch vụ mát-xa nước."
+    },
+    {
+      "id": 22,
+      "tag_name": "Bể bơi có tầm nhìn",
+      "category": "HOTEL_AMENITY",
+      "description": "Bể bơi có tầm nhìn là bể bơi tại khách sạn cho phép khách tận hưởng cảnh quan đẹp mắt trong quá trình bơi. Điều này phù hợp cho khách muốn một trải nghiệm đặc biệt kết hợp giữa bơi lội và ngắm cảnh. Không dùng để chỉ sân thượng, phòng ngắm cảnh hay nhà hàng."
+    },
+    {
+      "id": 23,
+      "tag_name": "Bể bơi ngoài trời",
+      "category": "HOTEL_AMENITY",
+      "description": "Bể bơi ngoài trời là bể bơi nằm dưới trời, cho phép khách thả mình vào làn nước mát và tận hưởng ánh nắng. Đối với khách thích không khí tự nhiên khi bơi lội, đây là lựa chọn lý tưởng. Không dùng để chỉ bể bơi trong nhà, phòng xông hơi hay dịch vụ spa."
+    },
+    {
+      "id": 24,
+      "tag_name": "Bể bơi trong nhà",
+      "category": "HOTEL_AMENITY",
+      "description": "Bể bơi trong nhà là bể bơi nằm trong không gian kín, cung cấp trải nghiệm bơi thoải mái bất kể thời tiết. Khách hay chọn loại bể này để bơi bất kỳ lúc nào mà không lo ngại yếu tố bên ngoài. Không dùng để chỉ bể bơi ngoài trời, hồ nước thiên nhiên hay gym."
+    },
+    {
+      "id": 25,
+      "tag_name": "Bể bơi trẻ em",
+      "category": "HOTEL_AMENITY",
+      "description": "Bể bơi trẻ em là bể bơi được thiết kế với độ sâu phù hợp và an toàn cho trẻ em, để các bé có thể vui đùa dưới nước. Phụ huynh thường tìm kiếm tiện ích này để đảm bảo sự an toàn cho con nhỏ khi lưu trú. Không dùng để chỉ hồ người lớn, khu vực mát-xa hay phòng chơi."
+    },
+    {
+      "id": 26,
+      "tag_name": "Bệnh xá",
+      "category": "HOTEL_AMENITY",
+      "description": "Bệnh xá trong khách sạn là cơ sở y tế cung cấp các dịch vụ chăm sóc sức khỏe cơ bản cho khách. Đây là điểm tiện ích cho những ai cần hỗ trợ y tế khẩn cấp khi lưu trú. Không dùng để chỉ phòng gym, spa hay dịch vụ thư giãn."
+    },
+    {
+      "id": 27,
+      "tag_name": "Bồn tắm gỗ hinoki",
+      "category": "HOTEL_AMENITY",
+      "description": "Bồn tắm gỗ hinoki là bồn tắm làm từ gỗ Nhật Bản, nổi tiếng với khả năng giữ nhiệt và mùi hương đặc trưng, mang lại trải nghiệm tắm thư giãn cho khách. Khách yêu thích văn hóa Nhật Bản thường tìm kiếm tiện nghi này. Không dùng để chỉ bồn tắm truyền thống hay phòng xông hơi."
+    },
+    {
+      "id": 28,
+      "tag_name": "Bồn tắm lộ thiên",
+      "category": "HOTEL_AMENITY",
+      "description": "Bồn tắm lộ thiên là bồn tắm ngoài trời, cho phép khách tận hưởng quang cảnh thiên nhiên khi thư giãn trong bồn. Khách yêu ưa thích không gian mở và trải nghiệm độc đáo thường tìm kiếm tiện ích này. Không dùng để chỉ hồ bơi, spa trong nhà hay bồn tắm truyền thống."
+    },
+    {
+      "id": 29,
+      "tag_name": "Bồn tắm nước nóng",
+      "category": "HOTEL_AMENITY",
+      "description": "Bồn tắm nước nóng là bồn tắm với nước luôn duy trì nhiệt độ ấm áp, tạo cảm giác thư giãn tối đa. Đây là lựa chọn hoàn hảo cho khách muốn giảm căng thẳng sau ngày dài. Không dùng để chỉ hồ bơi tiêu chuẩn, phòng xông hơi hay dịch vụ mát-xa."
+    },
+    {
+      "id": 30,
+      "tag_name": "Bồn tắm trẻ em",
+      "category": "HOTEL_AMENITY",
+      "description": "Bồn tắm trẻ em là loại bồn tắm nhỏ và an toàn, thích hợp cho trẻ sử dụng. Cha mẹ thường tìm khách sạn cung cấp tiện nghi này để đảm bảo việc tắm cho con nhỏ dễ dàng và an toàn. Không dùng để chỉ bồn tắm người lớn hay khu vui chơi nước."
+    },
+    {
+      "id": 31,
+      "tag_name": "Bồn tắm tạo sóng",
+      "category": "HOTEL_AMENITY",
+      "description": "Bồn tắm tạo sóng có hệ thống sục khí và tạo sóng, mang lại trải nghiệm mát-xa nước phong phú. Khách thường tìm kiếm dịch vụ này để có thể thư giãn và tận hưởng cảm giác đặc biệt. Không dùng để chỉ bể bơi tiêu chuẩn, hồ nước tĩnh hay ghế mát-xa."
+    },
+    {
+      "id": 32,
+      "tag_name": "Bộ hoạt động",
+      "category": "HOTEL_AMENITY",
+      "description": "Bộ hoạt động là gói các dịch vụ và tiện ích thể thao, giải trí mà khách sạn cung cấp như phòng tập gym, sân thể thao. Khách có nhu cầu vận động và vui chơi thường tìm kiếm bộ hoạt động như một lựa chọn lý tưởng. Không dùng để chỉ phòng spa, dịch vụ ăn uống hay sự kiện giải trí."
+    },
+    {
+      "id": 33,
+      "tag_name": "Bữa sáng halal",
+      "category": "HOTEL_AMENITY",
+      "description": "Bữa sáng halal là bữa ăn được chuẩn bị và phục vụ theo tiêu chuẩn Hồi giáo, phù hợp cho thực khách theo Đạo Hồi. Khách tuân thủ chế độ ăn Halal thường tìm kiếm khách sạn với dịch vụ này. Không dùng để chỉ bữa ăn buffet, món ăn chay hoặc không chứa gluten."
+    },
+    {
+      "id": 34,
+      "tag_name": "Bữa sáng kiểu lục địa",
+      "category": "HOTEL_AMENITY",
+      "description": "Bữa sáng kiểu lục địa thường bao gồm bánh mì, bơ, mứt, và đồ uống nóng, phục vụ trong khách sạn để khởi đầu ngày. Đây là lựa chọn tốt cho khách muốn bữa sáng nhẹ nhàng và nhanh gọn. Không dùng để chỉ buffet tự chọn, bữa ăn đầy đủ kiểu Anh hay bữa sáng nhiệt đới."
+    },
+    {
+      "id": 35,
+      "tag_name": "Bữa sáng kiểu tây",
+      "category": "HOTEL_AMENITY",
+      "description": "Bữa sáng kiểu tây bao gồm các món ăn sáng châu Âu hoặc Mỹ như thịt, trứng và bánh mì. Khách yêu thích phong cách ẩm thực phương Tây thường tìm kiếm lựa chọn này. Không dùng để chỉ bữa sáng kiểu Á, thực đơn Halal hay những món ăn chay."
+    },
+    {
+      "id": 36,
+      "tag_name": "Bữa sáng kiểu á",
+      "category": "HOTEL_AMENITY",
+      "description": "Bữa sáng kiểu Á cung cấp các món ăn sáng theo phong cách châu Á với sự đa dạng về hương vị. Đây là lựa chọn phù hợp cho khách yêu thích ẩm thực Á Đông. Không dùng để chỉ bữa sáng kiểu Âu, thức ăn nhẹ kiểu lục địa hay thực đơn riêng cho trẻ em."
+    },
+    {
+      "id": 37,
+      "tag_name": "Bữa sáng miễn phí",
+      "category": "HOTEL_AMENITY",
+      "description": "Bữa sáng miễn phí là dịch vụ không tính phí đi kèm với giá phòng, giúp khách tiết kiệm chi phí ăn uống buổi sáng. Khách thường ưu tiên lựa chọn này để thuận tiện và tiết kiệm. Không dùng để chỉ dịch vụ phòng hay thực đơn cao cấp."
+    },
+    {
+      "id": 38,
+      "tag_name": "Bữa sáng trong phòng",
+      "category": "HOTEL_AMENITY",
+      "description": "Bữa sáng trong phòng là dịch vụ phục vụ bữa ăn sáng ngay tại phòng nghỉ, tạo sự riêng tư và tiện lợi. Khách muốn thoải mái và không phải di chuyển nhiều vào buổi sáng thường chọn tiện ích này. Không dùng để chỉ dịch vụ nhà hàng, bữa ăn tự chọn hay buffet."
+    },
+    {
+      "id": 39,
+      "tag_name": "Bữa sáng tự chọn",
+      "category": "HOTEL_AMENITY",
+      "description": "Bữa sáng tự chọn là bữa sáng với nhiều món ăn được bày trí sẵn, khách tự do lựa chọn theo sở thích. Những ai ưa chuộng sự đa dạng thường tìm kiếm dịch vụ này. Không dùng để chỉ set menu, bữa sáng phục vụ tại bàn hay bữa ăn đặc biệt theo yêu cầu."
+    },
+    {
+      "id": 40,
+      "tag_name": "Bữa sáng đầy đủ kiểu mỹ",
+      "category": "HOTEL_AMENITY",
+      "description": "Bữa sáng đầy đủ kiểu Mỹ là dịch vụ cung cấp bữa sáng với các món ăn điển hình như trứng, thịt xông khói và bánh mì nướng. Tag này hữu ích cho khách muốn một bữa ăn sáng đủ đầy năng lượng theo phong cách Mỹ trong thời gian lưu trú. Không dùng để chỉ các hình thức ăn uống khác như bữa tối hoặc bữa trưa."
+    },
+    {
+      "id": 41,
+      "tag_name": "Bữa ăn cho trẻ",
+      "category": "HOTEL_AMENITY",
+      "description": "Bữa ăn cho trẻ bao gồm các món ăn được thiết kế đặc biệt với khẩu phần và hương vị phù hợp cho trẻ em. Tag này phù hợp cho gia đình tìm kiếm dịch vụ ăn uống an toàn và dinh dưỡng cho con nhỏ. Không dùng để chỉ bữa ăn cho người lớn hoặc các chế độ ăn kiêng đặc biệt khác."
+    },
+    {
+      "id": 42,
+      "tag_name": "CCTV bên ngoài chỗ nghỉ",
+      "category": "HOTEL_AMENITY",
+      "description": "CCTV bên ngoài chỗ nghỉ là hệ thống camera giám sát được lắp đặt xung quanh khu vực ngoại vi của khách sạn nhằm đảm bảo an ninh. Tag này giúp khách yên tâm về an toàn khi ra vào khuôn viên. Không dùng để chỉ giám sát bên trong phòng hoặc khu vực chung nội bộ."
+    },
+    {
+      "id": 43,
+      "tag_name": "CCTV trong khu vực chung",
+      "category": "HOTEL_AMENITY",
+      "description": "CCTV trong khu vực chung là hệ thống giám sát tại các không gian như hành lang và sảnh khách sạn để bảo vệ khách và tài sản. Dịch vụ này hữu ích khi khách ưu tiên an ninh trong không gian công cộng. Không dùng để chỉ giám sát cá nhân hoặc trong phòng riêng."
+    },
+    {
+      "id": 44,
+      "tag_name": "CLB trẻ em",
+      "category": "HOTEL_AMENITY",
+      "description": "CLB trẻ em là khu vui chơi giải trí dành riêng cho trẻ có hoạt động sáng tạo và giáo dục tại khách sạn. Tag này hữu ích cho phụ huynh tìm kiếm dịch vụ giải trí an toàn cho con cái. Không dùng để chỉ dịch vụ giữ trẻ hoặc các hoạt động giải trí cho người lớn."
+    },
+    {
+      "id": 45,
+      "tag_name": "Cho phép hút thuốc",
+      "category": "HOTEL_AMENITY",
+      "description": "Cho phép hút thuốc chỉ ra rằng khách sạn có các khu vực quy định cho hút thuốc. Điều này phục vụ khách có nhu cầu hút thuốc mà không ảnh hưởng đến khu vực không khói của những người khác. Không dùng để chỉ toàn bộ khách sạn hoặc các khu vực công cộng khác."
+    },
+    {
+      "id": 46,
+      "tag_name": "Cho thuê máy tính xách tay máy tính cá nhân",
+      "category": "HOTEL_AMENITY",
+      "description": "Cho thuê máy tính xách tay hoặc máy tính cá nhân tại khách sạn cho phép khách dùng công nghệ phục vụ công việc hoặc giải trí. Tag này có lợi cho khách cần làm việc từ xa. Không dùng để chỉ dịch vụ internet hoặc phòng máy tính công cộng khác."
+    },
+    {
+      "id": 47,
+      "tag_name": "Chỗ nghỉ chỉ dành cho người lớn",
+      "category": "HOTEL_AMENITY",
+      "description": "Chỗ nghỉ chỉ dành cho người lớn là loại hình lưu trú giới hạn chỉ cho cá nhân từ độ tuổi nhất định, tạo môi trường yên tĩnh. Điều này phù hợp cho cặp đôi hay cá nhân tìm kiếm khoảng thời gian nghỉ ngơi không có trẻ em. Không dùng để chỉ các khách sạn có chính sách linh hoạt với trẻ em."
+    },
+    {
+      "id": 48,
+      "tag_name": "Chỗ để xe cho ô tô - phương tiện tự đỗ xe",
+      "category": "HOTEL_AMENITY",
+      "description": "Chỗ để xe cho ô tô - phương tiện tự đỗ xe là khu vực trong khách sạn dành cho khách có phương tiện riêng tự đỗ. Tag này hỗ trợ khách muốn tự điều khiển việc đậu xe ngay tại nơi lưu trú. Không dùng để chỉ dịch vụ valet hoặc các hình thức đỗ xe có nhân viên hỗ trợ."
+    },
+    {
+      "id": 49,
+      "tag_name": "Các môn thể thao dưới nước có động cơ",
+      "category": "HOTEL_AMENITY",
+      "description": "Các môn thể thao dưới nước có động cơ bao gồm hoạt động như mô tô nước và lướt ván động cơ, phổ biến tại các khu nghỉ dưỡng gần biển. Tag này phù hợp cho khách tìm trải nghiệm mạo hiểm trên biển. Không dùng để chỉ hoạt động dưới nước không sử dụng động cơ."
+    },
+    {
+      "id": 50,
+      "tag_name": "Các môn thể thao dưới nước không có động cơ",
+      "category": "HOTEL_AMENITY",
+      "description": "Các môn thể thao dưới nước không có động cơ như chèo thuyền kayak hay lướt sóng, dành cho khách yêu thích thiên nhiên. Tag này phục vụ khách muốn hòa mình vào biển cả mà không dùng động cơ. Không dùng để chỉ hoạt động dưới nước có động cơ."
+    },
+    {
+      "id": 51,
+      "tag_name": "Các phương tiện dành cho khách khuyết tật",
+      "category": "HOTEL_AMENITY",
+      "description": "Các phương tiện dành cho khách khuyết tật là tiện ích hỗ trợ như lối đi và phòng nghỉ thiết kế riêng. Tag này phục vụ khách có nhu cầu đặc biệt cần tiếp cận dễ dàng. Không dùng để chỉ tiện nghi không liên quan cho khách không có nhu cầu đặc biệt."
+    },
+    {
+      "id": 52,
+      "tag_name": "Cách âm",
+      "category": "HOTEL_AMENITY",
+      "description": "Cách âm là thiết kế phòng khách sạn nhằm giảm thiểu tiếng ồn từ môi trường bên ngoài và các phòng lân cận. Tag này lý tưởng cho khách ưu tiên yên tĩnh để nghỉ ngơi thoải mái. Không dùng để chỉ các tiện nghi phòng khác như điều hòa hay sưởi ấm."
+    },
+    {
+      "id": 53,
+      "tag_name": "Câu lạc bộ đêm",
+      "category": "HOTEL_AMENITY",
+      "description": "Câu lạc bộ đêm là nơi giải trí trong khách sạn với âm nhạc và hoạt động vui chơi buổi tối. Tag này hấp dẫn khách muốn trải nghiệm cuộc sống về đêm mà vẫn nằm trong phạm vi an ninh của khách sạn. Không dùng để chỉ quán bar hoặc nhà hàng."
+    },
+    {
+      "id": 54,
+      "tag_name": "Có các phòng thông nhau",
+      "category": "HOTEL_AMENITY",
+      "description": "Có các phòng thông nhau là cấu trúc phòng khách sạn có cửa nối liền giữa các phòng riêng biệt. Tag này phù hợp cho gia đình hoặc nhóm bạn mong muốn sự gắn kết và riêng tư. Không dùng để chỉ dạng phòng có phòng tắm chung hoặc không gian chung khác."
+    },
+    {
+      "id": 55,
+      "tag_name": "Công viên nước",
+      "category": "HOTEL_AMENITY",
+      "description": "Công viên nước trong khách sạn bao gồm trò chơi nước và hồ bơi, hấp dẫn khách du lịch gia đình. Tag này phù hợp cho khách muốn tham gia hoạt động nước ngay tại nơi nghỉ dưỡng. Không dùng để chỉ bể bơi tiêu chuẩn hoặc hoạt động giải trí không liên quan đến nước."
+    },
+    {
+      "id": 56,
+      "tag_name": "Căn hộ riêng trong tòa nhà",
+      "category": "HOTEL_AMENITY",
+      "description": "Căn hộ riêng trong tòa nhà có đầy đủ tiện nghi như nhà riêng, bao gồm bếp và không gian sống. Tag này hướng đến khách muốn không gian sống tự do như tại nhà. Không dùng để chỉ phòng khách sạn tiêu chuẩn hoặc dạng lưu trú không có tiện nghi đầy đủ."
+    },
+    {
+      "id": 57,
+      "tag_name": "Cũi em bé",
+      "category": "HOTEL_AMENITY",
+      "description": "Cũi em bé là giường nhỏ an toàn dành cho trẻ nhỏ do khách sạn cung cấp. Tag này hữu ích cho gia đình đi du lịch cùng trẻ sơ sinh hoặc nhỏ tuổi. Không dùng để chỉ dịch vụ giám hộ hoặc các tiện nghi chăm sóc trẻ khác."
+    },
+    {
+      "id": 58,
+      "tag_name": "Cơ sở lưu trú chỉ dành cho nữ giới",
+      "category": "HOTEL_AMENITY",
+      "description": "Cơ sở lưu trú chỉ dành cho nữ giới cung cấp không gian an toàn và riêng tư đặc biệt cho phụ nữ. Tag này phù hợp cho khách nữ muốn một môi trường yên tĩnh và bảo mật. Không dùng để chỉ môi trường lưu trú chung hoặc không có sự phân biệt giới tính."
+    },
+    {
+      "id": 59,
+      "tag_name": "Cơ sở vật chất cho họp mặt tiệc lớn",
+      "category": "HOTEL_AMENITY",
+      "description": "Cơ sở vật chất cho họp mặt tiệc lớn bao gồm phòng hội nghị và đại sảnh với thiết bị hiện đại phục vụ sự kiện lớn. Tag này phù hợp cho khách tổ chức hội thảo hoặc tiệc cưới tại khách sạn. Không dùng để chỉ dịch vụ ăn uống hoặc sự kiện nhỏ."
+    },
+    {
+      "id": 60,
+      "tag_name": "Cơ sở vật chất cho thú cưng",
+      "category": "HOTEL_AMENITY",
+      "description": "Cơ sở vật chất cho thú cưng trong khách sạn bao gồm khu vực riêng, đồ dùng và dịch vụ hỗ trợ dành cho thú cưng của khách. Đây là điểm cần thiết cho những ai muốn mang theo thú cưng trong chuyến đi. Không dùng để chỉ dịch vụ spa hay hồ bơi."
+    },
+    {
+      "id": 61,
+      "tag_name": "Cơ sở vật chất cho trẻ em",
+      "category": "HOTEL_AMENITY",
+      "description": "Cơ sở vật chất cho trẻ em tại khách sạn thường gồm khu vui chơi, phòng trẻ em và đồ dùng an toàn. Điều này giúp phụ huynh yên tâm khi đi du lịch cùng trẻ nhỏ. Không dùng để chỉ nhà hàng hay dịch vụ phòng."
+    },
+    {
+      "id": 62,
+      "tag_name": "Cưỡi ngựa",
+      "category": "HOTEL_AMENITY",
+      "description": "Cưỡi ngựa là hoạt động ngoài trời do khách sạn cung cấp, giúp khách trải nghiệm vùng quê và phong cảnh tự nhiên khác biệt. Lựa chọn lý tưởng cho khách thích tham gia hoạt động vận động. Không dùng để chỉ các dịch vụ spa hay nhà hàng."
+    },
+    {
+      "id": 63,
+      "tag_name": "Cầu trượt nước",
+      "category": "HOTEL_AMENITY",
+      "description": "Cầu trượt nước trong khách sạn mang lại niềm vui với trò chơi nước sôi động, đặc biệt thu hút gia đình và trẻ em. Khách có thể tận hưởng khoảnh khắc vui vẻ ngay trong khuôn viên. Không dùng để chỉ hồ bơi thông thường hay các khu vực thể thao."
+    },
+    {
+      "id": 64,
+      "tag_name": "Cắm trại sang chảnh",
+      "category": "HOTEL_AMENITY",
+      "description": "Cắm trại sang chảnh là dịch vụ kết hợp tiện nghi của khách sạn với trải nghiệm gần gũi thiên nhiên, thường có lều cao cấp và đầy đủ tiện ích. Phù hợp cho khách muốn khám phá thiên nhiên mà vẫn thoải mái. Không dùng để chỉ cắm trại truyền thống hay dịch vụ phòng."
+    },
+    {
+      "id": 65,
+      "tag_name": "Cửa an toàn cho em bé",
+      "category": "HOTEL_AMENITY",
+      "description": "Cửa an toàn cho em bé tại khách sạn giúp ngăn cách các khu vực nguy hiểm nhằm đảm bảo sự an toàn cho trẻ nhỏ trong thời gian lưu trú. Đây là lựa chọn phù hợp cho gia đình có trẻ em. Không dùng để chỉ cửa ra vào hay cửa số lớn."
+    },
+    {
+      "id": 66,
+      "tag_name": "Cửa hàng",
+      "category": "HOTEL_AMENITY",
+      "description": "Cửa hàng trong khách sạn bán các sản phẩm thiết yếu và quà lưu niệm, tiện lợi cho khách cần mua sắm nhanh mà không cần rời khách sạn. Phù hợp cho khách thích tiện lợi và tiết kiệm thời gian. Không dùng để chỉ khu vui chơi hay dịch vụ phòng."
+    },
+    {
+      "id": 67,
+      "tag_name": "Cửa hàng quà tặng quà lưu niệm",
+      "category": "HOTEL_AMENITY",
+      "description": "Cửa hàng quà tặng quà lưu niệm trong khách sạn cung cấp các sản phẩm đặc trưng và quà tặng độc đáo, tạo điều kiện thuận lợi cho khách khi muốn mua quà. Thích hợp cho những ai muốn tìm quà đặc biệt mà không phải đi xa. Không dùng để chỉ cửa hàng tạp hóa hay siêu thị mini."
+    },
+    {
+      "id": 68,
+      "tag_name": "Cửa hàng tạp hóa",
+      "category": "HOTEL_AMENITY",
+      "description": "Cửa hàng tạp hóa trong khách sạn phục vụ các mặt hàng thiết yếu hàng ngày, giúp khách dễ dàng mua sắm những gì cần thiết ngay tại nơi lưu trú. Thích hợp cho khách ở lâu dài hoặc có nhu cầu gấp. Không dùng để chỉ nhà hàng hoặc quầy quà lưu niệm."
+    },
+    {
+      "id": 69,
+      "tag_name": "Cửa sổ có thể mở ra",
+      "category": "HOTEL_AMENITY",
+      "description": "Cửa sổ có thể mở ra tại khách sạn cho phép thông gió tự nhiên, cho phép không khí trong lành vào phòng và tạo cảm giác thoải mái. Lựa chọn lý tưởng cho khách yêu thích sự thoáng đãng. Không dùng để chỉ hệ thống cửa kính cách âm hoặc điều hòa."
+    },
+    {
+      "id": 70,
+      "tag_name": "Dịch vụ giặt là",
+      "category": "HOTEL_AMENITY",
+      "description": "Dịch vụ giặt là tại khách sạn cho phép khách duy trì trang phục sạch sẽ mà không cần rời đi, giúp tiết kiệm thời gian và công sức. Phù hợp cho khách có kế hoạch lưu trú dài ngày hoặc công tác. Không dùng để chỉ tự giặt đồ hay dịch vụ ủi riêng lẻ."
+    },
+    {
+      "id": 71,
+      "tag_name": "Dịch vụ làm đẹp",
+      "category": "HOTEL_AMENITY",
+      "description": "Dịch vụ làm đẹp tại khách sạn bao gồm các liệu trình spa và chăm sóc cá nhân, giúp khách thư giãn và tái tạo năng lượng tại nơi lưu trú. Lựa chọn tuyệt vời cho khách muốn chăm sóc bản thân. Không dùng để chỉ cửa hàng mỹ phẩm hay dịch vụ cắt tóc riêng."
+    },
+    {
+      "id": 72,
+      "tag_name": "Dịch vụ phát trực tuyến như netflix",
+      "category": "HOTEL_AMENITY",
+      "description": "Dịch vụ phát trực tuyến như Netflix cung cấp cho khách trải nghiệm giải trí với phim và chương trình ngay tại phòng, tiện lợi cho những ai yêu thích thư giãn tại chỗ. Không dùng để chỉ phòng karaoke hay rạp chiếu phim mini."
+    },
+    {
+      "id": 73,
+      "tag_name": "Dịch vụ phòng",
+      "category": "HOTEL_AMENITY",
+      "description": "Dịch vụ phòng cung cấp đồ ăn và đồ uống đến tận phòng của khách, tạo sự tiện lợi đặc biệt cho những ai muốn tận hưởng sự riêng tư và thoải mái. Không dùng để chỉ nhà hàng trong khách sạn hay quầy bar."
+    },
+    {
+      "id": 74,
+      "tag_name": "Dịch vụ phòng 24 giờ",
+      "category": "HOTEL_AMENITY",
+      "description": "Dịch vụ phòng 24 giờ tại khách sạn cho phép khách đặt món ăn và đồ uống bất kể thời gian, tiện lợi cho những ai có lịch trình không cố định. Không dùng để chỉ dịch vụ phòng theo giờ hoặc nhà hàng."
+    },
+    {
+      "id": 75,
+      "tag_name": "Dịch vụ taxi",
+      "category": "HOTEL_AMENITY",
+      "description": "Dịch vụ taxi tại khách sạn sẵn sàng cung cấp phương tiện di chuyển tiện lợi cho khách muốn tham quan hoặc di chuyển nhanh chóng. Phù hợp cho những ai không có xe riêng. Không dùng để chỉ dịch vụ đưa đón sân bay hay cho thuê xe tự lái."
+    },
+    {
+      "id": 76,
+      "tag_name": "Dịch vụ trông giữ thú cưng",
+      "category": "HOTEL_AMENITY",
+      "description": "Dịch vụ trông giữ thú cưng tại khách sạn đảm bảo thú cưng được chăm sóc khi khách bận rộn, giúp chủ nhân an tâm trong thời gian lưu trú. Thích hợp cho những ai phải đi công tác hoặc tham gia các hoạt động không thể mang thú cưng theo. Không dùng để chỉ các tiện ích dành cho thú cưng như công viên hay cửa hàng thú cưng."
+    },
+    {
+      "id": 77,
+      "tag_name": "Dịch vụ trông trẻ",
+      "category": "HOTEL_AMENITY",
+      "description": "Dịch vụ trông trẻ tại khách sạn mang lại sự chăm sóc và an toàn cho trẻ em trong khi phụ huynh tham gia các hoạt động khác. Lý tưởng cho cha mẹ muốn có thời gian riêng tư hoặc công việc. Không dùng để chỉ các hoạt động vui chơi hay giáo dục cho trẻ."
+    },
+    {
+      "id": 78,
+      "tag_name": "Dịch vụ trượt tuyết",
+      "category": "HOTEL_AMENITY",
+      "description": "Dịch vụ trượt tuyết tại khách sạn giúp khách tham gia môn thể thao mùa đông này một cách thuận tiện, thường được đánh giá cao tại các khu vực lạnh. Phù hợp cho những ai đam mê hoạt động ngoài trời. Không dùng để chỉ khu vực spa hay phòng tập thể dục."
+    },
+    {
+      "id": 79,
+      "tag_name": "Dịch vụ vé",
+      "category": "HOTEL_AMENITY",
+      "description": "Dịch vụ vé tại khách sạn hỗ trợ khách mua và đặt chỗ cho các sự kiện, giúp tiết kiệm thời gian và tiếp cận dễ dàng hơn với những trải nghiệm địa phương. Thích hợp cho khách muốn khám phá thành phố mà không cần phải xếp hàng chờ đợi. Không dùng để chỉ vé máy bay hay phương tiện công cộng."
+    },
+    {
+      "id": 80,
+      "tag_name": "Dịch vụ văn phòng fax photocopy",
+      "category": "HOTEL_AMENITY",
+      "description": "Dịch vụ văn phòng fax photocopy là dịch vụ cho phép khách gửi, nhận và sao chép tài liệu trực tiếp tại khách sạn, rất hữu ích cho khách đi công tác cần xử lý giấy tờ nhanh chóng. Khách có thể tìm những cơ sở có tiện ích này để tiết kiệm thời gian khi cần làm việc từ xa. Không dùng để chỉ dịch vụ in ấn chuyên nghiệp hoặc hỗ trợ CNTT."
+    },
+    {
+      "id": 81,
+      "tag_name": "Dịch vụ vận chuyển phù hợp cho người khuyết tật",
+      "category": "HOTEL_AMENITY",
+      "description": "Dịch vụ vận chuyển phù hợp cho người khuyết tật đảm bảo rằng phương tiện di chuyển tại khách sạn có thể tiếp cận dễ dàng đối với khách có nhu cầu đặc biệt, như xe có bệ nâng hoặc không gian cho xe lăn. Điều này hữu ích cho khách tìm kiếm chỗ ở hỗ trợ di chuyển an toàn. Không dùng để chỉ dịch vụ xe riêng hoặc taxi thông thường."
+    },
+    {
+      "id": 82,
+      "tag_name": "Dịch vụ xét nghiệm covid-19",
+      "category": "HOTEL_AMENITY",
+      "description": "Dịch vụ xét nghiệm COVID-19 tại khách sạn cho phép khách thực hiện kiểm tra sức khỏe một cách an toàn và thuận tiện, không cần di chuyển tới bệnh viện hay phòng khám. Điều này thích hợp cho khách cần chứng nhận xét nghiệm để di chuyển hoặc làm việc. Không dùng để chỉ dịch vụ cấp cứu y tế hoặc chăm sóc sức khỏe liên tục."
+    },
+    {
+      "id": 83,
+      "tag_name": "Dịch vụ đưa đón",
+      "category": "HOTEL_AMENITY",
+      "description": "Dịch vụ đưa đón cung cấp phương tiện vận chuyển giữa khách sạn và các địa điểm như sân bay, ga tàu, hoặc các điểm du lịch. Dịch vụ này rất hữu ích cho khách tìm kiếm sự tiện lợi và ít phiền phức khi di chuyển. Không dùng để chỉ dịch vụ thuê xe tự lái hoặc taxi cá nhân."
+    },
+    {
+      "id": 84,
+      "tag_name": "Dịch vụ ủi đồ",
+      "category": "HOTEL_AMENITY",
+      "description": "Dịch vụ ủi đồ tại khách sạn đảm bảo quần áo của khách luôn gọn gàng và không nhăn, thường cần thiết cho khách tham gia sự kiện hoặc hội nghị. Khách cần tìm khách sạn có dịch vụ này để bảo đảm trang phục sẵn sàng. Không dùng để chỉ dịch vụ giặt hoặc làm sạch trang phục."
+    },
+    {
+      "id": 85,
+      "tag_name": "Ghế cao cho trẻ con ngồi ăn",
+      "category": "HOTEL_AMENITY",
+      "description": "Ghế cao cho trẻ con ngồi ăn là tiện ích dành cho trẻ nhỏ khi dùng bữa cùng gia đình tại khách sạn, giúp bảo đảm an toàn và thoải mái. Đây là một lựa chọn quan trọng cho các gia đình có con nhỏ khi chọn nơi lưu trú. Không dùng để chỉ giường cũi hay khu vui chơi trẻ em."
+    },
+    {
+      "id": 86,
+      "tag_name": "Ghế mát-xa",
+      "category": "HOTEL_AMENITY",
+      "description": "Ghế mát-xa là tiện nghi giúp khách thư giãn cơ thể, giảm căng thẳng sau một ngày bận rộn hoặc di chuyển lâu. Ghế này thường đặt trong phòng nghỉ hoặc khu vực thư giãn của khách sạn, thích hợp cho khách yêu thích sự tiện lợi ngay tại chỗ ở. Không dùng để chỉ dịch vụ mát-xa chuyên nghiệp."
+    },
+    {
+      "id": 87,
+      "tag_name": "Giao hàng tạp hóa",
+      "category": "HOTEL_AMENITY",
+      "description": "Giao hàng tạp hóa là dịch vụ khách sạn nhận và giao phẩm nhu yếu cá nhân, thực phẩm đến tận phòng cho khách, giúp họ không cần ra ngoài mua sắm. Dịch vụ này đặc biệt tiện lợi cho khách lưu trú dài hạn hoặc cần tự nấu ăn. Không dùng để chỉ cửa hàng tạp hóa trong khuôn viên khách sạn."
+    },
+    {
+      "id": 88,
+      "tag_name": "Giường cũi của em bé theo yêu cầu",
+      "category": "HOTEL_AMENITY",
+      "description": "Giường cũi của em bé theo yêu cầu cung cấp chỗ ngủ an toàn cho trẻ nhỏ trong phòng khách sạn, giúp gia đình an tâm về giấc ngủ của bé. Đây là tiện ích cần thiết cho các gia đình có em bé khi chọn khách sạn. Không dùng để chỉ giường thông thường hay giường cỡ lớn."
+    },
+    {
+      "id": 89,
+      "tag_name": "Giường cực dài",
+      "category": "HOTEL_AMENITY",
+      "description": "Giường cực dài là loại giường được thiết kế dài hơn tiêu chuẩn, nhằm mang lại sự thoải mái cho những khách lưu trú có chiều cao vượt trội. Tiện ích này cần thiết cho khách cao lớn muốn có giấc ngủ thoải mái và không bị gò bó. Không dùng để chỉ giường rộng hoặc giường đôi."
+    },
+    {
+      "id": 90,
+      "tag_name": "Giường gấp",
+      "category": "HOTEL_AMENITY",
+      "description": "Giường gấp là loại giường có thể xếp gọn, tiện dụng cho những phòng cần tối ưu hóa không gian hoặc cần chỗ ngủ tạm thời thêm. Khách sạn có dịch vụ này sẽ thu hút những ai đi theo nhóm đông người. Không dùng để chỉ sofa bed hoặc giường cỡ lớn."
+    },
+    {
+      "id": 91,
+      "tag_name": "Giường mát-xa",
+      "category": "HOTEL_AMENITY",
+      "description": "Giường mát-xa là thiết bị được trang bị chức năng mát-xa, mang lại trải nghiệm thư giãn ngay tại phòng cho khách. Loại giường này phù hợp với khách tìm kiếm sự thoải mái mà không cần ra ngoài. Không dùng để chỉ giường thường hoặc dịch vụ spa."
+    },
+    {
+      "id": 92,
+      "tag_name": "Giải trí",
+      "category": "HOTEL_AMENITY",
+      "description": "Giải trí trong khách sạn bao gồm các hoạt động và dịch vụ vui chơi đa dạng giúp khách có nhiều lựa chọn khi thư giãn, như phòng game, âm nhạc hoặc khu vui chơi. Hữu ích cho khách muốn trải nghiệm đa dạng mà không cần rời khỏi khách sạn. Không dùng để chỉ dịch vụ hướng dẫn du lịch hoặc sự kiện ngoài trời."
+    },
+    {
+      "id": 93,
+      "tag_name": "Giặt khô",
+      "category": "HOTEL_AMENITY",
+      "description": "Dịch vụ giặt khô giúp làm sạch quần áo của khách bằng quy trình không dùng nước, bảo vệ chất liệu vải nhạy cảm như len, lụa. Khách sạn có dịch vụ này sẽ là lựa chọn lý tưởng cho khách cần bảo đảm trang phục chỉn chu. Không dùng để chỉ giặt ủi thông thường."
+    },
+    {
+      "id": 94,
+      "tag_name": "Giờ giảm giá đồ uống",
+      "category": "HOTEL_AMENITY",
+      "description": "Giờ giảm giá đồ uống là thời gian nhất định trong ngày khi khách sạn cung cấp các loại đồ uống với giá ưu đãi, thường diễn ra tại quầy bar hoặc nhà hàng. Hữu ích cho khách muốn thưởng thức đồ uống với mức giá hợp lý. Không dùng để chỉ dịch vụ minibar trong phòng."
+    },
+    {
+      "id": 95,
+      "tag_name": "Giữ hành lý",
+      "category": "HOTEL_AMENITY",
+      "description": "Dịch vụ giữ hành lý tại khách sạn là nơi khách có thể gửi đồ đạc tạm thời trước hoặc sau khi nhận/trả phòng, giúp họ được tự do di chuyển mà không bị vướng bận. Lựa chọn này hữu ích cho khách có chuyến bay đêm muộn hoặc đến sớm. Không dùng để chỉ kho hàng hoặc bãi đỗ xe."
+    },
+    {
+      "id": 96,
+      "tag_name": "Hoàn toàn không hút thuốc",
+      "category": "HOTEL_AMENITY",
+      "description": "Hoàn toàn không hút thuốc chỉ khách sạn áp dụng chính sách cấm hút thuốc toàn bộ khu vực, đảm bảo môi trường chung trong lành cho tất cả khách lưu trú. Việc này phù hợp cho khách ưu tiên sức khỏe và bầu không khí sạch sẽ. Không dùng để chỉ khu vực dành riêng cho người hút thuốc."
+    },
+    {
+      "id": 97,
+      "tag_name": "Học lướt sóng",
+      "category": "HOTEL_AMENITY",
+      "description": "Học lướt sóng là dịch vụ cung cấp khóa học cùng thiết bị cho khách muốn trải nghiệm môn lướt sóng, thường diễn ra tại bãi biển gần khách sạn. Thích hợp cho khách thích thử thách và năng động. Không dùng để chỉ các môn thể thao dưới nước khác."
+    },
+    {
+      "id": 98,
+      "tag_name": "Hộp vệ sinh cho mèo",
+      "category": "HOTEL_AMENITY",
+      "description": "Hộp vệ sinh cho mèo cung cấp giải pháp tiện lợi cho khách mang theo mèo, đảm bảo vấn đề vệ sinh và thoải mái cho thú cưng ngay tại phòng khách sạn. Phù hợp cho khách du lịch với thú nuôi. Không dùng để chỉ dịch vụ chăm sóc thú cưng chuyên nghiệp."
+    },
+    {
+      "id": 99,
+      "tag_name": "Karaoke",
+      "category": "HOTEL_AMENITY",
+      "description": "Karaoke tại khách sạn là khu vực hoặc phòng riêng nơi khách có thể hát karaoke vui vẻ cùng nhóm bạn bè, gia đình. Đây là lựa chọn giải trí thích hợp cho các buổi gặp mặt hoặc tiệc tùng. Không dùng để chỉ quán bar có giải trí nhạc sống."
+    },
+    {
+      "id": 100,
+      "tag_name": "Khu vực hút thuốc",
+      "category": "HOTEL_AMENITY",
+      "description": "Khu vực hút thuốc được định sẵn trong khách sạn cho phép khách hút thuốc mà không ảnh hưởng đến các khu vực chung khác. Đây là lựa chọn phù hợp cho khách có thói quen hút thuốc, giúp duy trì môi trường không khói thuốc cho người không hút. Không dùng để chỉ khu vực giải trí ngoài trời hay nhà hàng."
+    },
+    {
+      "id": 101,
+      "tag_name": "Khu vực không xích chó",
+      "category": "HOTEL_AMENITY",
+      "description": "Khu vực không xích chó là một không gian cho phép vật nuôi di chuyển tự do mà không cần xích, tạo điều kiện cho chó vui chơi thoải mái. Khách có thể tìm kiếm tag này khi muốn khách sạn thân thiện với thú cưng. Không dùng để chỉ công viên dành cho trẻ em hoặc khu vườn cảnh quan."
+    },
+    {
+      "id": 102,
+      "tag_name": "Khu vực tầng thượng",
+      "category": "HOTEL_AMENITY",
+      "description": "Khu vực tầng thượng trong khách sạn thường để thưởng ngoạn cảnh quan thành phố hoặc tổ chức sự kiện nhỏ. Đây là lựa chọn lý tưởng cho khách yêu thích không gian mở và tầm nhìn đẹp. Không dùng để chỉ nhà hàng trong nhà hoặc trung tâm hội nghị."
+    },
+    {
+      "id": 103,
+      "tag_name": "Khu vực ăn uống riêng",
+      "category": "HOTEL_AMENITY",
+      "description": "Khu vực ăn uống riêng cung cấp không gian riêng tư cho bữa ăn, thích hợp cho gia đình hoặc nhóm khách nhỏ muốn có sự riêng tư. Đây là tiện ích cần tìm khi khách muốn có trải nghiệm ăn uống không bị quấy rầy. Không dùng để chỉ khu vực ăn uống chung hoặc quầy bar."
+    },
+    {
+      "id": 104,
+      "tag_name": "Khu đối diện bãi biển",
+      "category": "HOTEL_AMENITY",
+      "description": "Khu đối diện bãi biển là khái niệm chỉ các khách sạn nằm gần bãi biển, thuận tiện cho khách muốn tận hưởng không gian biển. Khách có thể chọn tag này khi tìm chỗ nghỉ gần nước. Không dùng để chỉ khu nghỉ dưỡng trên núi hoặc trong nội địa."
+    },
+    {
+      "id": 105,
+      "tag_name": "Không gian làm việc cho máy tính xách tay",
+      "category": "HOTEL_AMENITY",
+      "description": "Không gian làm việc cho máy tính xách tay được trang bị bàn làm việc và ổ cắm điện, hỗ trợ khách làm việc hiệu quả trong thời gian lưu trú. Đây là lựa chọn phù hợp cho khách công tác hoặc làm việc từ xa. Không dùng để chỉ phòng hội nghị hoặc khu vực spa."
+    },
+    {
+      "id": 106,
+      "tag_name": "Khả năng tiếp cận cho người khó đi lại",
+      "category": "HOTEL_AMENITY",
+      "description": "Khả năng tiếp cận cho người khó đi lại bao gồm các cơ sở hạ tầng, như thang máy và lối đi dễ sử dụng, nhằm hỗ trợ khách có khó khăn trong di chuyển. Khách cần tìm kiếm tag này khi muốn bảo đảm rằng các tiện nghi của khách sạn có thể tiếp cận được. Không dùng để chỉ tiện nghi phòng sang trọng hay dịch vụ spa."
+    },
+    {
+      "id": 107,
+      "tag_name": "Liệu pháp ánh sáng",
+      "category": "HOTEL_AMENITY",
+      "description": "Liệu pháp ánh sáng là dịch vụ thư giãn tại khách sạn sử dụng ánh sáng đặc biệt để cải thiện tâm trạng và giảm căng thẳng. Khách tìm kiếm một trải nghiệm chăm sóc sức khỏe có thể quan tâm đến tag này. Không dùng để chỉ dịch vụ chiếu sáng trong phòng hay ánh sáng trang trí."
+    },
+    {
+      "id": 108,
+      "tag_name": "Lò sưởi",
+      "category": "HOTEL_AMENITY",
+      "description": "Lò sưởi là tiện ích trong khách sạn cung cấp hơi ấm, tạo không gian ấm cúng đặc biệt trong những ngày thời tiết lạnh. Khách có nhu cầu tìm kiếm một chỗ nghỉ ấm áp có thể chú ý đến tag này. Không dùng để chỉ hệ thống sưởi trung tâm hay điều hòa nhiệt độ."
+    },
+    {
+      "id": 109,
+      "tag_name": "Lò vi sóng",
+      "category": "HOTEL_AMENITY",
+      "description": "Lò vi sóng là thiết bị trong phòng giúp khách hâm nóng đồ ăn nhanh, tạo sự tiện lợi cho việc ăn uống tại chỗ. Khách lưu trú dài hạn hoặc tự nấu ăn sẽ thấy tiện ích từ tag này. Không dùng để chỉ lò nướng bánh hay bếp gas."
+    },
+    {
+      "id": 110,
+      "tag_name": "Lướt ván buồm",
+      "category": "HOTEL_AMENITY",
+      "description": "Lướt ván buồm là hoạt động thể thao nước mà khách sạn cung cấp cho khách thích trải nghiệm phiêu lưu dưới nước. Đây là lựa chọn thú vị cho những ai đam mê thể thao ngoài trời trên biển. Không dùng để chỉ hoạt động chèo thuyền kayak hoặc lặn biển."
+    },
+    {
+      "id": 111,
+      "tag_name": "Lối vào hồ bơi",
+      "category": "HOTEL_AMENITY",
+      "description": "Lối vào hồ bơi được thiết kế để khách dễ dàng di chuyển và tiếp cận, phù hợp cho cả trẻ em và người lớn. Khách cần một không gian dễ dàng truy cập sẽ quan tâm đến tag này. Không dùng để chỉ phòng tắm hoặc phòng xông hơi."
+    },
+    {
+      "id": 112,
+      "tag_name": "Lối vào tất cả các bể bơi tại chỗ nghỉ phù hợp cho người khuyết tật",
+      "category": "HOTEL_AMENITY",
+      "description": "Lối vào tất cả các bể bơi tại chỗ nghỉ phù hợp cho người khuyết tật, đảm bảo sự an toàn và tiện lợi cho tất cả khách hàng. Khách khuyết tật tìm kiếm một kỳ nghỉ thoải mái sẽ cần lưu ý tag này. Không dùng để chỉ lối vào phòng khách sạn hoặc nhà hàng."
+    },
+    {
+      "id": 113,
+      "tag_name": "Lối đi riêng",
+      "category": "HOTEL_AMENITY",
+      "description": "Lối đi riêng cung cấp cho khách một lối vào hoặc lối thoát độc lập, đảm bảo sự riêng tư và tiện lợi. Khách yêu cầu không gian riêng tư hơn trong di chuyển sẽ quan tâm đến tag này. Không dùng để chỉ lối đi chung trong khách sạn hoặc hành lang công cộng."
+    },
+    {
+      "id": 114,
+      "tag_name": "Miễn phí sử dụng khu vực dịch vụ hành chánh",
+      "category": "HOTEL_AMENITY",
+      "description": "Miễn phí sử dụng khu vực dịch vụ hành chánh cho phép khách tiếp cận các tiện ích văn phòng như máy tính và máy in mà không mất thêm phí. Phù hợp cho khách công tác cần tiện nghi văn phòng. Không dùng để chỉ dịch vụ giặt là hay sử dụng phòng hội nghị."
+    },
+    {
+      "id": 115,
+      "tag_name": "Mát-xa",
+      "category": "HOTEL_AMENITY",
+      "description": "Mát-xa là dịch vụ thư giãn tại khách sạn giúp khách phục hồi sức khỏe và tinh thần sau một ngày dài. Khách tìm kiếm sự chăm sóc cơ thể nên chú ý đến tag này. Không dùng để chỉ các liệu pháp chăm sóc sắc đẹp khác như chăm sóc da mặt."
+    },
+    {
+      "id": 116,
+      "tag_name": "Máy chiếu beam",
+      "category": "HOTEL_AMENITY",
+      "description": "Máy chiếu beam là thiết bị trình chiếu phổ biến trong các sự kiện hội nghị tại khách sạn, hỗ trợ cho các bài thuyết trình hoặc hội họp. Khách cần tổ chức sự kiện chuyên nghiệp sẽ chú ý đến tag này. Không dùng để chỉ màn hình TV hoặc bảng trắng."
+    },
+    {
+      "id": 117,
+      "tag_name": "Máy giặt",
+      "category": "HOTEL_AMENITY",
+      "description": "Máy giặt cho phép khách tự giặt đồ, rất tiện ích cho khách lưu trú dài ngày hoặc cần giặt giũ giữa chuyến đi. Khách tìm kiếm sự tự chủ trong việc quản lý quần áo sẽ quan tâm đến tag này. Không dùng để chỉ dịch vụ giặt khô hay bàn ủi đồ."
+    },
+    {
+      "id": 118,
+      "tag_name": "Máy lọc không khí",
+      "category": "HOTEL_AMENITY",
+      "description": "Máy lọc không khí cải thiện chất lượng không khí trong khách sạn, tạo ra môi trường sạch sẽ và trong lành, phù hợp cho khách có nhu cầu đặc biệt về sức khỏe. Không dùng để chỉ hệ thống thông gió hay máy điều hòa nhiệt độ."
+    },
+    {
+      "id": 119,
+      "tag_name": "Máy pha trà cà phê",
+      "category": "HOTEL_AMENITY",
+      "description": "Máy pha trà cà phê trong phòng giúp khách tự chuẩn bị đồ uống nóng yêu thích bất cứ lúc nào, tạo tiện lợi trong sinh hoạt hàng ngày. Khách thích thưởng thức đồ uống sáng sớm có thể sẽ tìm thấy giá trị ở tag này. Không dùng để chỉ quầy bar hoặc dịch vụ phục vụ phòng."
+    },
+    {
+      "id": 120,
+      "tag_name": "Máy rửa bát",
+      "category": "HOTEL_AMENITY",
+      "description": "Máy rửa bát trong khách sạn là thiết bị giúp làm sạch bát đĩa nhanh chóng sau các bữa ăn tại nhà hàng hoặc khu vực ăn uống chung của khách sạn. Tag này đặc biệt hữu ích khi khách tìm kiếm khách sạn có trang thiết bị hiện đại và tiện lợi cho dịch vụ ẩm thực. Không dùng để chỉ các dịch vụ giặt là hay dịch vụ phòng khác."
+    },
+    {
+      "id": 121,
+      "tag_name": "Máy sưởi ở khu vực chung",
+      "category": "HOTEL_AMENITY",
+      "description": "Máy sưởi ở khu vực chung là thiết bị tạo nhiệt, đảm bảo không gian ấm áp và thoải mái cho khách khi ở trong các khu vực chung của khách sạn, đặc biệt trong mùa đông. Khách tìm khách sạn với trang bị tiện nghi này thường quan tâm đến sự thoải mái trong điều kiện khí hậu lạnh. Không dùng để chỉ điều hòa nhiệt độ trong phòng hay hệ thống sưởi cá nhân."
+    },
+    {
+      "id": 122,
+      "tag_name": "Máy sấy quần áo",
+      "category": "HOTEL_AMENITY",
+      "description": "Máy sấy quần áo tại khách sạn là thiết bị giúp khách làm khô quần áo tự giặt, tiện lợi cho ai lưu trú dài hạn hoặc di chuyển nhiều. Khách chọn khách sạn với dịch vụ này vì thuận tiện trong việc quản lý đồ dùng cá nhân. Không dùng để chỉ dịch vụ giặt là chuyên nghiệp hay thiết bị giặt trong phòng."
+    },
+    {
+      "id": 123,
+      "tag_name": "Máy tính",
+      "category": "HOTEL_AMENITY",
+      "description": "Máy tính trong khách sạn là thiết bị dành cho khách sử dụng để truy cập internet hay thực hiện công việc từ xa tại khu vực kinh doanh hoặc phòng máy tính chung. Tag này hữu ích cho khách doanh nhân cần làm việc khi du lịch. Không dùng để chỉ máy tính bảng hay các thiết bị cá nhân trong phòng."
+    },
+    {
+      "id": 124,
+      "tag_name": "Máy tính bảng trong phòng",
+      "category": "HOTEL_AMENITY",
+      "description": "Máy tính bảng trong phòng là thiết bị cung cấp thông tin và dịch vụ của khách sạn, cho phép khách truy cập các dịch vụ tiện ích như đặt đồ ăn hoặc gọi dịch vụ phòng. Khách thường tìm yếu tố này để có trải nghiệm lưu trú thuận tiện và hiện đại. Không dùng để chỉ máy tính dùng chung hay thiết bị điều khiển từ xa."
+    },
+    {
+      "id": 125,
+      "tag_name": "Nhà hàng",
+      "category": "HOTEL_AMENITY",
+      "description": "Nhà hàng trong khách sạn là nơi khách có thể thưởng thức các bữa ăn mà không cần rời khỏi chỗ lưu trú, phục vụ thực đơn đa dạng từ món ăn sáng đến tối. Khách thường tìm khách sạn có nhà hàng khi muốn tiện lợi trong các bữa ăn hàng ngày. Không dùng để chỉ quầy bar hay căng tin."
+    },
+    {
+      "id": 126,
+      "tag_name": "Nhà hàng halal",
+      "category": "HOTEL_AMENITY",
+      "description": "Nhà hàng halal cung cấp các bữa ăn tuân thủ nguyên tắc ẩm thực của đạo Hồi, đảm bảo món ăn phù hợp cho khách theo tôn giáo này. Khách có nhu cầu đặc biệt thường tìm đến các khách sạn có nhà hàng halal để yên tâm thưởng thức ẩm thực. Không dùng để chỉ các nhà hàng chay hoặc nhà hàng tiêu chuẩn khác."
+    },
+    {
+      "id": 127,
+      "tag_name": "Nhà hàng kosher",
+      "category": "HOTEL_AMENITY",
+      "description": "Nhà hàng kosher trong khách sạn phục vụ các món ăn theo tiêu chuẩn kosher, phù hợp với chế độ ăn kiêng của người Do Thái. Tag này quan trọng khi khách cần đảm bảo yêu cầu tôn giáo trong chế độ ăn uống. Không dùng để chỉ nhà hàng thông thường hay các loại món ăn khác."
+    },
+    {
+      "id": 128,
+      "tag_name": "Nhà hàng phục vụ món chay",
+      "category": "HOTEL_AMENITY",
+      "description": "Nhà hàng phục vụ món chay đáp ứng nhu cầu thực phẩm không có nguồn gốc động vật, thích hợp cho khách ăn chay hoặc tìm kiếm lựa chọn ẩm thực lành mạnh. Khách thường tìm khách sạn có nhà hàng chay để thỏa mãn sở thích ăn uống cá nhân. Không dùng để chỉ các nhà hàng phục vụ món mặn hoặc đồ ăn nhanh."
+    },
+    {
+      "id": 129,
+      "tag_name": "Nhà hàng phục vụ món tự chọn",
+      "category": "HOTEL_AMENITY",
+      "description": "Nhà hàng phục vụ món tự chọn cho phép khách tự do chọn món từ nhiều lựa chọn đa dạng, thường là buffet. Khách thích tự do trong việc lựa chọn món ăn sẽ tìm đến tiện ích này khi lưu trú. Không dùng để chỉ menu cố định hoặc nhà hàng đặt món theo yêu cầu."
+    },
+    {
+      "id": 130,
+      "tag_name": "Nhà hàng ẩm thực châu á",
+      "category": "HOTEL_AMENITY",
+      "description": "Nhà hàng ẩm thực châu Á trong khách sạn mang đến các món ăn từ các quốc gia Á Đông như sushi, dim sum, và curry. Khách tìm kiếm hương vị đặc trưng này sẽ ưu tiên chọn khách sạn có nhà hàng ẩm thực châu Á. Không dùng để chỉ các hình thức ẩm thực Âu hoặc Mỹ."
+    },
+    {
+      "id": 131,
+      "tag_name": "Nhà hàng ẩm thực phương tây",
+      "category": "HOTEL_AMENITY",
+      "description": "Nhà hàng ẩm thực phương Tây phục vụ các món đặc trưng đến từ châu Âu và Mỹ như pizza, steak, và pasta. Đây là lựa chọn hoàn hảo cho khách ưa chuộng ẩm thực phương Tây khi lưu trú. Không dùng để chỉ nhà hàng phục vụ món Á hoặc các món chay."
+    },
+    {
+      "id": 132,
+      "tag_name": "Nhà hàng ẩm thực quốc tế",
+      "category": "HOTEL_AMENITY",
+      "description": "Nhà hàng ẩm thực quốc tế cung cấp các món ăn đa dạng từ nhiều nền văn hóa khác nhau, phù hợp với khách hàng muốn trải nghiệm nhiều hương vị trên thế giới trong cùng một không gian. Không dùng để chỉ nhà hàng chuyên biệt một loại ẩm thực."
+    },
+    {
+      "id": 133,
+      "tag_name": "Nhà hàng ẩm thực trung quốc",
+      "category": "HOTEL_AMENITY",
+      "description": "Nhà hàng ẩm thực Trung Quốc phục vụ các món ăn đặc sản Trung Hoa như hoành thánh, vịt quay Bắc Kinh, đem đến không gian văn hóa ẩm thực phong phú. Khách yêu thích ẩm thực truyền thống Trung Quốc sẽ lựa chọn khách sạn với tiện ích này. Không dùng để chỉ nhà hàng kiểu Tây hay quán ăn nhanh."
+    },
+    {
+      "id": 134,
+      "tag_name": "Nhà nguyện",
+      "category": "HOTEL_AMENITY",
+      "description": "Nhà nguyện trong khách sạn là không gian yên tĩnh dành cho khách thực hiện các nghi thức tôn giáo hoặc tìm kiếm sự tĩnh tâm. Khách mong muốn có chỗ riêng tư để cầu nguyện sẽ tìm khách sạn có nhà nguyện. Không dùng để chỉ nhà thờ lớn hay phòng sự kiện chung."
+    },
+    {
+      "id": 135,
+      "tag_name": "Nhà tắm chung",
+      "category": "HOTEL_AMENITY",
+      "description": "Nhà tắm chung là phòng tắm với nhiều buồng, dành cho khách sử dụng khi ở các khu lưu trú dạng ký túc xá hoặc chỗ ở giá rẻ, thường dùng chung với nhiều người. Khách tìm lựa chọn này để tiết kiệm chi phí lưu trú. Không dùng để chỉ phòng tắm riêng trong phòng."
+    },
+    {
+      "id": 136,
+      "tag_name": "Nhà tắm riêng",
+      "category": "HOTEL_AMENITY",
+      "description": "Nhà tắm riêng trong khách sạn cung cấp không gian vệ sinh cá nhân riêng tư và thoải mái, chỉ dành riêng cho một phòng. Tag này quan trọng cho khách yêu cầu sự riêng tư tối đa. Không dùng để chỉ nhà tắm chung hoặc khu vực tắm công cộng."
+    },
+    {
+      "id": 137,
+      "tag_name": "Nhà tắm thổ nhĩ kỳ",
+      "category": "HOTEL_AMENITY",
+      "description": "Nhà tắm Thổ Nhĩ Kỳ, còn gọi là hammam, là không gian thư giãn với hơi nước, mang phong cách văn hóa đặc trưng của Thổ Nhĩ Kỳ. Khách tìm kiếm sự thư giãn và trải nghiệm độc đáo trong khách sạn sẽ quan tâm đến tiện ích này. Không dùng để chỉ phòng xông hơi thông thường."
+    },
+    {
+      "id": 138,
+      "tag_name": "Nhà vệ sinh cho người khuyết tật",
+      "category": "HOTEL_AMENITY",
+      "description": "Nhà vệ sinh cho người khuyết tật được thiết kế với tiện ích đặc biệt như thanh vịn và không gian rộng hơn để phục vụ khách có nhu cầu di chuyển khó khăn. Khách sạn có tiện ích này thường thu hút các khách hàng cần sự hỗ trợ đặc biệt. Không dùng để chỉ nhà vệ sinh tiêu chuẩn không có hỗ trợ đặc biệt."
+    },
+    {
+      "id": 139,
+      "tag_name": "Nhà vệ sinh phụ",
+      "category": "HOTEL_AMENITY",
+      "description": "Nhà vệ sinh phụ là nhà vệ sinh bổ sung trong khách sạn, thường gần các khu vực chung, giúp đáp ứng nhu cầu khi nhà vệ sinh chính bận. Khách đánh giá cao tiện ích này khi ở những nơi có lưu lượng người đông. Không dùng để chỉ nhà vệ sinh trong phòng ngủ cá nhân."
+    },
+    {
+      "id": 140,
+      "tag_name": "Nhân viên trực cửa",
+      "category": "HOTEL_AMENITY",
+      "description": "Nhân viên trực cửa là người đón tiếp khách ngay tại lối vào khách sạn, giúp mang lại ấn tượng đầu tiên tốt đẹp và hỗ trợ khách với bất kỳ yêu cầu nào khi mới đến. Tag này hữu ích khi khách tìm kiếm khách sạn tạo cảm giác chào đón và có dịch vụ hỗ trợ ngay khi đến. Không dùng để chỉ nhân viên bảo vệ, dịch vụ lễ tân khác hoặc hỗ trợ hành lý."
+    },
+    {
+      "id": 141,
+      "tag_name": "Nhận trả phòng nhanh",
+      "category": "HOTEL_AMENITY",
+      "description": "Nhận trả phòng nhanh là dịch vụ cho phép khách làm thủ tục nhận và trả phòng trong thời gian ngắn và hiệu quả. Hữu ích cho những khách cần thời gian xử lý nhanh chóng khi đến hoặc rời khách sạn. Không dùng để chỉ dịch vụ lễ tân 24 giờ, check-in tự động hoặc nhận phòng sớm hơn quy định."
+    },
+    {
+      "id": 142,
+      "tag_name": "Nhận trả phòng riêng",
+      "category": "HOTEL_AMENITY",
+      "description": "Nhận trả phòng riêng cung cấp sự riêng tư tối đa cho khách khi thực hiện thủ tục mà không cần đứng xếp hàng tại quầy lễ tân chung. Lý tưởng cho những ai coi trọng sự riêng tư và muốn dịch vụ cá nhân hóa. Không dùng để chỉ dịch vụ đặc biệt khác hoặc phòng VIP."
+    },
+    {
+      "id": 143,
+      "tag_name": "Nhận/trả phòng 24 giờ",
+      "category": "HOTEL_AMENITY",
+      "description": "Nhận/trả phòng 24 giờ cho phép khách làm thủ tục nhận và trả phòng bất kỳ lúc nào trong ngày, mang lại sự linh hoạt cho những người có lịch trình không cố định. Phù hợp với những khách có chuyến bay muộn hoặc đến vào giờ không thường xuyên. Không dùng để chỉ dịch vụ hỗ trợ bất cứ loại phòng nào hoặc tiện ích có thời gian giới hạn."
+    },
+    {
+      "id": 144,
+      "tag_name": "Phim miễn phí",
+      "category": "HOTEL_AMENITY",
+      "description": "Phim miễn phí là dịch vụ cung cấp nhiều bộ phim có sẵn để xem mà không phải trả thêm phí, mang lại giải trí tiện lợi cho khách trong phòng nghỉ. Hữu ích cho những khách tìm kiếm trải nghiệm thư giãn mà không tốn kém thêm. Không dùng để chỉ kênh truyền hình cáp miễn phí hoặc dịch vụ streaming riêng biệt."
+    },
+    {
+      "id": 145,
+      "tag_name": "Phim theo yêu cầu",
+      "category": "HOTEL_AMENITY",
+      "description": "Phim theo yêu cầu cho phép khách lựa chọn và xem các bộ phim yêu thích từ danh sách có sẵn tại khách sạn, tạo ra trải nghiệm giải trí theo sở thích cá nhân. Phù hợp cho những ai muốn lựa chọn nội dung xem cụ thể. Không dùng để chỉ phim miễn phí hay chương trình truyền hình truyền thống."
+    },
+    {
+      "id": 146,
+      "tag_name": "Phòng chờ chung khu vực tv",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng chờ chung khu vực TV là không gian nơi khách có thể cùng nhau thư giãn và xem truyền hình trong môi trường công cộng. Thích hợp cho những khách muốn giao lưu hoặc nghỉ ngơi bên ngoài phòng riêng. Không dùng để chỉ rạp chiếu phim, quán cà phê có TV, hoặc khu vực phòng riêng."
+    },
+    {
+      "id": 147,
+      "tag_name": "Phòng cách âm",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng cách âm được thiết kế để giảm tiếng ồn từ bên ngoài, cung cấp không gian yên tĩnh và giấc ngủ không bị gián đoạn cho khách. Thích hợp cho những ai nhạy cảm với tiếng ồn. Không dùng để chỉ phòng không hút thuốc hoặc phòng có vật liệu thân thiện với người dị ứng."
+    },
+    {
+      "id": 148,
+      "tag_name": "Phòng có thiết kế theo phong cách công chúa",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng có thiết kế theo phong cách công chúa đặc trưng bởi không gian lãng mạn với nội thất trang trí cổ tích, thích hợp cho cặp đôi hoặc những ai yêu thích nét đẹp huyền ảo. Không dùng để chỉ phòng tiêu chuẩn hoặc các phong cách thiết kế hiện đại, đơn giản hơn."
+    },
+    {
+      "id": 149,
+      "tag_name": "Phòng có thiết kế theo phong cách hộp đêm",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng có thiết kế theo phong cách hộp đêm tạo không gian sống động với ánh sáng đặc biệt và âm nhạc sôi động, lý tưởng cho những người yêu thích không khí tiệc tùng. Không dùng để chỉ phòng tổ chức hội nghị hoặc các không gian dành cho gia đình."
+    },
+    {
+      "id": 150,
+      "tag_name": "Phòng có thiết kế theo phong cách tiệc tùng",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng có thiết kế theo phong cách tiệc tùng mang lại không gian vui nhộn và tràn đầy năng lượng, hoàn hảo cho các buổi tụ họp bạn bè và các sự kiện vui vẻ. Không dùng để chỉ phòng yên tĩnh hoặc không gian thư giãn đơn giản."
+    },
+    {
+      "id": 151,
+      "tag_name": "Phòng gia đình",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng gia đình được thiết kế rộng rãi và tiện nghi để phù hợp cho những gia đình đi cùng trẻ em hoặc nhóm khách đông người nghỉ ngơi cùng nhau. Không dùng để chỉ phòng đơn, phòng tiêu chuẩn hoặc phòng đôi nhỏ."
+    },
+    {
+      "id": 152,
+      "tag_name": "Phòng giải trí",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng giải trí cung cấp không gian với nhiều lựa chọn trò chơi như bàn bi-a và máy chơi game, tạo điều kiện thư giãn và giải trí cho khách. Hữu ích cho những ai muốn tiêu khiển mà không cần rời khỏi khách sạn. Không dùng để chỉ phòng xem phim hoặc phòng karaoke."
+    },
+    {
+      "id": 153,
+      "tag_name": "Phòng hai tầng",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng hai tầng bao gồm hai tầng riêng biệt trong cùng một căn phòng, tăng cường không gian sinh hoạt và sự riêng tư, lý tưởng cho gia đình hoặc nhóm bạn cần nhiều hơn một khu vực. Không dùng để chỉ phòng đơn tầng hoặc phòng chung cư."
+    },
+    {
+      "id": 154,
+      "tag_name": "Phòng họp",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng họp là không gian dành cho các cuộc họp nhỏ hoặc sự kiện kinh doanh, trang bị các thiết bị cần thiết để hỗ trợ trình bày và thảo luận. Phù hợp với khách doanh nhân cần nơi tổ chức hội thảo ngắn. Không dùng để chỉ phòng hội thảo lớn hoặc phòng tổ chức sự kiện."
+    },
+    {
+      "id": 155,
+      "tag_name": "Phòng hội thảo",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng hội thảo là một không gian lớn với đầy đủ âm thanh và ánh sáng phục vụ cho các sự kiện lớn như hội nghị hay triển lãm. Thích hợp cho tổ chức sự kiện cần không gian rộng và chuyên nghiệp. Không dùng để chỉ phòng họp nhỏ hoặc không gian thư giãn cá nhân."
+    },
+    {
+      "id": 156,
+      "tag_name": "Phòng khách riêng",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng khách riêng cung cấp một không gian tách biệt cho chủ nhà và khách nghỉ chân, giao lưu hoặc thảo luận trong môi trường cá nhân hóa. Thích hợp cho việc tiếp khách hoặc tổ chức cuộc họp kín. Không dùng để chỉ phòng chờ chung hoặc các khu vực công cộng khác."
+    },
+    {
+      "id": 157,
+      "tag_name": "Phòng không gây dị ứng",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng không gây dị ứng được thiết kế với các vật liệu và vật dụng thân thiện, giảm thiểu tối đa các tác nhân gây dị ứng trong không khí. Phù hợp cho khách nhạy cảm hoặc có tiền sử dị ứng. Không dùng để chỉ phòng không hút thuốc hoặc phòng cách âm."
+    },
+    {
+      "id": 158,
+      "tag_name": "Phòng không hút thuốc",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng không hút thuốc đảm bảo bầu không khí trong sạch và không có mùi thuốc lá, mang lại sự dễ chịu cho những người không hút thuốc hoặc nhạy cảm với khói. Không dùng để chỉ phòng chống cháy hoặc các biện pháp an toàn khác."
+    },
+    {
+      "id": 159,
+      "tag_name": "Phòng máy giặt tự động",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng máy giặt tự động là khu vực nơi khách có thể tự sử dụng máy giặt mà không cần sự can thiệp của nhân viên, rất tiện lợi cho những ai có nhu cầu giặt giũ trong thời gian lưu trú dài. Không dùng để chỉ dịch vụ giặt ủi hoặc giặt hấp phục vụ bởi khách sạn."
+    },
+    {
+      "id": 160,
+      "tag_name": "Phòng thay đồ",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng thay đồ là không gian riêng biệt trong khách sạn dành để khách thay quần áo trước và sau khi sử dụng các tiện ích như hồ bơi, phòng xông hơi hoặc phòng tập. Đây là lựa chọn hữu ích cho khách muốn thay đổi trang phục thoải mái mà không cần quay lại phòng nghỉ. Không dùng để chỉ phòng ngủ hay phòng tắm."
+    },
+    {
+      "id": 161,
+      "tag_name": "Phòng thay đồ cho em bé",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng thay đồ cho em bé là khu vực chuyên biệt trong khách sạn được thiết kế để phụ huynh có thể thay tã và quần áo cho trẻ nhỏ trong không gian an toàn, sạch sẽ. Tiện ích này rất cần thiết cho những gia đình có con nhỏ đi cùng. Không dùng để chỉ phòng thay đồ chung cho người lớn."
+    },
+    {
+      "id": 162,
+      "tag_name": "Phòng theo chủ đề",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng theo chủ đề là loại phòng trong khách sạn được trang trí và thiết kế theo một chủ điểm nhất định, mang đến trải nghiệm lưu trú độc đáo và thú vị. Đây là lựa chọn lý tưởng cho những khách muốn tận hưởng không gian đặc sắc. Không dùng để chỉ phòng tiêu chuẩn hoặc phòng loại không được thiết kế đặc biệt."
+    },
+    {
+      "id": 163,
+      "tag_name": "Phòng thiết kế theo phong cách quán cà phê",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng thiết kế theo phong cách quán cà phê mang lại cảm giác ấm cúng, gần gũi với cách bài trí giống như một quán cà phê nhỏ, lý tưởng cho khách thích không gian tự nhiên và thư giãn. Không dùng để chỉ phòng theo phong cách hiện đại hoặc sang trọng."
+    },
+    {
+      "id": 164,
+      "tag_name": "Phòng tập",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng tập là khu vực được trang bị thiết bị thể dục thể thao như máy chạy bộ, tạ và thiết bị luyện tập khác để khách rèn luyện sức khỏe trong suốt thời gian lưu trú. Đây là tiện ích không thể thiếu cho những khách thích luyện tập hàng ngày. Không dùng để chỉ spa hoặc khu vực thư giãn."
+    },
+    {
+      "id": 165,
+      "tag_name": "Phòng tắm có băng ghế tắm",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng tắm có băng ghế tắm được thiết kế với một băng ghế tích hợp bên trong không gian tắm, giúp khách có thể ngồi thư giãn trong lúc tắm. Tiện ích này phù hợp cho khách có nhu cầu thư giãn hoặc hạn chế di chuyển. Không dùng để chỉ phòng tắm tiêu chuẩn mà không có băng ghế."
+    },
+    {
+      "id": 166,
+      "tag_name": "Phòng tắm có lối đi thoai thoải",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng tắm có lối đi thoai thoải được thiết kế để dễ dàng tiếp cận, đặc biệt phù hợp với người cao tuổi hoặc cần sự hỗ trợ khi di chuyển. Đây là tiện ích quan trọng trong các khách sạn hướng tới khách hàng có nhu cầu đặc biệt. Không dùng để chỉ các loại phòng tắm không có đặc điểm phù hợp cho các nhu cầu di chuyển."
+    },
+    {
+      "id": 167,
+      "tag_name": "Phòng tắm dành cho người khuyết tật",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng tắm dành cho người khuyết tật được trang bị các thiết bị hỗ trợ đặc biệt như tay vịn và vòi hoa sen cầm tay, tạo môi trường an toàn và thuận tiện cho người có nhu cầu đặc biệt. Đây là yếu tố cần thiết cho các khách sạn muốn cung cấp dịch vụ toàn diện. Không dùng để chỉ phòng tắm tiêu chuẩn."
+    },
+    {
+      "id": 168,
+      "tag_name": "Phòng tắm nắng",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng tắm nắng là không gian trong khách sạn được thiết kế để khách có thể thư giãn dưới ánh nắng mặt trời, thường được trang bị với giường phơi nắng hoặc ghế dài. Đây là lựa chọn lý tưởng cho những ai muốn tăng cường vitamin D trong khi lưu trú. Không dùng để chỉ hồ bơi hoặc các khu vực nội thất."
+    },
+    {
+      "id": 169,
+      "tag_name": "Phòng tắm phụ",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng tắm phụ là một không gian tắm riêng biệt được cung cấp thêm cho nhóm lớn hoặc gia đình, tạo sự tiện lợi khi có nhiều người sử dụng phòng tắm cùng lúc. Đây là lựa chọn hữu ích cho những nhóm đông cần tiện nghi bổ sung. Không dùng để chỉ phòng tắm chính trong phòng."
+    },
+    {
+      "id": 170,
+      "tag_name": "Phòng tắm đứng",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng tắm đứng được trang bị với buồng tắm đứng, tạo cảm giác hiện đại và tiết kiệm không gian, phù hợp cho những khách không ưa thích bồn tắm. Đây là tiện ích mà nhiều khách sạn cung cấp để tối ưu hóa không gian phòng tắm. Không dùng để chỉ phòng tắm có bồn lớn hoặc kiểu cổ điển."
+    },
+    {
+      "id": 171,
+      "tag_name": "Phòng và hoặc bộ dụng cụ phù hợp cho người khiếm thính",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng và hoặc bộ dụng cụ phù hợp cho người khiếm thính bao gồm các tiện ích như thiết bị báo động trực quan, chuông báo cửa bằng tín hiệu đèn, giúp khách khiếm thính cảm thấy an toàn và thoải mái khi lưu trú. Không dùng để chỉ các thiết bị hỗ trợ khác không liên quan đến khiếm thính."
+    },
+    {
+      "id": 172,
+      "tag_name": "Phòng xông khô hàn quốc",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng xông khô hàn quốc là không gian thư giãn với thiết kế và phong cách xông khô kiểu truyền thống Hàn Quốc, lý tưởng cho khách thích cảm giác ấm áp và lợi ích sức khỏe từ xông khô. Không dùng để chỉ phòng xông ướt hoặc sauna thông thường."
+    },
+    {
+      "id": 173,
+      "tag_name": "Phòng xông ướt",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng xông ướt cung cấp không gian phòng tắm hơi với độ ẩm cao, giúp làm sạch cơ thể và thư giãn cơ bắp hiệu quả. Đây là dịch vụ lý tưởng cho khách muốn trải nghiệm phong cách thư giãn sâu. Không dùng để chỉ xông khô hay các phương pháp thư giãn khác."
+    },
+    {
+      "id": 174,
+      "tag_name": "Phòng yoga",
+      "category": "HOTEL_AMENITY",
+      "description": "Phòng yoga là không gian yên tĩnh được thiết kế để khách tập yoga với các dụng cụ cần thiết như thảm yoga và gạch hỗ trợ. Tiện ích này đáp ứng nhu cầu dành cho khách muốn duy trì lối sống lành mạnh trong thời gian lưu trú. Không dùng để chỉ phòng thể dục hoặc phòng xông."
+    },
+    {
+      "id": 175,
+      "tag_name": "Phù hợp cho xe lăn",
+      "category": "HOTEL_AMENITY",
+      "description": "Khách sạn phù hợp cho xe lăn có cơ sở vật chất đặc biệt như lối đi mở rộng, thang máy chuyên dụng và phòng tắm tiện nghi, giúp người dùng xe lăn di chuyển thuận tiện trong toàn khuôn viên. Không dùng để chỉ khách sạn không có tiện nghi dễ tiếp cận."
+    },
+    {
+      "id": 176,
+      "tag_name": "Phụ thu khi mang theo vật nuôi",
+      "category": "HOTEL_AMENITY",
+      "description": "Phụ thu khi mang theo vật nuôi là khoản phí thêm mà khách sạn áp dụng khi khách mang thú cưng vào lưu trú, nhằm đảm bảo dịch vụ vệ sinh và an toàn hợp lý. Không dùng để chỉ dịch vụ miễn phí hoặc chính sách không cho phép thú cưng."
+    },
+    {
+      "id": 177,
+      "tag_name": "Quyền sử dụng spa miễn phí",
+      "category": "HOTEL_AMENITY",
+      "description": "Quyền sử dụng spa miễn phí cho phép khách tận hưởng các dịch vụ spa mà không phải trả thêm chi phí, một điểm cộng hấp dẫn cho khách thích chăm sóc sức khỏe và thư giãn. Không dùng để chỉ các dịch vụ spa với phụ phí."
+    },
+    {
+      "id": 178,
+      "tag_name": "Quán bar",
+      "category": "HOTEL_AMENITY",
+      "description": "Quán bar tại khách sạn là nơi phục vụ đồ uống, tạo không gian xã hội cho khách thư giãn và giao lưu. Đây là đặc điểm nổi bật cho những du khách muốn tìm một nơi giải trí trong khuôn viên khách sạn. Không dùng để chỉ quán cà phê hoặc nhà hàng."
+    },
+    {
+      "id": 179,
+      "tag_name": "Quán bar cạnh bể bơi",
+      "category": "HOTEL_AMENITY",
+      "description": "Quán bar cạnh bể bơi cho phép khách thưởng thức đồ uống ngay tại khu vực hồ bơi, tạo không gian thoải mái và thư giãn giữa làn nước. Đây là yếu tố hấp dẫn cho những khách thích không khí ngoài trời. Không dùng để chỉ quán bar trong nhà hoặc xa bể bơi."
+    },
+    {
+      "id": 180,
+      "tag_name": "Quán cà phê",
+      "category": "HOTEL_AMENITY",
+      "description": "Quán cà phê trong khách sạn là nơi khách có thể thưởng thức cà phê và đồ uống yêu thích, tạo không gian gặp gỡ hoặc làm việc thư giãn. Khách thường tìm kiếm khách sạn có quán cà phê để có lựa chọn ăn sáng hoặc thư giãn buổi chiều. Không dùng để chỉ nhà hàng hoặc tiệm ăn nhanh trong khách sạn."
+    },
+    {
+      "id": 181,
+      "tag_name": "Quán rượu",
+      "category": "HOTEL_AMENITY",
+      "description": "Quán rượu tại khách sạn là địa điểm nơi du khách có thể thưởng thức các loại rượu và thức uống có cồn khác trong không gian ấm áp và thân mật. Tag này phù hợp khi khách muốn tìm nơi giao lưu với những người cùng sở thích. Không dùng để chỉ nhà hàng hoặc bar tiệc tùng."
+    },
+    {
+      "id": 182,
+      "tag_name": "Quầy đồ ăn vặt",
+      "category": "HOTEL_AMENITY",
+      "description": "Quầy đồ ăn vặt tại khách sạn cung cấp nhiều lựa chọn thức ăn nhẹ và đồ uống nhanh chóng, phù hợp cho khách tìm kiếm sự tiện lợi khi đói bụng tại chỗ nghỉ. Tag hữu ích cho du khách muốn có món ăn nhẹ tiện lợi. Không dùng để chỉ nhà hàng chính hoặc bữa ăn đầy đủ."
+    },
+    {
+      "id": 183,
+      "tag_name": "Spa",
+      "category": "HOTEL_AMENITY",
+      "description": "Spa trong khách sạn là nơi cung cấp các dịch vụ thư giãn và trị liệu, như massage và chăm sóc sức khỏe, giúp khách tái tạo năng lượng. Khách thường tìm kiếm khách sạn có spa cho kỳ nghỉ dưỡng thoải mái. Không dùng để chỉ phòng tập thể dục hay sân chơi thể thao."
+    },
+    {
+      "id": 184,
+      "tag_name": "Spa xông khô",
+      "category": "HOTEL_AMENITY",
+      "description": "Spa xông khô là dịch vụ trong khách sạn mang lại trải nghiệm xông hơi khô, giúp cơ thể loại bỏ độc tố và cải thiện sức khỏe. Du khách chọn khách sạn có spa xông khô khi cần một nơi thư giãn tuyệt đối. Không dùng để chỉ xông hơi ướt hoặc hồ bơi."
+    },
+    {
+      "id": 185,
+      "tag_name": "Sách và đồ chơi cho trẻ em",
+      "category": "HOTEL_AMENITY",
+      "description": "Sách và đồ chơi cho trẻ em là tiện ích hỗ trợ giải trí với nhiều loại truyện và trò chơi phù hợp cho trẻ em trong khách sạn. Tag này đặc biệt hữu ích cho các gia đình có con nhỏ cần hoạt động để giữ các bé bận rộn. Không dùng để chỉ dịch vụ trông trẻ hoặc khu vui chơi lớn."
+    },
+    {
+      "id": 186,
+      "tag_name": "Sân chơi",
+      "category": "HOTEL_AMENITY",
+      "description": "Sân chơi tại khách sạn là không gian ngoài trời hoặc trong nhà thiết kế an toàn cho trẻ em vui chơi. Tag này hữu ích khi các gia đình tìm kiếm khách sạn có khu vực giải trí cho trẻ nhỏ. Không dùng để chỉ sân thể thao hoặc công viên công cộng."
+    },
+    {
+      "id": 187,
+      "tag_name": "Sân cầu lông",
+      "category": "HOTEL_AMENITY",
+      "description": "Sân cầu lông trong khách sạn là khu vực dành riêng cho khách chơi cầu lông, mang lại cơ hội vận động và giải trí. Khách có thể tìm khách sạn có sân cầu lông để tận hưởng hoạt động thể thao trong kỳ nghỉ. Không dùng để chỉ phòng tập hoặc sân chơi đa năng."
+    },
+    {
+      "id": 188,
+      "tag_name": "Sân gôn tại chỗ nghỉ",
+      "category": "HOTEL_AMENITY",
+      "description": "Sân gôn tại chỗ nghỉ là sân gôn nằm ngay trong khuôn viên khách sạn, cho phép khách chơi gôn mà không cần đi xa. Tag này dành cho khách chọn nghỉ dưỡng có yêu cầu trải nghiệm gôn tiện lợi tại chỗ. Không dùng để chỉ sân tập gôn hoặc mini-gôn."
+    },
+    {
+      "id": 189,
+      "tag_name": "Sân quần vợt",
+      "category": "HOTEL_AMENITY",
+      "description": "Sân quần vợt tại khách sạn là khu vực nơi khách có thể chơi quần vợt, thích hợp cho những ai yêu thích bộ môn thể thao này khi lưu trú. Tag hữu ích khi khách tìm kiếm khách sạn có hoạt động thể thao ngay trong khuôn viên. Không dùng để chỉ sân cầu lông hoặc sân đa năng."
+    },
+    {
+      "id": 190,
+      "tag_name": "Sòng bạc",
+      "category": "HOTEL_AMENITY",
+      "description": "Sòng bạc trong khách sạn là nơi du khách có thể tham gia các trò chơi may rủi với không khí giải trí đẳng cấp. Tag này được tìm kiếm bởi khách muốn trải nghiệm sòng bạc mà không cần di chuyển ra ngoài khách sạn. Không dùng để chỉ sảnh trò chơi điện tử hoặc hoạt động vui chơi khác."
+    },
+    {
+      "id": 191,
+      "tag_name": "Sưởi",
+      "category": "HOTEL_AMENITY",
+      "description": "Hệ thống sưởi trong khách sạn giúp duy trì nhiệt độ ấm áp trong phòng hoặc khu vực chung, đặc biệt cần thiết trong mùa đông. Khách tìm kiếm tiện ích này khi lưu trú tại những vùng có khí hậu lạnh. Không dùng để chỉ điều hòa làm mát hoặc lò sưởi trang trí."
+    },
+    {
+      "id": 192,
+      "tag_name": "Sử sụng clb thể thao",
+      "category": "HOTEL_AMENITY",
+      "description": "Khách sạn có clb thể thao, nơi khách có thể tập luyện và nâng cao sức khỏe với thiết bị đầy đủ và dịch vụ chuyên nghiệp. Tag này phù hợp cho những ai muốn duy trì chế độ tập luyện trong khi du lịch. Không dùng để chỉ phòng tập gym công cộng hoặc lớp yoga riêng lẻ."
+    },
+    {
+      "id": 193,
+      "tag_name": "TV có phụ đề",
+      "category": "HOTEL_AMENITY",
+      "description": "TV có phụ đề trong khách sạn cung cấp khả năng truy cập nội dung có phụ đề, giúp khách dễ dàng theo dõi, đặc biệt là khách khó nghe hoặc cần phụ đề ngôn ngữ khác. Tag này hữu ích cho khách quốc tế hoặc người khuyết tật. Không dùng để chỉ TV thông thường hoặc hệ thống âm thanh."
+    },
+    {
+      "id": 194,
+      "tag_name": "TV màn hình phẳng",
+      "category": "HOTEL_AMENITY",
+      "description": "TV màn hình phẳng tại khách sạn mang lại hình ảnh sắc nét và hiện đại cho khách khi thư giãn trong phòng. Du khách thường tìm kiếm tiện ích này khi muốn trải nghiệm giải trí chất lượng cao tại chỗ. Không dùng để chỉ TV truyền thống hoặc màn hình nhỏ."
+    },
+    {
+      "id": 195,
+      "tag_name": "TV trong phòng tắm",
+      "category": "HOTEL_AMENITY",
+      "description": "TV trong phòng tắm là tiện ích độc đáo trong khách sạn, cho phép khách xem nội dung giải trí trực tiếp khi ngâm mình, tạo cảm giác thư giãn tối đa. Lý tưởng cho khách muốn thưởng thức giải trí liên tục. Không dùng để chỉ hệ thống âm thanh hoặc các thiết bị tích hợp khác."
+    },
+    {
+      "id": 196,
+      "tag_name": "Tay nắm đòn bẩy trên cửa",
+      "category": "HOTEL_AMENITY",
+      "description": "Tay nắm đòn bẩy trên cửa giúp việc mở cửa dễ dàng hơn, đặc biệt thuận lợi cho người già, trẻ nhỏ, hoặc người khuyết tật. Tag này được tìm kiếm bởi khách cần tiện ích thân thiện để dễ dàng di chuyển trong phòng. Không dùng để chỉ cửa tự động hoặc tay nắm dạng khác."
+    },
+    {
+      "id": 197,
+      "tag_name": "Thang máy",
+      "category": "HOTEL_AMENITY",
+      "description": "Thang máy trong khách sạn giúp khách di chuyển nhanh chóng và thuận tiện giữa các tầng, đặc biệt có ích khi mang theo hành lý nặng hoặc đi cùng người già, trẻ nhỏ. Khách chọn khách sạn có thang máy để đảm bảo tiện lợi này. Không dùng để chỉ cầu thang bộ hoặc thang máy kính."
+    },
+    {
+      "id": 198,
+      "tag_name": "Thanh vịn chống trượt",
+      "category": "HOTEL_AMENITY",
+      "description": "Thanh vịn chống trượt tại khách sạn được lắp đặt ở những vị trí dễ trơn trượt giúp tăng cường an toàn cho khách. Tag này hữu ích cho khách sạn quan tâm đến an toàn của khách trong không gian chung hoặc phòng tắm. Không dùng để chỉ thanh vịn trang trí hoặc giường."
+    },
+    {
+      "id": 199,
+      "tag_name": "Thiết bị bảo vệ ban đêm hạ thấp trên cửa",
+      "category": "HOTEL_AMENITY",
+      "description": "Thiết bị bảo vệ ban đêm hạ thấp trên cửa là thiết bị an ninh giúp tăng cường an toàn cho căn phòng, tạo sự yên tâm cho khách nghỉ ngơi. Đây là điểm quan trọng với những ai đề cao an ninh khi chọn chỗ nghỉ. Không dùng để chỉ khóa điện tử hoặc hệ thống giám sát."
+    },
+    {
+      "id": 200,
+      "tag_name": "Thiết bị chơi điện tử",
+      "category": "HOTEL_AMENITY",
+      "description": "Thiết bị chơi điện tử là những máy móc cung cấp trò chơi điện tử tại khách sạn, thường nằm trong khu vực giải trí chung để du khách có thêm lựa chọn thư giãn và giải trí. Tag này phù hợp khi khách tìm kiếm khách sạn có các hoạt động giải trí tại chỗ. Không dùng để chỉ dịch vụ Internet, TV hay các hoạt động ngoài trời."
+    },
+    {
+      "id": 201,
+      "tag_name": "Thiết bị phát dữ liệu di động",
+      "category": "HOTEL_AMENITY",
+      "description": "Thiết bị phát dữ liệu di động là dịch vụ cung cấp thiết bị phát sóng Wi-Fi giúp du khách có kết nối Internet không dây ổn định trong khuôn viên khách sạn. Khách tìm kiếm sự tiện lợi trong việc truy cập thông tin từ bất kỳ đâu sẽ quan tâm đến tiện ích này. Không dùng để chỉ mạng cáp quang cố định hoặc dịch vụ Internet theo phòng."
+    },
+    {
+      "id": 202,
+      "tag_name": "Thiết bị điện thoại thông minh",
+      "category": "HOTEL_AMENITY",
+      "description": "Thiết bị điện thoại thông minh là các thiết bị cho khách mượn sử dụng, hỗ trợ các ứng dụng liên lạc và dịch vụ chăm sóc khách hàng qua điện thoại. Du khách có thể dùng thiết bị này để liên hệ nhanh với lễ tân hoặc tìm kiếm thông tin địa phương. Không dùng để chỉ điện thoại bàn trong phòng hay các tiện ích không liên quan khác."
+    },
+    {
+      "id": 203,
+      "tag_name": "Thuê dụng cụ thể thao dưới nước",
+      "category": "HOTEL_AMENITY",
+      "description": "Thuê dụng cụ thể thao dưới nước là dịch vụ cho phép khách sạn cung cấp và cho thuê các thiết bị như kayak, lướt ván, hoặc thiết bị lặn, tạo điều kiện cho du khách tham gia các môn thể thao nước. Khách muốn trải nghiệm các hoạt động dưới nước mà không cần mang theo dụng cụ cá nhân sẽ thấy tiện dụng. Không dùng để chỉ hoạt động thể thao trên cạn."
+    },
+    {
+      "id": 204,
+      "tag_name": "Thuê thiết bị trượt tuyết",
+      "category": "HOTEL_AMENITY",
+      "description": "Thuê thiết bị trượt tuyết là dịch vụ cung cấp các dụng cụ như ván trượt hoặc giày trượt tuyết cho khách tại vùng có tuyết. Khách muốn tận hưởng các môn thể thao tuyết mà không cần tự mang theo thiết bị sẽ thấy dịch vụ này hữu ích. Không dùng để chỉ hoạt động ngoài trời trong môi trường không có tuyết."
+    },
+    {
+      "id": 205,
+      "tag_name": "Thuê xe đạp",
+      "category": "HOTEL_AMENITY",
+      "description": "Thuê xe đạp là dịch vụ cho phép khách sạn cung cấp xe đạp để khách có thể tự do khám phá xung quanh và tận hưởng cảnh đẹp địa phương. Dành cho những ai yêu thích sự vận động và trải nghiệm cảnh quan theo cách chủ động. Không dùng để chỉ các phương tiện giao thông khác như xe máy hoặc ô tô."
+    },
+    {
+      "id": 206,
+      "tag_name": "Thuê xe đạp miễn phí",
+      "category": "HOTEL_AMENITY",
+      "description": "Thuê xe đạp miễn phí là dịch vụ khách sạn cung cấp xe đạp không mất phí, khuyến khích du khách khám phá các vùng lân cận một cách thân thiện với môi trường. Người quan tâm đến việc tiết kiệm chi phí và thích phương tiện di chuyển tự do sẽ quan tâm đến dịch vụ này. Không dùng để chỉ dịch vụ cho thuê xe đạp có thu phí."
+    },
+    {
+      "id": 207,
+      "tag_name": "Thích hợp cho gia đình trẻ em",
+      "category": "HOTEL_AMENITY",
+      "description": "Thích hợp cho gia đình trẻ em chỉ ra các tiện ích và dịch vụ phù hợp với gia đình có trẻ em như khu vực vui chơi, ghế cho trẻ em, hoặc cũi em bé. Dịch vụ này thu hút những gia đình muốn đảm bảo môi trường an toàn và thú vị cho con nhỏ. Không dùng để chỉ dịch vụ chuyên dành cho người lớn hoặc người đi công tác."
+    },
+    {
+      "id": 208,
+      "tag_name": "Thư viện",
+      "category": "HOTEL_AMENITY",
+      "description": "Thư viện trong khách sạn là khu vực có sẵn sách và tài liệu để khách đọc và mượn, tạo không gian yên tĩnh thư giãn. Khách yêu thích đọc sách hay cần không gian riêng tư sẽ tìm thấy giá trị trong tiện ích này. Không dùng để chỉ phòng tập thể dục hay các khu vui chơi ồn ào khác."
+    },
+    {
+      "id": 209,
+      "tag_name": "Tiếng Anh",
+      "category": "HOTEL_AMENITY",
+      "description": "Tiếng Anh là dịch vụ ngôn ngữ, khách sạn hỗ trợ giao tiếp, tài liệu và biển chỉ dẫn bằng tiếng Anh. Khách không nói ngôn ngữ địa phương sẽ thấy dễ dàng hơn trong việc tương tác và nhận thông tin. Không dùng để chỉ lớp học hoặc hoạt động trao đổi ngôn ngữ."
+    },
+    {
+      "id": 210,
+      "tag_name": "Tiếng Nga",
+      "category": "HOTEL_AMENITY",
+      "description": "Tiếng Nga trong khách sạn bao gồm sự hỗ trợ giao tiếp, tài liệu và biển chỉ dẫn bằng tiếng Nga. Điều này giúp du khách đến từ Nga dễ dàng giao tiếp và tiếp cận các dịch vụ tại khách sạn. Không dùng để chỉ chương trình học tiếng Nga hay các hoạt động liên quan đến ngôn ngữ khác."
+    },
+    {
+      "id": 211,
+      "tag_name": "Tiếng indonesia",
+      "category": "HOTEL_AMENITY",
+      "description": "Tiếng indonesia thể hiện rằng khách sạn hỗ trợ giao tiếp, tài liệu và các biển chỉ dẫn bằng tiếng Indonesia, giúp du khách Indonesia hoặc người nói ngôn ngữ này dễ dàng hơn khi lưu trú. Không dùng để chỉ các chương trình văn hóa Indonesia hay lễ hội tiếng Indonesia."
+    },
+    {
+      "id": 212,
+      "tag_name": "Tiếng malaysia",
+      "category": "HOTEL_AMENITY",
+      "description": "Tiếng malaysia trong khách sạn có nghĩa là sự hiện diện của nhân viên, tài liệu, và dịch vụ có thể giao tiếp bằng tiếng Malaysia, tạo điều kiện thuận lợi cho du khách nói tiếng này. Không dùng để chỉ các dịch vụ dạy kèm tiếng Malaysia hay sự kiện văn hóa."
+    },
+    {
+      "id": 213,
+      "tag_name": "Tiếng philippin",
+      "category": "HOTEL_AMENITY",
+      "description": "Tiếng philippin chỉ ra rằng khách sạn có nhân viên và dịch vụ hỗ trợ tiếng Filipino, giúp du khách sử dụng ngôn ngữ này cảm thấy thoải mái hơn trong việc lưu trú và giao tiếp. Không dùng để chỉ lớp học ngôn ngữ Filipino hoặc các sự kiện văn hóa liên quan."
+    },
+    {
+      "id": 214,
+      "tag_name": "Tiếng ý",
+      "category": "HOTEL_AMENITY",
+      "description": "Tiếng ý cho thấy khả năng hỗ trợ giao tiếp bằng tiếng Ý với nhân viên, tài liệu và biển chỉ dẫn, tạo điều kiện thoải mái cho du khách người Ý. Không dùng để chỉ các lớp học hoặc hoạt động quảng bá văn hóa Ý."
+    },
+    {
+      "id": 215,
+      "tag_name": "Tiếng ả rập",
+      "category": "HOTEL_AMENITY",
+      "description": "Tiếng ả rập thể hiện khách sạn có nhân viên hoặc tài liệu hỗ trợ giao tiếp qua tiếng Ả Rập, tạo điều kiện thuận tiện cho du khách từ các quốc gia nói tiếng này. Không dùng để chỉ dịch vụ dịch vụ tôn giáo hay các hoạt động văn hóa Ả Rập."
+    },
+    {
+      "id": 216,
+      "tag_name": "Tiếng ấn độ",
+      "category": "HOTEL_AMENITY",
+      "description": "Tiếng ấn độ chỉ ra rằng khách sạn có khả năng hỗ trợ giao tiếp và dịch vụ bằng tiếng Ấn Độ, tạo điều kiện cho nhóm khách đến từ Ấn Độ hoặc nói tiếng này. Không dùng để chỉ các khóa học tiếng Ấn Độ hoặc sự kiện văn hóa Ấn Độ."
+    },
+    {
+      "id": 217,
+      "tag_name": "Tiệm làm đẹp",
+      "category": "HOTEL_AMENITY",
+      "description": "Tiệm làm đẹp là dịch vụ salon trong hoặc gần khách sạn, cung cấp các dịch vụ như chăm sóc tóc, trang điểm, làm móng và các dịch vụ chăm sóc cá nhân. Du khách mong muốn thư giãn và đột nhiên cải thiện ngoại hình sẽ quan tâm. Không dùng để chỉ các dịch vụ y tế hay gym."
+    },
+    {
+      "id": 218,
+      "tag_name": "Tiện nghi bbq",
+      "category": "HOTEL_AMENITY",
+      "description": "Tiện nghi BBQ là khu vực hoặc dụng cụ để nướng BBQ ngoài trời được cung cấp cho khách, lý tưởng cho việc tổ chức tiệc nướng ngoài trời hoặc các bữa ăn nhóm. Khách có ý định tổ chức các bữa tiệc tự nấu sẽ quan tâm. Không dùng để chỉ dịch vụ nhà hàng hay các hoạt động tiệc nướng trong nhà."
+    },
+    {
+      "id": 219,
+      "tag_name": "Tiện nghi bể bơi",
+      "category": "HOTEL_AMENITY",
+      "description": "Tiện nghi bể bơi bao gồm khu vực bể bơi tại khách sạn, nơi khách có thể thư giãn, bơi lội hoặc tập luyện. Khách tìm kiếm sự thư giãn dưới nước hoặc các hoạt động thể chất có thể ưu tiên tiện ích này. Không dùng để chỉ khu tắm nắng hay phòng xông hơi."
+    },
+    {
+      "id": 220,
+      "tag_name": "Tiện nghi cho em bé theo yêu cầu",
+      "category": "HOTEL_AMENITY",
+      "description": "Tiện nghi cho em bé theo yêu cầu cho phép khách sạn cung cấp các vật dụng và dịch vụ như cũi trẻ em, ghế ăn, hoặc nôi tùy vào yêu cầu của khách hàng. Điều này rất hữu ích cho các gia đình đi du lịch cùng trẻ nhỏ cần sự hỗ trợ đặc biệt. Không dùng để chỉ dịch vụ chăm sóc trẻ em dài hạn hoặc hoạt động giải trí cho người lớn."
+    },
+    {
+      "id": 221,
+      "tag_name": "Tiện nghi cho khách khuyết tật",
+      "category": "HOTEL_AMENITY",
+      "description": "Tiện nghi cho khách khuyết tật bao gồm các thiết kế và trang bị hỗ trợ như lối đi, thang máy và phòng nghỉ phù hợp với xe lăn. Đây là giải pháp lý tưởng cho khách có nhu cầu tiếp cận dễ dàng và an toàn. Không dùng để chỉ tiện nghi giải trí hoặc dịch vụ ẩm thực không liên quan."
+    },
+    {
+      "id": 222,
+      "tag_name": "Tiện nghi làm việc",
+      "category": "HOTEL_AMENITY",
+      "description": "Tiện nghi làm việc thường bao gồm không gian có bàn, ghế thoải mái và kết nối internet mạnh mẽ, phục vụ cho khách đi công tác hoặc cần làm việc từ xa. Rất thích hợp cho khách cần duy trì công việc trong thời gian lưu trú. Không dùng để chỉ tiện nghi vui chơi giải trí hay dịch vụ nghỉ dưỡng khác."
+    },
+    {
+      "id": 223,
+      "tag_name": "Tiện nghi nấu nướng ngoài trời",
+      "category": "HOTEL_AMENITY",
+      "description": "Tiện nghi nấu nướng ngoài trời cung cấp khả năng chuẩn bị và nấu ăn ngoài thiên nhiên, thường bao gồm bếp, bàn sơ chế và khu vực ăn uống ngoài trời. Điều này thu hút khách thích nấu nướng và tổ chức tiệc BBQ. Không dùng để chỉ nhà hàng trong khách sạn hay dịch vụ ăn uống khác."
+    },
+    {
+      "id": 224,
+      "tag_name": "Toàn bộ nhà",
+      "category": "HOTEL_AMENITY",
+      "description": "Toàn bộ nhà cung cấp không gian lưu trú độc lập, nơi khách có thể sử dụng toàn bộ ngôi nhà, bao gồm phòng khách, bếp và phòng ngủ. Điều này phù hợp cho khách muốn tận hưởng sự riêng tư và thoải mái như ở nhà. Không dùng để chỉ phòng khách sạn thông thường hoặc căn hộ chung cư."
+    },
+    {
+      "id": 225,
+      "tag_name": "Truyền hình cáp vệ tinh",
+      "category": "HOTEL_AMENITY",
+      "description": "Truyền hình cáp vệ tinh cho phép khách truy cập nhiều kênh giải trí và thông tin đa dạng ngay trong phòng. Đây là lựa chọn hoàn hảo cho những ai muốn thư giãn với phim ảnh và chương trình yêu thích. Không dùng để chỉ thiết bị phát nhạc hoặc hệ thống giải trí khác."
+    },
+    {
+      "id": 226,
+      "tag_name": "Trò chơi board game xếp hình",
+      "category": "HOTEL_AMENITY",
+      "description": "Trò chơi board game xếp hình có sẵn giúp khách thư giãn và giải trí, đặc biệt thích hợp cho nhóm bạn hoặc gia đình. Các hoạt động này tạo cơ hội gắn kết và vui vẻ trong thời gian lưu trú. Không dùng để chỉ dịch vụ tổ chức sự kiện hoặc hội nghị."
+    },
+    {
+      "id": 227,
+      "tag_name": "Trạm nối ipod",
+      "category": "HOTEL_AMENITY",
+      "description": "Trạm nối iPod cung cấp khả năng kết nối và phát nhạc từ thiết bị cá nhân, tạo không gian giải trí riêng tư cho khách. Phù hợp cho những ai thích nghe nhạc cá nhân trong phòng. Không dùng để chỉ dịch vụ âm nhạc trực tuyến hoặc các phương tiện giải trí khác."
+    },
+    {
+      "id": 228,
+      "tag_name": "Trạm sạc điện xe hơi",
+      "category": "HOTEL_AMENITY",
+      "description": "Trạm sạc điện xe hơi được thiết kế để phục vụ khách sở hữu xe điện với trạm sạc pin an toàn và tiện lợi. Đây là lựa chọn lý tưởng cho những ai cần nạp năng lượng xe trong thời gian lưu trú. Không dùng để chỉ bãi đỗ xe thông thường hoặc dịch vụ sửa chữa xe."
+    },
+    {
+      "id": 229,
+      "tag_name": "Tính năng an toàn cho trẻ em",
+      "category": "HOTEL_AMENITY",
+      "description": "Tính năng an toàn cho trẻ em như ổ cắm bảo vệ và nắp che góc bàn giúp tạo ra môi trường an toàn cho trẻ nhỏ trong khách sạn. Điều này rất cần thiết cho gia đình có con nhỏ. Không dùng để chỉ dịch vụ trông trẻ hay các tiện ích giải trí cho người lớn."
+    },
+    {
+      "id": 230,
+      "tag_name": "Tương thích với tty ttd",
+      "category": "HOTEL_AMENITY",
+      "description": "Tương thích với TTY TTD là hệ thống hỗ trợ khách khiếm thính truy cập các dịch vụ khách sạn thông qua thiết bị điện thoại đặc biệt. Đây là tiện ích quan trọng cho sự giao tiếp và tiện lợi của khách hàng khiếm thính. Không dùng để chỉ các hệ thống âm thanh hoặc hỗ trợ ngôn ngữ khác."
+    },
+    {
+      "id": 231,
+      "tag_name": "Tầng cao",
+      "category": "HOTEL_AMENITY",
+      "description": "Tầng cao của khách sạn thường mang lại tầm nhìn đẹp và yên tĩnh hơn, tạo cảm giác thư giãn tuyệt vời cho khách. Phù hợp cho những ai yêu thích ngắm cảnh và không gian yên tĩnh. Không dùng để chỉ tiện ích trong phòng hoặc những tầng thấp khác."
+    },
+    {
+      "id": 232,
+      "tag_name": "Tầng hạn chế",
+      "category": "HOTEL_AMENITY",
+      "description": "Tầng hạn chế là khu vực riêng tư với điều kiện yên tĩnh, thường chỉ dành cho khách có đăng ký đặc biệt hoặc yêu cầu cao cấp. Điều này phù hợp với những ai cần sự riêng tư và an ninh cao. Không dùng để chỉ phòng Suite hoặc hạng dịch vụ khác."
+    },
+    {
+      "id": 233,
+      "tag_name": "Tầng thượng",
+      "category": "HOTEL_AMENITY",
+      "description": "Tầng thượng cung cấp không gian mở với tầm nhìn toàn cảnh, lý tưởng cho các sự kiện ngoài trời hoặc thư giãn ngắm cảnh. Thích hợp cho những ai muốn tổ chức tiệc nhỏ hoặc tận hưởng phong cảnh. Không dùng để chỉ các hoạt động trong nhà hay dịch vụ phòng."
+    },
+    {
+      "id": 234,
+      "tag_name": "Tắm suối nước nóng",
+      "category": "HOTEL_AMENITY",
+      "description": "Tắm suối nước nóng mang lại trải nghiệm thư giãn tự nhiên, giúp khách hàng giải tỏa stress với nước khoáng nóng. Thích hợp cho khách tìm kiếm liệu pháp tự nhiên và thư giãn cơ thể. Không dùng để chỉ hồ bơi thông thường hay dịch vụ spa."
+    },
+    {
+      "id": 235,
+      "tag_name": "Tổ chức sự kiện",
+      "category": "HOTEL_AMENITY",
+      "description": "Tổ chức sự kiện bao gồm toàn bộ dịch vụ và không gian để sẵn sàng cho hội nghị, tiệc cưới hoặc buổi họp mặt lớn. Phù hợp cho khách có nhu cầu tổ chức sự kiện trọng đại. Không dùng để chỉ các dịch vụ ăn uống riêng lẻ hoặc tiện ích giải trí khác."
+    },
+    {
+      "id": 236,
+      "tag_name": "Tủ lạnh",
+      "category": "HOTEL_AMENITY",
+      "description": "Tủ lạnh trong phòng giúp khách bảo quản đồ ăn, thức uống trong thời gian lưu trú. Đây là tiện nghi cần thiết cho khách muốn tự quản lý thực phẩm. Không dùng để chỉ minibar hoặc thiết bị nhà bếp khác."
+    },
+    {
+      "id": 237,
+      "tag_name": "Vườn",
+      "category": "HOTEL_AMENITY",
+      "description": "Vườn là khu vực xanh tạo không gian tự nhiên, giúp khách thư giãn và tận hưởng không khí trong lành. Thích hợp cho những ai muốn thưởng thức thiên nhiên ngay tại khách sạn. Không dùng để chỉ sân vườn bé hoặc khu vực nội thất."
+    },
+    {
+      "id": 238,
+      "tag_name": "Vườn hoặc sân sau",
+      "category": "HOTEL_AMENITY",
+      "description": "Vườn hoặc sân sau cung cấp không gian ngoài trời yên bình cho khách nghỉ ngơi hay tổ chức các hoạt động ngoài trời. Phù hợp cho những ai thích lập kế hoạch tiệc hay hoạt động dã ngoại nhỏ. Không dùng để chỉ vườn trong nhà hoặc sân thượng."
+    },
+    {
+      "id": 239,
+      "tag_name": "WiFi cho thuê loại xách tay",
+      "category": "HOTEL_AMENITY",
+      "description": "WiFi cho thuê loại xách tay phục vụ khách cần kết nối internet khi di chuyển, rất tiện lợi cho doanh nhân hoặc khách du lịch khám phá nhiều nơi. Không dùng để chỉ dịch vụ WiFi cố định trong phòng hay khu vực công cộng."
+    },
+    {
+      "id": 240,
+      "tag_name": "WiFi miễn phí",
+      "category": "HOTEL_AMENITY",
+      "description": "WiFi miễn phí là dịch vụ truy cập internet không dây mà khách sạn cung cấp mà không yêu cầu phí. Điều này rất hữu ích cho khách hàng cần kết nối mạng để làm việc hoặc giải trí mà không phải lo về chi phí. Không dùng để chỉ các dịch vụ internet có tính phí hoặc giới hạn tốc độ."
+    },
+    {
+      "id": 241,
+      "tag_name": "WiFi tính phí",
+      "category": "HOTEL_AMENITY",
+      "description": "WiFi tính phí là dịch vụ internet không dây mà khách sạn cung cấp với một mức phí nhất định. Phù hợp cho khách cần đường truyền chất lượng cao cho công việc hoặc giải trí. Không dùng để chỉ WiFi miễn phí hoặc kết nối internet có sẵn trong các khu vực công cộng."
+    },
+    {
+      "id": 242,
+      "tag_name": "Xe đạp",
+      "category": "HOTEL_AMENITY",
+      "description": "Xe đạp là dịch vụ cho thuê phương tiện thân thiện với môi trường, giúp khách dễ dàng khám phá khu vực xung quanh. Phù hợp cho khách muốn trải nghiệm văn hóa địa phương hay chỉ đơn giản là rèn luyện thể chất. Không dùng để chỉ ô tô cho thuê hay dịch vụ cung cấp xe máy."
+    },
+    {
+      "id": 243,
+      "tag_name": "Xông khô",
+      "category": "HOTEL_AMENITY",
+      "description": "Xông khô là tiện ích xông hơi khô tại khách sạn, giúp khách thư giãn và thải độc qua mồ hôi. Khách hàng có thể tìm kiếm khách sạn cung cấp dịch vụ này để hưởng sự thư giãn tối đa. Không dùng để chỉ xông hơi ướt hoặc spa."
+    },
+    {
+      "id": 244,
+      "tag_name": "Ít gây dị ứng",
+      "category": "HOTEL_AMENITY",
+      "description": "Ít gây dị ứng chỉ các tiện nghi và vật liệu trong khách sạn được thiết kế để giảm thiểu nguy cơ dị ứng cho khách. Hữu ích cho những ai nhạy cảm với các tác nhân gây dị ứng như mạt bụi, phấn hoa. Không dùng để chỉ môi trường hoàn toàn không dị ứng hoặc dịch vụ y tế đặc biệt."
+    },
+    {
+      "id": 245,
+      "tag_name": "Ô tô cho thuê",
+      "category": "HOTEL_AMENITY",
+      "description": "Ô tô cho thuê là dịch vụ mà khách sạn cung cấp xe ô tô để khách sử dụng trong thời gian lưu trú, tạo sự tiện lợi trong việc di chuyển. Khách có thể tìm kiếm dịch vụ này khi muốn khám phá khu vực một cách chủ động. Không dùng để chỉ taxi hoặc dịch vụ xe đưa đón."
+    },
+    {
+      "id": 246,
+      "tag_name": "Đi chơi bằng thuyền",
+      "category": "HOTEL_AMENITY",
+      "description": "Đi chơi bằng thuyền là hoạt động mang lại cơ hội khám phá vùng nước xung quanh qua các chuyến du ngoạn bằng thuyền. Thích hợp cho khách yêu thích cảnh quan nước và tìm kiếm trải nghiệm mới mẻ. Không dùng để chỉ thể thao dưới nước hoặc các loại chèo xuồng."
+    },
+    {
+      "id": 247,
+      "tag_name": "Đi lên bằng cầu thang",
+      "category": "HOTEL_AMENITY",
+      "description": "Đi lên bằng cầu thang cho biết khách cần sử dụng cầu thang để tiếp cận một số khu vực hoặc phòng nhất định trong khách sạn. Điều này quan trọng đối với khách có nhu cầu đặc biệt về chuyển động. Không dùng để chỉ thang máy hoặc dịch vụ hỗ trợ di chuyển."
+    },
+    {
+      "id": 248,
+      "tag_name": "Điều hòa",
+      "category": "HOTEL_AMENITY",
+      "description": "Điều hòa đảm bảo các không gian chung trong khách sạn được làm mát trong mọi điều kiện thời tiết, tạo cảm giác dễ chịu cho khách. Hữu ích khi khách muốn nghỉ dưỡng trong môi trường mát mẻ. Không dùng để chỉ các hệ thống làm ấm hoặc điều hòa cá nhân."
+    },
+    {
+      "id": 249,
+      "tag_name": "Điều hòa cá nhân",
+      "category": "HOTEL_AMENITY",
+      "description": "Điều hòa cá nhân cho phép khách tự điều chỉnh nhiệt độ trong phòng theo ý thích, tạo ra môi trường lưu trú thoải mái hơn. Phù hợp với những người nhạy cảm với nhiệt độ. Không dùng để chỉ điều hòa ở khu vực chung hoặc các hệ thống thông gió."
+    },
+    {
+      "id": 250,
+      "tag_name": "Điều hòa ở khu vực chung",
+      "category": "HOTEL_AMENITY",
+      "description": "Điều hòa ở khu vực chung đảm bảo các khu vực chung của khách sạn luôn giữ nhiệt độ mát mẻ, mang lại sự thoải mái cho khách khi di chuyển hoặc sinh hoạt chung. Không dùng để chỉ điều hòa cá nhân trong phòng."
+    },
+    {
+      "id": 251,
+      "tag_name": "Đèn đọc sách",
+      "category": "HOTEL_AMENITY",
+      "description": "Đèn đọc sách là thiết bị chiếu sáng nhỏ gọn, thường được lắp đặt cạnh giường hoặc bàn làm việc, giúp khách có thể đọc sách mà không làm phiền người khác. Phù hợp cho những ai cần đọc tài liệu hoặc làm việc vào ban đêm. Không dùng để chỉ hệ thống chiếu sáng chính."
+    },
+    {
+      "id": 252,
+      "tag_name": "Đưa đón sân bay",
+      "category": "HOTEL_AMENITY",
+      "description": "Đưa đón sân bay là dịch vụ vận chuyển giữa sân bay và khách sạn, mang lại sự thoải mái và tiện lợi cho khách khi đến và đi. Phù hợp cho những người cần di chuyển nhanh chóng và thuận tiện. Không dùng để chỉ xe công cộng hoặc dịch vụ taxi."
+    },
+    {
+      "id": 253,
+      "tag_name": "Được mang theo chó",
+      "category": "HOTEL_AMENITY",
+      "description": "Được mang theo chó cho phép khách đưa theo chú chó của mình khi lưu trú tại khách sạn. Hữu ích cho những ai không muốn rời xa thú cưng trong kỳ nghỉ. Không dùng để chỉ mèo hoặc các loại thú cưng khác."
+    },
+    {
+      "id": 254,
+      "tag_name": "Được mang theo mèo",
+      "category": "HOTEL_AMENITY",
+      "description": "Được mang theo mèo cho phép khách đưa theo mèo khi lưu trú, tạo sự thoải mái cho những ai không muốn xa thú cưng của mình. Không dùng để chỉ chó hoặc các loại động vật khác."
+    },
+    {
+      "id": 255,
+      "tag_name": "Được phép đưa thú nuôi vào",
+      "category": "HOTEL_AMENITY",
+      "description": "Được phép đưa thú nuôi vào cho thấy khách sạn chấp nhận nhiều loại thú cưng, giúp khách không phải lo lắng về việc tìm nơi lưu trú cho vật nuôi của mình. Không dùng để chỉ các dịch vụ chăm sóc thú cưng đặc biệt."
+    },
+    {
+      "id": 256,
+      "tag_name": "Được vào phòng chờ thương gia",
+      "category": "HOTEL_AMENITY",
+      "description": "Được vào phòng chờ thương gia là quyền truy cập vào không gian sang trọng với các dịch vụ cao cấp như đồ ăn nhẹ và chỗ ngồi thoải mái. Thích hợp cho khách muốn trải nghiệm cao cấp. Không dùng để chỉ các tiện ích trong phòng thông thường."
+    },
+    {
+      "id": 257,
+      "tag_name": "Địa điểm ngoài trời cho sự kiện đặc biệt",
+      "category": "HOTEL_AMENITY",
+      "description": "Địa điểm ngoài trời cho sự kiện đặc biệt là không gian rộng mở, thích hợp để tổ chức các buổi lễ, hội nghị hoặc sự kiện cá nhân như tiệc cưới. Khách hàng tìm kiếm không gian độc đáo và thoáng đáng có thể quan tâm đến tiện ích này. Không dùng để chỉ các phòng hội nghị trong nhà."
+    },
+    {
+      "id": 258,
+      "tag_name": "Đồ dùng cơ bản trong nhà bếp dụng cụ nấu ăn, dầu, nước sốt",
+      "category": "HOTEL_AMENITY",
+      "description": "Đồ dùng cơ bản trong nhà bếp gồm dụng cụ nấu ăn, dầu và nước sốt để khách tự chuẩn bị các bữa ăn. Thích hợp cho khách ở lâu dài hoặc muốn tự nấu ăn. Không dùng để chỉ các dịch vụ nhà hàng hoặc căng tin."
+    },
+    {
+      "id": 259,
+      "tag_name": "Đồ dùng làm bếp",
+      "category": "HOTEL_AMENITY",
+      "description": "Đồ dùng làm bếp bao gồm các dụng cụ cần thiết cho việc chế biến thức ăn trong phòng, như xoong, nồi và chảo. Phù hợp với khách muốn tự nấu ăn trong thời gian lưu trú. Không dùng để chỉ dịch vụ ăn uống ngoài phòng."
+    },
+    {
+      "id": 260,
+      "tag_name": "Đồ gỗ ngoài trời",
+      "category": "HOTEL_AMENITY",
+      "description": "Đồ gỗ ngoài trời là các bộ bàn ghế, ghế dài hay vật dụng bằng gỗ dùng ngoài trời, đặt tại các khu vực như sân vườn hoặc hồ bơi để khách thư giãn. Tag này hữu ích khi khách tìm kiếm môi trường tự nhiên để nghỉ ngơi. Không dùng để chỉ đồ nội thất trong nhà hoặc các tiện ích khác."
+    },
+    {
+      "id": 261,
+      "tag_name": "Đồ uống mời khách miễn phí",
+      "category": "HOTEL_AMENITY",
+      "description": "Đồ uống mời khách miễn phí là dịch vụ nơi khách sạn cung cấp đồ uống không phí nhằm chào đón khách mới hoặc trong các sự kiện đặc biệt. Điều này đặc biệt hữu ích khi khách muốn có trải nghiệm chào đón thân thiện. Không dùng để chỉ minibar hay dịch vụ gọi đồ uống tận phòng."
+    },
+    {
+      "id": 262,
+      "tag_name": "Đổi ngoại tệ",
+      "category": "HOTEL_AMENITY",
+      "description": "Đổi ngoại tệ là dịch vụ của khách sạn cho phép khách chuyển đổi tiền tệ ngay tại chỗ, giúp giao dịch tài chính tiện lợi hơn cho khách du lịch nước ngoài. Khách có thể tìm kiếm dịch vụ này để tránh phải tìm quầy đổi tiền bên ngoài. Không dùng để chỉ các dịch vụ ngân hàng khác."
+    },
+    {
+      "id": 263,
+      "tag_name": "Đỗ xe có nhân viên",
+      "category": "HOTEL_AMENITY",
+      "description": "Đỗ xe có nhân viên là dịch vụ khách sạn cung cấp nhân viên hỗ trợ đỗ và canh giữ xe của khách. Điều này rất hữu ích cho khách muốn bảo đảm sự an toàn và thuận tiện khi đến và rời khách sạn. Không dùng để chỉ bãi đỗ xe tự phục vụ hoặc miễn phí."
+    },
+    {
+      "id": 264,
+      "tag_name": "Đỗ xe gần bên",
+      "category": "HOTEL_AMENITY",
+      "description": "Đỗ xe gần bên là dịch vụ mà khách sạn cung cấp vị trí đỗ xe thuận tiện gần cửa ra vào chính, giúp khách dễ dàng di chuyển từ xe vào khách sạn. Tag này phù hợp cho khách tìm nơi đỗ xe dễ tiếp cận. Không dùng để chỉ vị trí đỗ xe xa hoặc không liên quan."
+    },
+    {
+      "id": 265,
+      "tag_name": "Đỗ xe miễn phí",
+      "category": "HOTEL_AMENITY",
+      "description": "Đỗ xe miễn phí là dịch vụ nơi khách sạn cho phép khách đỗ xe mà không tính phí, giúp tiết kiệm chi phí lưu trú. Khách có thể tìm thấy tag này hữu ích khi muốn tránh các chi phí phát sinh. Không dùng để chỉ các dịch vụ đỗ xe có phí hoặc có nhân viên."
+    },
+    {
+      "id": 266,
+      "tag_name": "Đỗ xe trả phí",
+      "category": "HOTEL_AMENITY",
+      "description": "Đỗ xe trả phí là dịch vụ khách sạn yêu cầu khách phải trả một khoản phí để sử dụng chỗ đỗ xe. Dịch vụ này giúp đảm bảo sự an toàn và quản lý bãi xe tốt hơn. Không dùng để chỉ đỗ xe miễn phí hoặc không có giám sát."
+    },
+    {
+      "id": 267,
+      "tag_name": "Đỗ xe tại chỗ",
+      "category": "HOTEL_AMENITY",
+      "description": "Đỗ xe tại chỗ là dịch vụ khách sạn cung cấp bãi đỗ xe ngay trong khuôn viên, giúp khách dễ dàng di chuyển và quản lý phương tiện của mình. Điều này phù hợp cho khách thích sự tiện lợi và nhanh chóng. Không dùng để chỉ các bãi đỗ xe bên ngoài khuôn viên khách sạn."
+    },
+    {
+      "id": 268,
+      "tag_name": "Động vật hỗ trợ được chào đón",
+      "category": "HOTEL_AMENITY",
+      "description": "Động vật hỗ trợ được chào đón nghĩa là khách sạn cho phép khách mang theo động vật hỗ trợ mà không gây trở ngại, tạo điều kiện thuận lợi cho những khách có nhu cầu đặc biệt. Tag này đặc biệt hữu ích cho khách cần có sự hỗ trợ của động vật. Không dùng để chỉ động vật nuôi thông thường."
+    },
+    {
+      "id": 269,
+      "tag_name": "Biệt thự",
+      "category": "HOTEL_TYPE",
+      "description": "Biệt thự là loại hình lưu trú cao cấp với diện tích rộng, thiết kế sang trọng và tiện nghi đầy đủ. Thường phù hợp cho khách muốn tận hưởng kỳ nghỉ xa hoa hoặc nhóm gia đình lớn. Không dùng để chỉ căn hộ hoặc bungalow."
+    },
+    {
+      "id": 270,
+      "tag_name": "Bungalow",
+      "category": "HOTEL_TYPE",
+      "description": "Bungalow là kiểu lưu trú nằm trong các khu resort, có kiến trúc đơn giản và kết nối gần gũi với thiên nhiên, lý tưởng cho khách muốn trải nghiệm nghỉ dưỡng độc đáo. Không dùng để chỉ khách sạn truyền thống hoặc căn hộ."
+    },
+    {
+      "id": 271,
+      "tag_name": "Căn hộ",
+      "category": "HOTEL_TYPE",
+      "description": "Căn hộ là dạng lưu trú cung cấp không gian sống tương tự như một căn hộ, bao gồm cả bếp và các tiện nghi khác, phù hợp cho những chuyến lưu trú dài ngày. Khách có thể tìm kiếm căn hộ khi cần sự tự do trong nấu nướng và sinh hoạt. Không dùng để chỉ phòng khách sạn tiêu chuẩn."
+    },
+    {
+      "id": 272,
+      "tag_name": "Căn hộ dịch vụ",
+      "category": "HOTEL_TYPE",
+      "description": "Căn hộ dịch vụ là loại hình lưu trú kết hợp giữa căn hộ tiện nghi và dịch vụ khách sạn như dọn phòng và giặt là, mang đến cho khách sự tiện lợi và thoải mái như ở nhà. Tag này phù hợp cho khách công tác hoặc lưu trú dài ngày. Không dùng để chỉ khách sạn không có bếp."
+    },
+    {
+      "id": 273,
+      "tag_name": "Homestay",
+      "category": "HOTEL_TYPE",
+      "description": "Homestay là mô hình lưu trú cho phép khách sống tại nhà người dân địa phương, trải nghiệm văn hóa và phong tục độc đáo tại đó. Khách có thể lựa chọn homestay để có cái nhìn chân thực về lối sống địa phương. Không dùng để chỉ nơi lưu trú truyền thống như khách sạn."
+    },
+    {
+      "id": 274,
+      "tag_name": "Khách sạn",
+      "category": "HOTEL_TYPE",
+      "description": "Khách sạn là cơ sở lưu trú phổ biến cung cấp phòng ốc với nhiều tiện nghi và dịch vụ đa dạng như nhà hàng, phòng tập gym và dịch vụ phòng. Khách có thể tìm khách sạn để lưu trú ngắn hạn hoặc công tác. Không dùng để chỉ các tùy chọn lưu trú tư nhân."
+    },
+    {
+      "id": 275,
+      "tag_name": "Nhà khách/Nhà nghỉ B&B",
+      "category": "HOTEL_TYPE",
+      "description": "Nhà khách/Nhà nghỉ B&B cung cấp phòng ngủ kèm bữa sáng, tạo ra môi trường lưu trú thân thiện và ấm cúng cho khách. Đây là lựa chọn tuyệt vời cho những khách muốn một trải nghiệm gần gũi và thoải mái. Không dùng để chỉ khách sạn lớn với nhiều dịch vụ đa dạng."
+    },
+    {
+      "id": 276,
+      "tag_name": "Nhà nghỉ",
+      "category": "HOTEL_TYPE",
+      "description": "Nhà nghỉ là cơ sở lưu trú đơn giản với chi phí hợp lý, thường có các tiện ích cơ bản như giường ngủ và phòng tắm riêng. Phù hợp cho những chuyến đi ngắn hạn hoặc khi ngân sách có hạn. Không dùng để chỉ khách sạn cao cấp hoặc resort."
+    },
+    {
+      "id": 277,
+      "tag_name": "Nhà nghỉ ven đường",
+      "category": "HOTEL_TYPE",
+      "description": "Nhà nghỉ ven đường là dạng lưu trú với vị trí tiện lợi gần các tuyến đường lớn, cung cấp các tiện ích căn bản cho khách du lịch đường dài. Đây là lựa chọn tốt cho những người cần nơi dừng chân tạm thời. Không dùng để chỉ khách sạn trong thành phố."
+    },
+    {
+      "id": 278,
+      "tag_name": "Resort",
+      "category": "HOTEL_TYPE",
+      "description": "Resort là loại hình lưu trú cao cấp nằm tại các điểm du lịch, thường có dịch vụ và tiện ích đa dạng như spa và hồ bơi. Khách chọn resort để tận hưởng kỳ nghỉ thư giãn và đầy đủ tiện nghi. Không dùng để chỉ khách sạn đô thị hoặc nhà nghỉ đơn giản."
+    },
+    {
+      "id": 279,
+      "tag_name": "Toàn bộ căn nhà",
+      "category": "HOTEL_TYPE",
+      "description": "Toàn bộ căn nhà là hình thức lưu trú cho thuê nguyên căn, mang lại không gian riêng tư và tự do. Lý tưởng cho nhóm bạn hay gia đình muốn có trải nghiệm gần gũi như ở nhà. Không dùng để chỉ phòng riêng hoặc phòng trọ trong cùng khuôn viên."
+    },
+    {
+      "id": 280,
+      "tag_name": "Bãi Biển",
+      "category": "PLACE_TYPE",
+      "description": "Bãi biển là địa điểm với bờ cát trải dài tiếp giáp nước biển, thường là nơi du khách đến để thư giãn, tắm nắng hoặc tham gia các hoạt động biển như lướt sóng và chơi bóng chuyền. Tag này hữu ích khi khách tìm nơi có khung cảnh thiên nhiên để nghỉ ngơi. Không dùng để chỉ hồ bơi, tiện nghi nước ngọt hay công viên nước."
+    },
+    {
+      "id": 281,
+      "tag_name": "Bãi đỗ xe",
+      "category": "PLACE_TYPE",
+      "description": "Bãi đỗ xe là khu vực dùng để đỗ xe của khách khi họ đến lưu trú hoặc tham quan khách sạn. Tag này hữu ích khi khách cần một nơi đảm bảo an toàn cho phương tiện cá nhân trong thời gian lưu trú. Không dùng để chỉ dịch vụ đưa đón hoặc thuê xe."
+    },
+    {
+      "id": 282,
+      "tag_name": "Bến Cảng và Bến Đò",
+      "category": "PLACE_TYPE",
+      "description": "Bến cảng và bến đò là khu vực cho các tàu thuyền cập bến, thường phục vụ việc trung chuyển hành khách hay hàng hóa trên đường thủy. Tag này hữu ích cho những ai tìm kiếm khách sạn gần điểm khởi hành cho các chuyến đi tàu. Không dùng để chỉ bến xe hay sân bay."
+    },
+    {
+      "id": 283,
+      "tag_name": "Bến Du Thuyền",
+      "category": "PLACE_TYPE",
+      "description": "Bến du thuyền là khu vực dành riêng cho du thuyền cập bến, thường phục vụ các hoạt động du lịch trên biển. Tag này phù hợp cho khách yêu thích du lịch thuyền buồm hoặc tìm nơi neo đậu cho du thuyền cá nhân. Không dùng để chỉ cảng tàu thương mại hoặc bến đò công cộng."
+    },
+    {
+      "id": 284,
+      "tag_name": "Bệnh Viện và Cơ Sở Y Tế",
+      "category": "PLACE_TYPE",
+      "description": "Bệnh viện và cơ sở y tế là những địa điểm cung cấp dịch vụ chăm sóc sức khỏe chuyên nghiệp, đảm bảo sự an toàn y tế cho du khách trong trường hợp khẩn cấp. Tag này đặc biệt quan trọng cho khách cần dễ dàng tiếp cận dịch vụ y tế. Không dùng để chỉ hiệu thuốc hoặc trung tâm chăm sóc sức khỏe nhỏ lẻ."
+    },
+    {
+      "id": 285,
+      "tag_name": "Cao Ốc Văn Phòng",
+      "category": "PLACE_TYPE",
+      "description": "Cao ốc văn phòng là công trình cao tầng được xây dựng cho mục đích kinh doanh và văn phòng, thường quan trọng cho du khách công tác cần gặp gỡ đối tác hoặc làm việc. Tag này hữu ích khi tìm khách sạn gần khu vực thương mại. Không dùng để chỉ khu dân cư hoặc chung cư."
+    },
+    {
+      "id": 286,
+      "tag_name": "Chợ",
+      "category": "PLACE_TYPE",
+      "description": "Chợ là nơi tập trung các gian hàng buôn bán, giao lưu hàng hóa, và thường là điểm thu hút cho những du khách muốn khám phá văn hóa bản địa qua các sản phẩm địa phương. Tag này hữu ích cho khách tìm hiểu đời sống địa phương. Không dùng để chỉ trung tâm thương mại hoặc siêu thị."
+    },
+    {
+      "id": 287,
+      "tag_name": "Các Sân Bay và Bãi Đáp Trực Thăng",
+      "category": "PLACE_TYPE",
+      "description": "Các sân bay và bãi đáp trực thăng là những điểm phục vụ cho hoạt động hàng không, cung cấp các chuyến bay thương mại và cá nhân. Tag này hữu ích cho khách sạn phục vụ khách di chuyển bằng hàng không. Không dùng để chỉ ga tàu hoặc bến xe."
+    },
+    {
+      "id": 288,
+      "tag_name": "Các Sân Thể Thao",
+      "category": "PLACE_TYPE",
+      "description": "Các sân thể thao là địa điểm tổ chức các hoạt động thể thao và giải trí, thu hút những du khách yêu thích vận động như đá bóng, bóng rổ hoặc quần vợt. Tag này hữu ích cho du khách muốn tham gia luyện tập hoặc xem các sự kiện thể thao. Không dùng để chỉ phòng tập gym hoặc trung tâm thể hình."
+    },
+    {
+      "id": 289,
+      "tag_name": "Công Viên Công Cộng",
+      "category": "PLACE_TYPE",
+      "description": "Công viên công cộng là khu vực xanh mở rộng dành cho các hoạt động giải trí như dạo bộ, chạy hoặc picnic. Tag này đặc biệt hữu ích cho khách muốn có không gian gần gũi thiên nhiên để thư giãn. Không dùng để chỉ công viên giải trí hoặc khu vui chơi."
+    },
+    {
+      "id": 290,
+      "tag_name": "Công Viên Giải Trí",
+      "category": "PLACE_TYPE",
+      "description": "Công viên giải trí là nơi cung cấp nhiều trò chơi và hoạt động vui nhộn, thường phục vụ cả gia đình và trẻ em, với các trò chơi cảm giác mạnh và khu vực giải trí đa dạng. Tag này thu hút khách tìm kiếm trải nghiệm vui chơi. Không dùng để chỉ công viên công cộng hoặc sân chơi thể thao."
+    },
+    {
+      "id": 291,
+      "tag_name": "Công Viên Quốc Gia",
+      "category": "PLACE_TYPE",
+      "description": "Công viên quốc gia là khu vực bảo tồn thiên nhiên rộng lớn, lý tưởng cho những du khách muốn tham quan hệ sinh thái, đi bộ đường dài hoặc cắm trại giữa thiên nhiên hoang dã. Tag này dành cho những ai ưa thích các hoạt động ngoài trời. Không dùng để chỉ vườn thú hay khu vực giải trí nhân tạo."
+    },
+    {
+      "id": 292,
+      "tag_name": "Cầu",
+      "category": "PLACE_TYPE",
+      "description": "Cầu là công trình kiến trúc bắc qua sông hoặc lạch, tạo sự kết nối giữa các khu vực khác nhau, thuận tiện cho việc di chuyển qua lại. Tag này có ích cho các điểm đến nổi tiếng nhờ kiến trúc hoặc tầm nhìn đẹp. Không dùng để chỉ hầm đường bộ hoặc đường hầm qua núi."
+    },
+    {
+      "id": 293,
+      "tag_name": "Cửa Hiệu",
+      "category": "PLACE_TYPE",
+      "description": "Cửa hiệu là nơi bày bán các sản phẩm và hàng hóa, thường phục vụ nhu cầu mua sắm nhỏ lẻ và tiện lợi cho du khách. Tag này hữu ích cho khách sạn gần khu mua sắm hoặc cần nhu yếu phẩm nhanh chóng. Không dùng để chỉ trung tâm thương mại lớn hoặc siêu thị."
+    },
+    {
+      "id": 294,
+      "tag_name": "Dịch Vụ Internet, Bưu Chính và Điện Thoại",
+      "category": "PLACE_TYPE",
+      "description": "Dịch vụ internet, bưu chính và điện thoại là các nơi cung cấp dịch vụ liên lạc và truyền thông cho du khách, đáp ứng nhu cầu gửi thư, fax hoặc duy trì kết nối trực tuyến. Tag này quan trọng cho khách quốc tế cần dịch vụ giao tiếp. Không dùng để chỉ hiệu thông tin di động hoặc bán lẻ thiết bị công nghệ."
+    },
+    {
+      "id": 295,
+      "tag_name": "Ga Tàu Hoả, Ga Tàu Điện Ngầm và Bến Xe Buýt",
+      "category": "PLACE_TYPE",
+      "description": "Ga tàu hoả, ga tàu điện ngầm và bến xe buýt là các điểm trung chuyển công cộng, giúp du khách dễ dàng tiếp cận và di chuyển đến các khu vực khác nhau trong thành phố. Tag này phù hợp cho khách cần phương tiện công cộng nhanh chóng. Không dùng để chỉ bến cảng hoặc sân bay."
+    },
+    {
+      "id": 296,
+      "tag_name": "Nghĩa Trang",
+      "category": "PLACE_TYPE",
+      "description": "Nghĩa trang là nơi an táng các cá nhân đã khuất, thường mang ý nghĩa quan trọng về văn hóa và lịch sử cho cộng đồng địa phương. Tag này có thể quan trọng cho du khách tham gia các tour văn hóa hoặc kỷ niệm. Không dùng để chỉ đài tưởng niệm công cộng hoặc bảo tàng lịch sử."
+    },
+    {
+      "id": 297,
+      "tag_name": "Ngân Hàng và Quầy Đổi Ngoại Tệ",
+      "category": "PLACE_TYPE",
+      "description": "Ngân hàng và quầy đổi ngoại tệ là những nơi cung cấp dịch vụ tài chính bao gồm rút tiền, gửi tiền và đổi đồng ngoại tệ, rất cần thiết cho du khách quốc tế. Tag này giúp khách xử lý các nhu cầu tài chính nhanh chóng. Không dùng để chỉ máy rút tiền tự động hoặc dịch vụ thanh toán trực tuyến."
+    },
+    {
+      "id": 298,
+      "tag_name": "Nhà hát",
+      "category": "PLACE_TYPE",
+      "description": "Nhà hát là công trình nơi diễn ra các buổi biểu diễn nghệ thuật như kịch, hòa nhạc và múa, thú vị cho những du khách có đam mê nghệ thuật. Tag này hữu ích cho khách muốn thưởng thức các sự kiện văn hóa và giải trí. Không dùng để chỉ rạp chiếu phim hoặc khu vui chơi giải trí."
+    },
+    {
+      "id": 299,
+      "tag_name": "Nhà máy rượu",
+      "category": "PLACE_TYPE",
+      "description": "Nhà máy rượu là nơi sản xuất và chế biến rượu, thường mở cửa cho các buổi tham quan và degustation, thu hút du khách quan tâm đến quy trình sản xuất và thưởng thức rượu. Tag này hấp dẫn cho những ai yêu thích trải nghiệm ẩm thực và văn hóa rượu. Không dùng để chỉ quán bar hay nhà hàng phục vụ rượu."
+    },
+    {
+      "id": 300,
+      "tag_name": "Núi, đồi và hang động",
+      "category": "PLACE_TYPE",
+      "description": "Núi, đồi và hang động là các địa điểm địa hình tự nhiên đặc trưng, thường gắn liền với cảnh quan tuyệt đẹp và cơ hội thám hiểm. Khách có thể tìm những khách sạn gần khu vực này để hưởng thụ không khí trong lành và phong cảnh hoang sơ. Không dùng để chỉ bãi biển, trung tâm mua sắm hay công viên giải trí."
+    },
+    {
+      "id": 301,
+      "tag_name": "Nơi Biểu Diễn Văn Nghệ",
+      "category": "PLACE_TYPE",
+      "description": "Nơi biểu diễn văn nghệ là địa điểm tổ chức các chương trình nghệ thuật như kịch, múa, và âm nhạc. Du khách yêu thích văn hóa có thể lựa chọn khách sạn gần khu vực này để tiện xem các buổi diễn. Không dùng để chỉ nhà hàng, quán bar hoặc shop thời trang."
+    },
+    {
+      "id": 302,
+      "tag_name": "Nơi Biểu Diễn Âm Nhạc",
+      "category": "PLACE_TYPE",
+      "description": "Nơi biểu diễn âm nhạc là địa điểm dành riêng cho các buổi hòa nhạc hoặc trình diễn âm nhạc sống động. Du khách đam mê âm nhạc có thể tìm khách sạn gần đây để dễ dàng tham gia các sự kiện. Không dùng để chỉ sân vận động, nhà hát kịch hoặc bảo tàng."
+    },
+    {
+      "id": 303,
+      "tag_name": "Nơi Thờ Cúng",
+      "category": "PLACE_TYPE",
+      "description": "Nơi thờ cúng là các địa điểm tôn giáo như đền, chùa hoặc nhà thờ, dành cho những ai tìm kiếm sự linh thiêng và tĩnh tâm. Khách có thể chọn khách sạn gần để dễ dàng tham gia các hoạt động tôn giáo. Không dùng để chỉ trung tâm thương mại, quán cà phê hoặc công viên."
+    },
+    {
+      "id": 304,
+      "tag_name": "Phương Tiện Vận Chuyển",
+      "category": "PLACE_TYPE",
+      "description": "Phương tiện vận chuyển là các điểm giao thông công cộng như nhà ga, bến xe buýt hoặc trạm tàu điện. Những ai cần di chuyển dễ dàng có thể chọn khách sạn gần các khu vực này để thuận tiện đi lại. Không dùng để chỉ sân bay, bến cảng hoặc địa điểm tham quan."
+    },
+    {
+      "id": 305,
+      "tag_name": "Phố Nổi Tiếng",
+      "category": "PLACE_TYPE",
+      "description": "Phố nổi tiếng là những con đường sầm uất với danh tiếng lâu đời, thường tập trung nhiều cửa hàng, nhà hàng và hoạt động giải trí. Khách du lịch muốn trải nghiệm nhịp sống sôi động có thể chọn ở gần đây. Không dùng để chỉ các khu công nghiệp, vùng ngoại ô hoặc khu dân cư yên tĩnh."
+    },
+    {
+      "id": 306,
+      "tag_name": "Quán Rượu",
+      "category": "PLACE_TYPE",
+      "description": "Quán rượu là nơi phục vụ đồ uống có cồn, thường có không gian thư giãn và lựa chọn đồ uống đa dạng. Khách muốn tận hưởng không khí buổi tối có thể tìm khách sạn gần khu vực này. Không dùng để chỉ nhà hàng, quán cà phê hoặc câu lạc bộ đêm."
+    },
+    {
+      "id": 307,
+      "tag_name": "Siêu Thị",
+      "category": "PLACE_TYPE",
+      "description": "Siêu thị là địa điểm mua sắm với đa dạng hàng hóa từ thực phẩm đến đồ gia dụng. Khách có thể chọn khách sạn gần siêu thị để tiện việc mua sắm hàng ngày. Không dùng để chỉ các chợ nhỏ, tiệm tạp hóa hoặc trung tâm thương mại lớn."
+    },
+    {
+      "id": 308,
+      "tag_name": "Spa",
+      "category": "PLACE_TYPE",
+      "description": "Spa là nơi cung cấp các dịch vụ chăm sóc sức khỏe và làm đẹp, từ massage đến trị liệu. Những ai tìm kiếm sự thư giãn có thể chọn khách sạn gần khu vực này. Không dùng để chỉ phòng gym, thẩm mỹ viện hoặc khách sạn."
+    },
+    {
+      "id": 309,
+      "tag_name": "Suối nước nóng và thác nước tự nhiên",
+      "category": "PLACE_TYPE",
+      "description": "Suối nước nóng và thác nước tự nhiên là địa điểm thiên nhiên tuyệt đẹp, lý tưởng cho việc thư giãn và trải nghiệm ngoài trời. Khách yêu thích thiên nhiên có thể tìm khách sạn ở gần đây để tận hưởng phong cảnh hùng vĩ. Không dùng để chỉ công viên nước, bể bơi hoặc thẩm mỹ viện."
+    },
+    {
+      "id": 310,
+      "tag_name": "Sân Bay",
+      "category": "PLACE_TYPE",
+      "description": "Sân bay là trung tâm hàng không nơi phục vụ các chuyến bay quốc tế và nội địa. Khách thường chọn khách sạn gần sân bay để tiện lợi cho việc di chuyển bằng đường hàng không. Không dùng để chỉ ga tàu, bến xe buýt hoặc phương tiện di chuyển nội đô."
+    },
+    {
+      "id": 311,
+      "tag_name": "Sân Gôn",
+      "category": "PLACE_TYPE",
+      "description": "Sân gôn là khu vực mở rộng lớn dành cho môn thể thao golf, bao gồm các lỗ golf và khu vực luyện tập. Khách đam mê golf có thể chọn khách sạn gần sân để dễ dàng tham gia hoạt động. Không dùng để chỉ sân tennis, công viên thể thao hoặc trung tâm giải trí."
+    },
+    {
+      "id": 312,
+      "tag_name": "Sòng Bạc",
+      "category": "PLACE_TYPE",
+      "description": "Sòng bạc là nơi người tham gia có thể thử vận may với các trò chơi đánh cược trong không khí sôi động. Du khách yêu thích giải trí có thể tìm khách sạn gần khu vực này. Không dùng để chỉ câu lạc bộ đêm, quán bar hoặc trung tâm giải trí trẻ em."
+    },
+    {
+      "id": 313,
+      "tag_name": "Sông và Hồ",
+      "category": "PLACE_TYPE",
+      "description": "Sông và hồ là các địa điểm tự nhiên cung cấp không gian thư giãn và cảnh quan nước thơ mộng. Khách có thể lựa chọn khách sạn gần đây để tận hưởng các hoạt động như chèo thuyền hoặc câu cá. Không dùng để chỉ biển, bãi tắm hoặc khu vui chơi nước."
+    },
+    {
+      "id": 314,
+      "tag_name": "Thông Tin Du Lịch và Du Hành",
+      "category": "PLACE_TYPE",
+      "description": "Thông tin du lịch và du hành là nơi cung cấp tài liệu du lịch và hỗ trợ hướng dẫn, giúp khách dễ dàng lên kế hoạch cho chuyến đi của mình. Khách có thể chọn khách sạn gần đây để tiện lấy thông tin du lịch. Không dùng để chỉ trung tâm thương mại, công viên hoặc nhà hàng."
+    },
+    {
+      "id": 315,
+      "tag_name": "Thư Viện",
+      "category": "PLACE_TYPE",
+      "description": "Thư viện là nơi lưu trữ sách, báo và tài liệu phục vụ nhu cầu đọc và nghiên cứu. Du khách yêu thích đọc có thể chọn khách sạn gần thư viện để thuận tiện truy cập tài nguyên. Không dùng để chỉ trường học, cửa hàng sách hay trung tâm học tập."
+    },
+    {
+      "id": 316,
+      "tag_name": "Trung Tâm Hội Nghị và Triển Lãm",
+      "category": "PLACE_TYPE",
+      "description": "Trung tâm hội nghị và triển lãm là nơi tổ chức các sự kiện kinh doanh và trưng bày sản phẩm. Khách đến dự hội thảo có thể chọn khách sạn gần đây để dễ dàng di chuyển đến sự kiện. Không dùng để chỉ nhà hát, sân vận động hoặc trung tâm thương mại."
+    },
+    {
+      "id": 317,
+      "tag_name": "Trung Tâm và Khu Mua Sắm",
+      "category": "PLACE_TYPE",
+      "description": "Trung tâm và khu mua sắm là nơi tập trung các cửa hàng bán lẻ, nhà hàng và dịch vụ giải trí, cung cấp trải nghiệm mua sắm đa dạng. Du khách thích khám phá và mua sắm có thể chọn khách sạn gần đây. Không dùng để chỉ chợ truyền thống, siêu thị hay cửa hàng nhỏ lẻ."
+    },
+    {
+      "id": 318,
+      "tag_name": "Trung tâm Thể thao và Bể bơi",
+      "category": "PLACE_TYPE",
+      "description": "Trung tâm thể thao và bể bơi là nơi cung cấp các hoạt động thể thao và bơi lội. Những ai muốn duy trì thói quen tập luyện và thư giãn có thể lựa chọn khách sạn gần đây. Không dùng để chỉ công viên nước, phòng tập gym riêng lẻ hoặc spa."
+    },
+    {
+      "id": 319,
+      "tag_name": "Trung tâm thể thao và Yoga",
+      "category": "PLACE_TYPE",
+      "description": "Trung tâm thể thao và yoga là nơi cung cấp không gian cho tập luyện thể thao và yoga, hỗ trợ lối sống lành mạnh và cân bằng. Các tín đồ yoga có thể tìm khách sạn gần khu vực này để tiện tập luyện. Không dùng để chỉ phòng gym, trung tâm khiêu vũ hoặc sân tennis."
+    },
+    {
+      "id": 320,
+      "tag_name": "Trường Cao Đẳng và Đại Học",
+      "category": "PLACE_TYPE",
+      "description": "Trường Cao Đẳng và Đại Học là các cơ sở giáo dục cấp cao, cung cấp môi trường học tập và nghiên cứu cho sinh viên và giảng viên. Khách có thể quan tâm nếu họ tham gia hội thảo hoặc sự kiện học thuật gần khu vực này. Không dùng để chỉ địa điểm giải trí, mua sắm, hoặc dịch vụ ăn uống."
+    },
+    {
+      "id": 321,
+      "tag_name": "Tòa Nhà Lịch Sử",
+      "category": "PLACE_TYPE",
+      "description": "Tòa Nhà Lịch Sử là công trình mang giá trị kiến trúc và lịch sử, thường là điểm tham quan quan trọng để tìm hiểu về văn hóa và quá khứ của một nơi. Khách du lịch có thể tìm kiếm khách sạn gần các di tích lịch sử để dễ dàng tham quan. Không dùng để chỉ trung tâm thương mại hoặc công trình hiện đại."
+    },
+    {
+      "id": 322,
+      "tag_name": "Tòa Nhà Nổi Tiếng",
+      "category": "PLACE_TYPE",
+      "description": "Tòa Nhà Nổi Tiếng là công trình có tính biểu tượng đặc biệt và thường thu hút nhiều du khách đến tham quan. Khách sạn gần các tòa nhà nổi tiếng thường là nơi lý tưởng cho những ai muốn khám phá các điểm du lịch biểu tượng. Không dùng để chỉ toà nhà thương mại thông thường."
+    },
+    {
+      "id": 323,
+      "tag_name": "Viện Bảo Tàng và Phòng Trưng Bày Nghệ Thuật",
+      "category": "PLACE_TYPE",
+      "description": "Viện Bảo Tàng và Phòng Trưng Bày Nghệ Thuật là nơi trưng bày các tác phẩm nghệ thuật và hiện vật lịch sử, thu hút những tín đồ yêu văn hóa và nghệ thuật. Khách có thể tìm khách sạn gần các viện bảo tàng để thuận tiện cho chuyến thăm của họ. Không dùng để chỉ trung tâm giải trí hoặc công viên."
+    },
+    {
+      "id": 324,
+      "tag_name": "Vườn Bách Thảo và Vườn Thú",
+      "category": "PLACE_TYPE",
+      "description": "Vườn Bách Thảo và Vườn Thú là khu vực trưng bày đa dạng loài thực vật và động vật, lý tưởng cho những ai yêu thích thiên nhiên và muốn có trải nghiệm học hỏi. Khách du lịch thường chọn lưu trú gần những điểm này để có chuyến thăm thú vị hơn. Không dùng để chỉ khu vui chơi giải trí hiện đại."
+    },
+    {
+      "id": 325,
+      "tag_name": "Vịnh",
+      "category": "PLACE_TYPE",
+      "description": "Vịnh là vùng biển được bao quanh bởi đất liền, thường có cảnh quan tuyệt đẹp và các hoạt động giải trí biển. Khách thích du ngoạn hoặc nghỉ dưỡng có thể tìm khách sạn gần vịnh để tận hưởng cảnh biển. Không dùng để chỉ bãi biển rộng hoặc thành phố ven biển."
+    },
+    {
+      "id": 326,
+      "tag_name": "Điểm Cắm Trại và Vui Chơi Ngoài Trời",
+      "category": "PLACE_TYPE",
+      "description": "Điểm Cắm Trại và Vui Chơi Ngoài Trời là khu vực dành cho hoạt động cắm trại và đối tượng yêu thích thiên nhiên. Khách yêu thích dã ngoại có thể chọn lưu trú gần các điểm cắm trại để dễ dàng tham gia các hoạt động ngoài trời. Không dùng để chỉ khách sạn hoặc resort."
+    },
+    {
+      "id": 327,
+      "tag_name": "Điểm Tham Quan",
+      "category": "PLACE_TYPE",
+      "description": "Điểm Tham Quan là địa danh có ý nghĩa văn hóa, lịch sử hoặc tự nhiên, thường thu hút khách du lịch đến khám phá. Khách thường tìm kiếm khách sạn gần các điểm tham quan để thuận tiện cho việc di chuyển và tham quan. Không dùng để chỉ nhà hàng hoặc quán cà phê."
+    },
+    {
+      "id": 328,
+      "tag_name": "Đài Kỷ Niệm và Di Tích Lịch Sử",
+      "category": "PLACE_TYPE",
+      "description": "Đài Kỷ Niệm và Di Tích Lịch Sử là những công trình tưởng nhớ các sự kiện hoặc nhân vật quan trọng trong lịch sử. Nhiều du khách thích chọn khách sạn gần các điểm này để dễ dàng tham dự và tìm hiểu lịch sử địa phương. Không dùng để chỉ điểm du lịch giải trí hoặc mua sắm."
+    },
+    {
+      "id": 329,
+      "tag_name": "Đại Sứ Quán và Lãnh Sự Quán",
+      "category": "PLACE_TYPE",
+      "description": "Đại Sứ Quán và Lãnh Sự Quán là cơ quan ngoại giao đại diện cho quốc gia tại nơi sở tại, thường quan trọng với du khách quốc tế cần xử lý thủ tục. Khách có thể tìm khăn sạn gần các cơ quan này để tiện cho các vấn đề thị thực. Không dùng để chỉ khu chợ hoặc trung tâm giải trí."
+    },
+    {
+      "id": 330,
+      "tag_name": "Đảo",
+      "category": "PLACE_TYPE",
+      "description": "Đảo là vùng đất bao quanh bởi nước, thường là điểm đến hấp dẫn cho nghỉ dưỡng hoặc khám phá thiên nhiên. Khách thường tìm kiếm khách sạn trên đảo để có trải nghiệm độc đáo và gần biển. Không dùng để chỉ bán đảo hoặc lục địa lớn."
+    },
+    {
+      "id": 331,
+      "tag_name": "Địa điểm giải trí",
+      "category": "PLACE_TYPE",
+      "description": "Địa điểm giải trí là nơi cung cấp các hoạt động vui chơi và thư giãn như công viên, rạp chiếu phim, hoặc hộp đêm. Khách thích trải nghiệm đa dạng có thể tìm khách sạn gần các địa điểm này. Không dùng để chỉ cơ sở giáo dục hoặc văn phòng công sở."
+    },
+    {
+      "id": 332,
+      "tag_name": "Đồn Cảnh Sát và Dịch Vụ Khẩn Cấp",
+      "category": "PLACE_TYPE",
+      "description": "Đồn Cảnh Sát và Dịch Vụ Khẩn Cấp là nơi đảm bảo an ninh và hỗ trợ khẩn cấp, quan trọng cho du khách cần bảo đảm an toàn. Khách thường cảm thấy yên tâm hơn khi lưu trú gần các cơ sở này. Không dùng để chỉ bệnh viện hoặc trạm xăng."
+    },
+    {
+      "id": 333,
+      "tag_name": "An toàn",
+      "category": "REVIEW_TAG",
+      "description": "An toàn thể hiện mức độ bảo đảm an ninh và cảm giác yên tâm khi lưu trú tại khách sạn. Du khách thường xem xét yếu tố này khi chọn khách sạn để đảm bảo sự an toàn cho bản thân và tài sản. Không dùng để chỉ sự tiện nghi hoặc dịch vụ giải trí."
+    },
+    {
+      "id": 334,
+      "tag_name": "Bar",
+      "category": "REVIEW_TAG",
+      "description": "Bar là nơi trong khách sạn nơi khách có thể thưởng thức đồ uống và thư giãn với không khí sống động. Khách thích giao lưu và giải trí thường tìm kiếm khách sạn có bar chất lượng. Không dùng để chỉ nhà hàng hoặc quán cà phê."
+    },
+    {
+      "id": 335,
+      "tag_name": "Bãi biển",
+      "category": "REVIEW_TAG",
+      "description": "Bãi biển là khu vực ven biển mang lại trải nghiệm thư giãn và vui chơi gần gũi với thiên nhiên. Du khách thường tìm khách sạn gần bãi biển để tận hưởng không khí biển và các hoạt động như tắm nắng và bơi lội. Không dùng để chỉ hồ bơi hoặc khu công viên nước nội địa."
+    },
+    {
+      "id": 336,
+      "tag_name": "Bãi đỗ xe",
+      "category": "REVIEW_TAG",
+      "description": "Bãi đỗ xe là khu vực trong hoặc gần khách sạn được sử dụng để đỗ xe của khách. Khách thường đánh giá cao sự tiện tiện và an toàn của bãi đỗ xe khi lựa chọn nơi lưu trú. Không dùng để chỉ trạm xăng, dịch vụ thuê xe hay sân bay."
+    },
+    {
+      "id": 337,
+      "tag_name": "Bếp",
+      "category": "REVIEW_TAG",
+      "description": "Bếp là khu vực trong phòng hoặc khách sạn cung cấp tiện nghi để tự nấu nướng. Khách lưu trú dài hạn hoặc thích tự chuẩn bị bữa ăn thường tìm khách sạn có bếp. Không dùng để chỉ nhà hàng hoặc quầy bar."
+    },
+    {
+      "id": 338,
+      "tag_name": "Bể bơi",
+      "category": "REVIEW_TAG",
+      "description": "Bể bơi là tiện ích trong khách sạn, cung cấp không gian thư giãn và giải trí dưới nước. Khách du lịch thường tìm kiếm khách sạn có bể bơi để tận hưởng kỳ nghỉ thoải mái. Không dùng để chỉ bãi biển hoặc hồ tự nhiên."
+    },
+    {
+      "id": 339,
+      "tag_name": "Bồn tắm",
+      "category": "REVIEW_TAG",
+      "description": "Bồn tắm là tiện nghi trong phòng khách sạn, mang đến trải nghiệm thoải mái và thư giãn cho khách lưu trú. Nhiều khách thường tìm kiếm phòng có bồn tắm để tận dụng thời gian nghỉ ngơi của mình. Không dùng để chỉ hồ bơi hoặc spa."
+    },
+    {
+      "id": 340,
+      "tag_name": "Bộ đồ giường",
+      "category": "REVIEW_TAG",
+      "description": "Bộ đồ giường trong khách sạn đề cập đến sự thoải mái và chất lượng của chăn, ga, và gối, ảnh hưởng trực tiếp đến giấc ngủ của khách. Khách sạn có bộ đồ giường chất lượng cao được khách du lịch đánh giá cao vì mang lại trải nghiệm nghỉ ngơi dễ chịu. Không dùng để chỉ các dịch vụ giặt là hoặc chế độ phòng."
+    },
+    {
+      "id": 341,
+      "tag_name": "Bữa sáng",
+      "category": "REVIEW_TAG",
+      "description": "Bữa sáng trong khách sạn thường là bữa ăn đầu tiên trong ngày, với sự đa dạng và chất lượng được khách hàng đánh giá cao. Khách thường tìm kiếm khách sạn cung cấp bữa sáng ngon miệng và phong phú để bắt đầu một ngày mới. Không dùng để chỉ bữa trưa hoặc bữa tối."
+    },
+    {
+      "id": 342,
+      "tag_name": "Bữa tối",
+      "category": "REVIEW_TAG",
+      "description": "Bữa tối tại khách sạn là trải nghiệm ăn uống quan trọng vào buổi tối, được khách tìm kiếm nếu muốn thưởng thức ẩm thực đa dạng ngay tại nơi lưu trú. Khách sạn có bữa tối hấp dẫn thường tạo ấn tượng tốt trong đánh giá của khách. Không dùng để chỉ bữa sáng hoặc bữa trưa."
+    },
+    {
+      "id": 343,
+      "tag_name": "Chủ nhà",
+      "category": "REVIEW_TAG",
+      "description": "Chủ nhà trong bối cảnh khách sạn thường chỉ người quản lý hoặc chủ sở hữu, đóng vai trò quan trọng trong việc tạo dựng trải nghiệm lưu trú của khách dựa trên sự tận tâm và niềm nở trong dịch vụ. Khách thường đánh giá cao khách sạn có chủ nhà thân thiện và chăm sóc chu đáo. Không dùng để chỉ lễ tân hoặc nhân viên phục vụ."
+    },
+    {
+      "id": 344,
+      "tag_name": "Cuộc sống về đêm",
+      "category": "REVIEW_TAG",
+      "description": "Cuộc sống về đêm gần khách sạn bao gồm các hoạt động giải trí như quán bar, nhạc sống, hoặc club, thu hút khách muốn tận hưởng không gian sôi động sau giờ làm việc. Khách sạn gần trung tâm cuộc sống về đêm thường được lựa chọn bởi khách yêu thích sự náo nhiệt. Không dùng để chỉ hoạt động ban ngày hoặc dịch vụ trong khách sạn."
+    },
+    {
+      "id": 345,
+      "tag_name": "Cách âm",
+      "category": "REVIEW_TAG",
+      "description": "Cách âm là tính năng quan trọng nhằm giữ cho không gian phòng nghỉ yên tĩnh, bảo đảm giấc ngủ không bị ảnh hưởng bởi tiếng ồn bên ngoài. Khách thường đánh giá cao khách sạn có hệ thống cách âm tốt khi tìm kiếm nơi lưu trú. Không dùng để chỉ dịch vụ dọn phòng hoặc cửa sổ cách nhiệt."
+    },
+    {
+      "id": 346,
+      "tag_name": "Cơ sở vật chất cho trẻ em",
+      "category": "REVIEW_TAG",
+      "description": "Cơ sở vật chất cho trẻ em bao gồm khu vui chơi, hồ bơi cho trẻ, hoặc dịch vụ chăm sóc trẻ, hỗ trợ các gia đình có con nhỏ tìm kiếm nơi lưu trú tiện nghi. Khách sạn có cơ sở vật chất cho trẻ em giúp cả gia đình thoải mái và an tâm hơn khi du lịch. Không dùng để chỉ cơ sở vật chất cho người lớn hoặc dịch vụ giữ trẻ."
+    },
+    {
+      "id": 347,
+      "tag_name": "Cặp đôi",
+      "category": "REVIEW_TAG",
+      "description": "Cặp đôi thường tìm kiếm khách sạn có không gian lãng mạn như phòng trang trí đặc biệt, dịch vụ ăn tối, hoặc spa đôi. Các khách sạn tạo dựng không gian lưu trú cho cặp đôi thường ghi điểm nhờ các tiện ích và dịch vụ gia tăng tình cảm. Không dùng để chỉ phòng gia đình hoặc các hoạt động nhóm lớn."
+    },
+    {
+      "id": 348,
+      "tag_name": "Di chuyển",
+      "category": "REVIEW_TAG",
+      "description": "Di chuyển trong bối cảnh khách sạn đề cập đến việc đi lại dễ dàng như gần các phương tiện công cộng hoặc có dịch vụ đưa đón. Khách thường lựa chọn khách sạn với các tùy chọn di chuyển thuận tiện để dễ dàng kết nối với điểm đến khác. Không dùng để chỉ dịch vụ hành lý hoặc xe đạp thuê."
+    },
+    {
+      "id": 349,
+      "tag_name": "Dịch vụ",
+      "category": "REVIEW_TAG",
+      "description": "Dịch vụ trong khách sạn bao gồm mọi tiện ích và hỗ trợ khách, từ dịch vụ lễ tân đến vệ sinh phòng, tạo ra những trải nghiệm đáng nhớ. Khách thường đánh giá cao dịch vụ chuyên nghiệp và tận tình khi tìm kiếm khách sạn lưu trú. Không dùng để chỉ các dịch vụ không liên quan như hướng dẫn du lịch bên ngoài."
+    },
+    {
+      "id": 350,
+      "tag_name": "Gia đình",
+      "category": "REVIEW_TAG",
+      "description": "Gia đình tìm kiếm khách sạn với không gian và dịch vụ phù hợp để mọi thành viên có trải nghiệm thoải mái, như phòng hỗ trợ trẻ em và khu vực ăn uống gia đình. Các khách sạn được đánh giá cao khi tạo điều kiện thuận lợi cho cả gia đình lưu trú. Không dùng để chỉ các dịch vụ chỉ dành cho trẻ em hoặc cặp đôi."
+    },
+    {
+      "id": 351,
+      "tag_name": "Hoạt động không thể bỏ qua",
+      "category": "REVIEW_TAG",
+      "description": "Hoạt động không thể bỏ qua là những trải nghiệm đặc sắc quanh khách sạn được nhiều khách đánh giá cao, như tham quan di tích lịch sử hoặc trải nghiệm văn hóa. Khách thường tìm đến những khách sạn gần nơi có các hoạt động này để dễ dàng tham gia. Không dùng để chỉ các hoạt động bên trong khách sạn."
+    },
+    {
+      "id": 352,
+      "tag_name": "Hướng nhìn từ phòng",
+      "category": "REVIEW_TAG",
+      "description": "Hướng nhìn từ phòng là yếu tố tạo nên trải nghiệm đặc biệt, với những góc nhìn như cảnh biển, núi non, hoặc thành phố, góp phần vào sự hài lòng của khách. Khách thường chọn khách sạn có hướng nhìn đẹp để tận hưởng phong cảnh ngay từ phòng của mình. Không dùng để chỉ thiết kế nội thất hoặc tiện nghi phòng."
+    },
+    {
+      "id": 353,
+      "tag_name": "Không khí",
+      "category": "REVIEW_TAG",
+      "description": "Không khí của khách sạn thể hiện qua thiết kế, cách bài trí và cảm nhận từ dịch vụ, góp phần tạo nên bầu không khí độc đáo cho trải nghiệm lưu trú. Khách thường chọn khách sạn có không khí dễ chịu và thư giãn. Không dùng để chỉ nhiệt độ hoặc hệ thống máy lọc không khí."
+    },
+    {
+      "id": 354,
+      "tag_name": "Khả năng đi bộ thuận tiện",
+      "category": "REVIEW_TAG",
+      "description": "Khả năng đi bộ thuận tiện chỉ khả năng dễ dàng di chuyển bằng chân đến các điểm thú vị và tiện ích gần khách sạn, là yếu tố được nhiều khách đánh giá cao. Những khách sạn có vị trí tiện lợi thường thu hút người thích khám phá xung quanh mà không cần phương tiện. Không dùng để chỉ dịch vụ xe đưa đón hoặc vận chuyển."
+    },
+    {
+      "id": 355,
+      "tag_name": "Kích thước phòng",
+      "category": "REVIEW_TAG",
+      "description": "Kích thước phòng ảnh hưởng trực tiếp đến sự thoải mái của khách, từ không gian sinh hoạt, bài trí nội thất đến khả năng chứa đồ. Khách thường tìm kiếm khách sạn với phòng rộng rãi để có trải nghiệm thư giãn hơn. Không dùng để chỉ thiết kế phòng hoặc đồ đạc bên trong."
+    },
+    {
+      "id": 356,
+      "tag_name": "Mua sắm",
+      "category": "REVIEW_TAG",
+      "description": "Mua sắm gần khách sạn đem lại thuận tiện cho khách muốn khám phá cửa hàng và trung tâm thương mại gần đó. Khách thường lựa chọn lưu trú ở nơi dễ dàng tiếp cận khu mua sắm để kết hợp tham quan và mua sắm. Không dùng để chỉ cửa hàng bên trong khách sạn."
+    },
+    {
+      "id": 357,
+      "tag_name": "Nhiều lựa chọn nhà hàng",
+      "category": "REVIEW_TAG",
+      "description": "Nhiều lựa chọn nhà hàng trong khách sạn cho phép khách thưởng thức ẩm thực đa dạng mà không cần đi xa, từ món địa phương đến quốc tế. Khách thường lựa chọn khách sạn có nhiều nhà hàng phục vụ các món ăn phong phú. Không dùng để chỉ quầy bar hoặc dịch vụ phòng."
+    },
+    {
+      "id": 358,
+      "tag_name": "Nhận phòng",
+      "category": "REVIEW_TAG",
+      "description": "Nhận phòng là bước đầu thiết lập ấn tượng cho khách về dịch vụ của khách sạn, thường được khách đánh giá qua sự nhanh chóng và chuyên nghiệp của quá trình này. Một trải nghiệm nhận phòng suôn sẻ góp phần vào đánh giá tích cực của khách về khách sạn. Không dùng để chỉ nhận hành lý hoặc dịch vụ trợ giúp khác."
+    },
+    {
+      "id": 359,
+      "tag_name": "Nước nóng",
+      "category": "REVIEW_TAG",
+      "description": "Nước nóng là tiện ích cần thiết đảm bảo khách có trải nghiệm vệ sinh cá nhân thoải mái, nhất là trong những ngày lạnh. Khách thường tìm kiếm khách sạn có hệ thống nước nóng tốt để đảm bảo tiện nghi sinh hoạt. Không dùng để chỉ hồ bơi hoặc phòng xông hơi."
+    },
+    {
+      "id": 360,
+      "tag_name": "Phòng tập",
+      "category": "REVIEW_TAG",
+      "description": "Phòng tập là không gian trong khách sạn nơi có sẵn các thiết bị thể thao như máy chạy bộ, tạ và máy tập đa năng để phục vụ nhu cầu rèn luyện sức khỏe của khách. Tag này quan trọng khi khách tìm kiếm địa điểm đảm bảo duy trì thói quen tập luyện hàng ngày. Không dùng để chỉ spa, hồ bơi hoặc các khu vực thư giãn khác."
+    },
+    {
+      "id": 361,
+      "tag_name": "Phòng tắm",
+      "category": "REVIEW_TAG",
+      "description": "Phòng tắm là khu vực riêng tư trong phòng khách sạn, nơi khách có thể thực hiện các hoạt động vệ sinh cá nhân với các tiện nghi như vòi sen và bồn tắm. Tag này có ý nghĩa khi khách đánh giá chất lượng, sự tiện nghi và sạch sẽ của phòng tắm. Không dùng để chỉ phòng xông hơi, phòng tắm hơi hoặc bể bơi."
+    },
+    {
+      "id": 362,
+      "tag_name": "Spa",
+      "category": "REVIEW_TAG",
+      "description": "Spa là tiện ích trong khách sạn cung cấp các dịch vụ thư giãn như massage và trị liệu chăm sóc sức khỏe giúp khách thư giãn. Tag này cần thiết khi khách tìm kiếm trải nghiệm nghỉ dưỡng thư thái. Không dùng để chỉ phòng tập, phòng tắm hơi hoặc dịch vụ làm đẹp thông thường."
+    },
+    {
+      "id": 363,
+      "tag_name": "Suối nước nóng",
+      "category": "REVIEW_TAG",
+      "description": "Suối nước nóng là tiện ích mà khách sạn có thể cung cấp, cho phép khách ngâm mình trong nước nóng có khoáng chất tự nhiên. Tag này hữu ích khi khách tìm kiếm trải nghiệm thư giãn và trị liệu tự nhiên. Không dùng để chỉ spa hoặc hồ bơi nước lạnh."
+    },
+    {
+      "id": 364,
+      "tag_name": "Thiên nhiên",
+      "category": "REVIEW_TAG",
+      "description": "Thiên nhiên trong bối cảnh khách sạn thể hiện sự gắn kết với môi trường tự nhiên xung quanh như vườn cây, hồ nước hoặc rừng nhiệt đới. Tag này hấp dẫn những ai muốn trải nghiệm không gian xanh và rộng mở. Không dùng để chỉ các tiện ích nhân tạo như hồ bơi hoặc công viên vui chơi."
+    },
+    {
+      "id": 365,
+      "tag_name": "Thiết kế phòng",
+      "category": "REVIEW_TAG",
+      "description": "Thiết kế phòng là đánh giá về phong cách trang trí và sắp xếp nội thất trong phòng khách sạn, mang lại sự hài hòa và thẩm mỹ. Tag này quan trọng khi lựa chọn nơi lưu trú cho các khách hàng chú trọng vào không gian thẩm mỹ. Không dùng để chỉ tiện nghi cụ thể như minibar hoặc bàn làm việc."
+    },
+    {
+      "id": 366,
+      "tag_name": "Tiện nghi trong phòng",
+      "category": "REVIEW_TAG",
+      "description": "Tiện nghi trong phòng liên quan đến các thiết bị và dịch vụ như tivi, minibar và Wi-Fi có sẵn trong phòng khách sạn. Tag này hỗ trợ đánh giá sự tiện lợi và đầy đủ của căn phòng. Không dùng để chỉ các tiện nghi công cộng như nhà hàng hoặc hồ bơi."
+    },
+    {
+      "id": 367,
+      "tag_name": "Tiện ích tại cơ sở lưu trú",
+      "category": "REVIEW_TAG",
+      "description": "Tiện ích tại cơ sở lưu trú bao gồm các dịch vụ và cơ sở vật chất như nhà hàng, phòng tập hoặc hồ bơi. Tag này thường là điểm đánh giá sự phong phú dịch vụ mà khách sạn cung cấp. Không dùng để chỉ các dịch vụ ngoài khách sạn như tham quan địa phương hoặc tour du lịch."
+    },
+    {
+      "id": 368,
+      "tag_name": "Trả phòng",
+      "category": "REVIEW_TAG",
+      "description": "Trả phòng là quy trình khi khách hoàn tất và rời khỏi khách sạn, thường liên quan đến tính nhanh chóng và tiện lợi của thủ tục này. Tag này có ý nghĩa khi đánh giá mức độ thân thiện và hiệu quả của dịch vụ khách sạn. Không dùng để chỉ quy trình nhận phòng hoặc dịch vụ hành lý."
+    },
+    {
+      "id": 369,
+      "tag_name": "Vòi sen",
+      "category": "REVIEW_TAG",
+      "description": "Vòi sen là thiết bị tắm trong phòng tắm khách sạn, ảnh hưởng đến trải nghiệm vệ sinh của khách thông qua chất lượng và áp lực nước. Tag này quan trọng với khách thích sự thoải mái khi tắm. Không dùng để chỉ bồn tắm hoặc vòi nước thông thường."
+    },
+    {
+      "id": 370,
+      "tag_name": "Wi-Fi",
+      "category": "REVIEW_TAG",
+      "description": "Wi-Fi là dịch vụ internet không dây cung cấp trong khách sạn, thường dùng cho công việc hoặc giải trí. Tag này quan trọng khi khách tìm kiếm khách sạn có kết nối internet ổn định và tốc độ cao. Không dùng để chỉ các dịch vụ internet có dây hoặc trung tâm kinh doanh."
+    },
+    {
+      "id": 371,
+      "tag_name": "Đi công tác",
+      "category": "REVIEW_TAG",
+      "description": "Đi công tác ám chỉ mục đích lưu trú của khách hàng doanh nghiệp cần các hỗ trợ như phòng họp và internet tốc độ cao. Tag này hữu ích đối với những người chọn khách sạn phục vụ nhu cầu công tác hiệu quả. Không dùng để chỉ các hoạt động giải trí hoặc nghỉ dưỡng thuần túy."
+    },
+    {
+      "id": 372,
+      "tag_name": "Điều hòa",
+      "category": "REVIEW_TAG",
+      "description": "Điều hòa là thiết bị kiểm soát nhiệt độ trong phòng khách sạn, tạo ra sự thoải mái cho khách lưu trú bằng cách giữ không gian mát mẻ hoặc ấm áp theo nhu cầu. Tag này quan trọng đối với khách nhạy cảm với nhiệt độ. Không dùng để chỉ quạt hoặc lò sưởi độc lập."
+    },
+    {
+      "id": 373,
+      "tag_name": "Đáng tiền",
+      "category": "REVIEW_TAG",
+      "description": "Đáng tiền thể hiện sự hài lòng của khách hàng về giá trị nhận được so với chi phí lưu trú tại khách sạn. Tag này có ý nghĩa khi khách hàng đánh giá sự công bằng về dịch vụ và tiện nghi so với giá. Không dùng để chỉ mức giá cụ thể hoặc ưu đãi giảm giá."
+    },
+    {
+      "id": 374,
+      "tag_name": "Đưa đón sân bay",
+      "category": "REVIEW_TAG",
+      "description": "Đưa đón sân bay là dịch vụ vận chuyển giữa khách sạn và sân bay, thường đảm bảo trải nghiệm di chuyển tiện lợi cho khách. Tag này quan trọng với khách cần sự thuận tiện trong việc đi lại. Không dùng để chỉ các dịch vụ vận chuyển nội đô khác."
+    },
+    {
+      "id": 375,
+      "tag_name": "Địa điểm",
+      "category": "REVIEW_TAG",
+      "description": "Địa điểm chỉ vị trí của khách sạn liên quan đến sự thuận tiện di chuyển, tầm nhìn và khoảng cách đến các điểm thu hút du khách. Tag này quan trọng khi khách tìm kiếm khách sạn có vị trí thuận lợi. Không dùng để chỉ các dịch vụ hoặc tiện ích bên trong khách sạn."
+    },
+    {
+      "id": 376,
+      "tag_name": "Độ sạch sẽ",
+      "category": "REVIEW_TAG",
+      "description": "Độ sạch sẽ phản ánh tình trạng vệ sinh của phòng và các khu vực chung trong khách sạn. Tag này rất quan trọng để đánh giá không gian nghỉ dưỡng lành mạnh và gọn gàng. Không dùng để chỉ các tiêu chí thẩm mỹ hay tiện nghi khác."
+    },
+    {
+      "id": 377,
+      "tag_name": "Độ thoải mái của phòng",
+      "category": "REVIEW_TAG",
+      "description": "Độ thoải mái của phòng thể hiện mức độ tiện nghi và dễ chịu về không gian nội thất và dịch vụ phòng. Tag này đóng vai trò trong việc tạo ra quyết định lựa chọn lưu trú của khách hàng. Không dùng để chỉ các dịch vụ chung như nhà hàng hoặc bể bơi."
+    },
+    {
+      "id": 378,
+      "tag_name": "Ban công sân hiên",
+      "category": "ROOM_AMENITY",
+      "description": "Ban công sân hiên là không gian ngoài trời riêng hoặc bán chia sẻ nối liền với phòng khách sạn, nơi khách có thể thư giãn và thưởng thức quang cảnh. Tag này thường được chú ý khi khách muốn có trải nghiệm không gian mở. Không dùng để chỉ các tiện nghi bên trong phòng như giường hoặc bàn làm việc."
+    },
+    {
+      "id": 379,
+      "tag_name": "Bàn trang điểm phù hợp cho người khuyết tật",
+      "category": "ROOM_AMENITY",
+      "description": "Bàn trang điểm phù hợp cho người khuyết tật là tiện ích trong phòng thiết kế với chiều cao và không gian tiếp cận dễ dàng, hỗ trợ sử dụng thoải mái cho người có nhu cầu đặc biệt. Tag này quan trọng khi khách tìm kiếm sự tiện lợi và tiếp cận trong không gian lưu trú. Không dùng để chỉ bàn trang điểm thông thường."
+    },
+    {
+      "id": 380,
+      "tag_name": "Báo hằng ngày",
+      "category": "ROOM_AMENITY",
+      "description": "Báo hằng ngày trong phòng cung cấp tờ báo mới nhất cho khách, giúp họ dễ dàng cập nhật thông tin trực tiếp từ phòng nghỉ. Điều này hữu ích cho khách có thói quen đọc báo mỗi sáng. Không dùng để chỉ TV, đài phát thanh hoặc dịch vụ truyền thông khác."
+    },
+    {
+      "id": 381,
+      "tag_name": "Báo động trực quan",
+      "category": "ROOM_AMENITY",
+      "description": "Báo động trực quan là hệ thống đèn nhấp nháy trong phòng, cung cấp cảnh báo rõ ràng cho khách khiếm thính về các tình huống khẩn cấp. Hữu ích cho khách cần hỗ trợ nghe. Không dùng để chỉ báo động âm thanh, chuông cửa hoặc thông báo dịch vụ."
+    },
+    {
+      "id": 382,
+      "tag_name": "Báo động âm thanh",
+      "category": "ROOM_AMENITY",
+      "description": "Báo động âm thanh là hệ thống cảnh báo dùng âm thanh trong phòng để thông báo nhanh cho khách về các tình huống khẩn cấp. Phù hợp với các khách yêu cầu cảnh báo âm thanh. Không dùng để chỉ báo động trực quan hoặc thiết bị điện tử giải trí."
+    },
+    {
+      "id": 383,
+      "tag_name": "Bãi biển riêng",
+      "category": "ROOM_AMENITY",
+      "description": "Bãi biển riêng không phải là tiện nghi trong phòng mà là khu vực bãi biển thuộc quyền sử dụng độc quyền của khách sạn, chỉ dành cho khách lưu trú. Thích hợp với khách tìm kiếm sự riêng tư trên bãi biển. Không dùng để chỉ ban công, hồ bơi hoặc sân vườn."
+    },
+    {
+      "id": 384,
+      "tag_name": "Bảng chỉ dẫn chữ nổi và sờ được",
+      "category": "ROOM_AMENITY",
+      "description": "Bảng chỉ dẫn chữ nổi và sờ được giúp người khiếm thị dễ dàng định vị và tiếp cận các khu vực và chức năng trong phòng, với ký hiệu nổi và bề mặt có thể sờ. Thích hợp cho khách cần hỗ trợ tiếp cận thông tin. Không dùng để chỉ ứng dụng di động, bản đồ giấy hoặc chỉ dẫn nâng cao."
+    },
+    {
+      "id": 385,
+      "tag_name": "Bếp",
+      "category": "ROOM_AMENITY",
+      "description": "Bếp trong phòng là khu vực nấu nướng với đầy đủ dụng cụ cần thiết để khách có thể tự chuẩn bị bữa ăn khi lưu trú. Thích hợp cho khách có kế hoạch ăn uống độc lập. Không dùng để chỉ minibar, nhà hàng hoặc dịch vụ phòng ăn."
+    },
+    {
+      "id": 386,
+      "tag_name": "Bể bơi",
+      "category": "ROOM_AMENITY",
+      "description": "Bể bơi trong phòng ám chỉ có một bể bơi riêng biệt trong không gian lưu trú, mang lại sự tiện nghi và riêng tư tối đa cho khách. Hữu ích cho những ai muốn bơi lội riêng tư. Không dùng để chỉ bể bơi công cộng hoặc spa."
+    },
+    {
+      "id": 387,
+      "tag_name": "Bồn tắm lộ thiên",
+      "category": "ROOM_AMENITY",
+      "description": "Bồn tắm lộ thiên là kiểu bồn tắm ngoài trời, mang đến trải nghiệm ngâm mình thư giãn với không gian mở gần gũi với thiên nhiên. Thích hợp cho khách yêu thích trải nghiệm tắm độc đáo và thiên nhiên. Không dùng để chỉ bồn tắm jacuzzi hoặc dịch vụ spa."
+    },
+    {
+      "id": 388,
+      "tag_name": "Bồn tắm tạo sóng",
+      "category": "ROOM_AMENITY",
+      "description": "Bồn tắm tạo sóng trong phòng có hệ thống bơm nước tạo dòng nước mát-xa giúp thư giãn và giảm căng thẳng cho khách. Phù hợp với khách cần thư giãn sau một ngày dài. Không dùng để chỉ hồ bơi hay bồn tắm thường."
+    },
+    {
+      "id": 389,
+      "tag_name": "Bộ hoạt động",
+      "category": "ROOM_AMENITY",
+      "description": "Bộ hoạt động trong phòng bao gồm các trò chơi hoặc thiết bị thể thao giúp khách thư giãn và tận hưởng thời gian rảnh rỗi ngay trong không gian lưu trú. Phù hợp với khách thích hoạt động giải trí trong nhà. Không dùng để chỉ phòng gym, bể bơi hoặc hoạt động ngoài trời."
+    },
+    {
+      "id": 390,
+      "tag_name": "Cho phép hút thuốc",
+      "category": "ROOM_AMENITY",
+      "description": "Cho phép hút thuốc trong phòng nghĩa là khách có thể hút thuốc mà không vi phạm quy định khách sạn. Thích hợp cho khách hút thuốc trong khi lưu trú. Không dùng để chỉ không gian công cộng, khu vực cấm hút thuốc hoặc tiện nghi phòng khác."
+    },
+    {
+      "id": 391,
+      "tag_name": "Cách âm",
+      "category": "ROOM_AMENITY",
+      "description": "Cách âm trong phòng là biện pháp giảm tiếng ồn từ bên ngoài, tạo ra môi trường yên tĩnh giúp khách ngủ ngon và cảm giác riêng tư. Hữu ích cho khách cần không gian yên tĩnh. Không dùng để chỉ rèm chắn sáng, cửa sổ dày hoặc điều hòa nhiệt độ."
+    },
+    {
+      "id": 392,
+      "tag_name": "Có các phòng thông nhau",
+      "category": "ROOM_AMENITY",
+      "description": "Có các phòng thông nhau nghĩa là phòng có cửa kết nối trực tiếp, lý tưởng cho gia đình hoặc nhóm bạn muốn duy trì sự gần gũi và riêng tư. Phù hợp với nhóm cần nhiều không gian. Không dùng để chỉ phòng đôi, phòng lớn hoặc căn hộ."
+    },
+    {
+      "id": 393,
+      "tag_name": "Căn hộ riêng trong tòa nhà",
+      "category": "ROOM_AMENITY",
+      "description": "Căn hộ riêng trong tòa nhà là loại phòng như căn hộ độc lập, với nhà bếp và tiện nghi sinh hoạt khép kín, phù hợp cho khách cần không gian sống dài hạn. Không dùng để chỉ phòng tiêu chuẩn, suite khách sạn hoặc phòng thông thường."
+    },
+    {
+      "id": 394,
+      "tag_name": "Cửa an toàn cho em bé",
+      "category": "ROOM_AMENITY",
+      "description": "Cửa an toàn cho em bé trong phòng là thiết kế cửa nhằm ngăn trẻ nhỏ tiếp cận khu vực nguy hiểm, bảo vệ an toàn cho trẻ. Thích hợp cho gia đình có trẻ nhỏ lưu trú. Không dùng để chỉ khóa cửa thông thường hoặc cửa chống cháy."
+    },
+    {
+      "id": 395,
+      "tag_name": "Cửa sổ có thể mở ra",
+      "category": "ROOM_AMENITY",
+      "description": "Cửa sổ có thể mở ra trong phòng cho phép điều chỉnh thông gió tự nhiên và tận hưởng không khí trong lành. Phù hợp cho khách thích ánh sáng và gió tự nhiên. Không dùng để chỉ cửa sổ cố định, điều hòa không khí hoặc rèm chắn sáng."
+    },
+    {
+      "id": 396,
+      "tag_name": "Dịch vụ phát trực tuyến như netflix",
+      "category": "ROOM_AMENITY",
+      "description": "Dịch vụ phát trực tuyến như Netflix cho phép khách truy cập dễ dàng vào nhiều nội dung giải trí kỹ thuật số ngay trong phòng. Thích hợp cho khách muốn tận hưởng những bộ phim hoặc chương trình yêu thích. Không dùng để chỉ truyền hình cáp hoặc dịch vụ DVD."
+    },
+    {
+      "id": 397,
+      "tag_name": "Ghế cao cho trẻ con ngồi ăn",
+      "category": "ROOM_AMENITY",
+      "description": "Ghế cao cho trẻ con trong phòng là tiện ích giúp trẻ ngồi an toàn và thoải mái khi ăn uống, lý tưởng cho gia đình đi cùng trẻ nhỏ. Không dùng để chỉ ghế thường, sofa hay ghế bành."
+    },
+    {
+      "id": 398,
+      "tag_name": "Giường cũi của em bé theo yêu cầu",
+      "category": "ROOM_AMENITY",
+      "description": "Giường cũi của em bé theo yêu cầu là dịch vụ mang đến giường cũi an toàn để trẻ em có nơi ngủ nghỉ thoải mái trong phòng. Thích hợp cho gia đình có trẻ nhỏ. Không dùng để chỉ giường đơn, giường đôi hoặc sofa bed."
+    },
+    {
+      "id": 399,
+      "tag_name": "Giường cực dài",
+      "category": "ROOM_AMENITY",
+      "description": "Giường cực dài trong phòng mang lại không gian rộng rãi hơn cho những khách cao, cải thiện sự thoải mái khi ngủ. Phù hợp với khách có chiều cao lớn cần thêm chỗ. Không dùng để chỉ giường tiêu chuẩn, giường đôi hoặc giường king size."
+    },
+    {
+      "id": 400,
+      "tag_name": "Giường gấp",
+      "category": "ROOM_AMENITY",
+      "description": "Giường gấp là một loại giường trong phòng có thể mở và gấp lại, giúp tiết kiệm không gian và cung cấp thêm chỗ ngủ khi cần thiết. Khách có thể tìm khách sạn có giường gấp để đảm bảo có đủ chỗ nghỉ ngơi cho cả gia đình hoặc nhóm bạn. Không dùng để chỉ ghế sofa hoặc ghế xếp."
+    },
+    {
+      "id": 401,
+      "tag_name": "Giải trí",
+      "category": "ROOM_AMENITY",
+      "description": "Tiện ích giải trí trong phòng bao gồm TV, trò chơi điện tử hoặc hệ thống âm thanh, giúp khách thư giãn và tận hưởng thời gian lưu trú. Khách có thể tìm những tiện ích này để giải trí ngay trong phòng mà không cần ra ngoài. Không dùng để chỉ dịch vụ spa hoặc nhà hàng."
+    },
+    {
+      "id": 402,
+      "tag_name": "Khu vực ăn uống riêng",
+      "category": "ROOM_AMENITY",
+      "description": "Khu vực ăn uống riêng là không gian trong phòng dành riêng để khách thưởng thức bữa ăn trong sự riêng tư và tiện lợi. Khách gia đình hoặc cặp đôi có thể tìm kiếm tiện nghi này để có những bữa ăn riêng tư. Không dùng để chỉ nhà hàng hay phòng ăn chung của khách sạn."
+    },
+    {
+      "id": 403,
+      "tag_name": "Không gian làm việc cho máy tính xách tay",
+      "category": "ROOM_AMENITY",
+      "description": "Không gian làm việc cho máy tính xách tay gồm bàn làm việc và ổ cắm điện, tạo môi trường thuận tiện cho khách cần làm việc từ xa. Khách đi công tác thường tìm kiếm tiện nghi này để đảm bảo hiệu quả công việc. Không dùng để chỉ không gian sinh hoạt chung hoặc khu vực giải trí."
+    },
+    {
+      "id": 404,
+      "tag_name": "Lò sưởi",
+      "category": "ROOM_AMENITY",
+      "description": "Lò sưởi là thiết bị trong phòng giúp duy trì nhiệt độ ấm áp, đặc biệt hữu ích trong mùa lạnh. Khách có thể tìm kiếm tiện nghi này để có không gian ấm cúng và dễ chịu. Không dùng để chỉ hệ thống điều hòa hay quạt máy."
+    },
+    {
+      "id": 405,
+      "tag_name": "Lò vi sóng",
+      "category": "ROOM_AMENITY",
+      "description": "Lò vi sóng trong phòng cho phép khách hâm nóng thức ăn một cách dễ dàng, hỗ trợ nhanh chóng trong việc chuẩn bị bữa ăn. Tiện ích này hữu ích cho khách tự phục vụ hoặc lưu trú dài ngày. Không dùng để chỉ lò nướng hoặc bếp gas."
+    },
+    {
+      "id": 406,
+      "tag_name": "Lối vào hồ bơi",
+      "category": "ROOM_AMENITY",
+      "description": "Lối vào hồ bơi là cửa ra từ phòng dẫn trực tiếp tới hồ bơi, tạo sự thuận tiện cho khách yêu thích bơi lội. Khách có thể tìm kiếm tiện nghi này để có trải nghiệm hồ bơi ngay thềm phòng. Không dùng để chỉ hồ bơi công cộng hoặc khu vực chung của khách sạn."
+    },
+    {
+      "id": 407,
+      "tag_name": "Lối đi riêng",
+      "category": "ROOM_AMENITY",
+      "description": "Lối đi riêng là lối đi cá nhân từ phòng ra ngoài, giúp bảo đảm sự riêng tư và tự do cho khách ra vào không cần qua khu vực chung. Khách có thể tìm kiếm tiện ích này để có sự riêng tư tối đa. Không dùng để chỉ lối đi công cộng hoặc hành lang chung."
+    },
+    {
+      "id": 408,
+      "tag_name": "Miễn phí sử dụng khu vực dịch vụ hành chánh",
+      "category": "ROOM_AMENITY",
+      "description": "Miễn phí sử dụng khu vực dịch vụ hành chánh cho phép khách truy cập máy tính, máy in mà không phải tốn thêm phí. Khách doanh nhân có thể tìm kiếm khách sạn này để dễ dàng thực hiện công việc hành chính. Không dùng để chỉ trung tâm hội nghị hoặc dịch vụ thư ký."
+    },
+    {
+      "id": 409,
+      "tag_name": "Máy giặt",
+      "category": "ROOM_AMENITY",
+      "description": "Máy giặt trong phòng giúp khách dễ dàng tự giặt đồ, tiện lợi cho các kỳ lưu trú dài ngày hoặc gia đình có trẻ nhỏ. Khách có thể tìm kiếm tiện ích này để chủ động trong việc giặt giũ. Không dùng để chỉ dịch vụ giặt là ngoài hoặc cửa hàng giặt đồ tự động."
+    },
+    {
+      "id": 410,
+      "tag_name": "Máy lọc không khí",
+      "category": "ROOM_AMENITY",
+      "description": "Máy lọc không khí giúp cải thiện chất lượng không khí trong phòng, tạo không gian thoáng mát và sạch sẽ. Khách có thể tìm kiếm tiện ích này để đảm bảo môi trường sống lành mạnh hơn. Không dùng để chỉ hệ thống thông gió hoặc máy lạnh."
+    },
+    {
+      "id": 411,
+      "tag_name": "Máy pha trà cà phê",
+      "category": "ROOM_AMENITY",
+      "description": "Máy pha trà cà phê trong phòng cho phép khách pha chế đồ uống nóng ngay khi cần, mang lại sự tiện lợi cho những ai thích uống trà hoặc cà phê sáng. Khách tận hưởng tiện nghi này để có thức uống ngay khi họ muốn. Không dùng để chỉ dịch vụ minibar hoặc nhà hàng."
+    },
+    {
+      "id": 412,
+      "tag_name": "Máy rửa bát",
+      "category": "ROOM_AMENITY",
+      "description": "Máy rửa bát trong phòng giúp khách rửa sạch dụng cụ ăn uống mà không cần tự làm bằng tay. Khách có thể tìm kiếm tiện ích này để tiết kiệm thời gian trong việc dọn dẹp sau bữa ăn. Không dùng để chỉ dịch vụ ăn uống hoặc bếp nấu ăn tự phục vụ."
+    },
+    {
+      "id": 413,
+      "tag_name": "Máy sấy quần áo",
+      "category": "ROOM_AMENITY",
+      "description": "Máy sấy quần áo trong phòng giúp quần áo khô nhanh chóng, lý tưởng cho những chuyến đi dài hoặc thời tiết ẩm ướt. Khách có thể tìm kiếm tiện ích này để đảm bảo quần áo luôn khô ráo. Không dùng để chỉ dịch vụ giặt là của khách sạn."
+    },
+    {
+      "id": 414,
+      "tag_name": "Máy tính",
+      "category": "ROOM_AMENITY",
+      "description": "Máy tính trong phòng cung cấp khả năng truy cập internet và làm việc, hữu ích cho khách có nhu cầu làm việc từ xa. Khách có thể tìm kiếm tiện ích này để đảm bảo hiệu quả công việc trong khi lưu trú. Không dùng để chỉ điện thoại thông minh hoặc thiết bị giải trí."
+    },
+    {
+      "id": 415,
+      "tag_name": "Máy tính bảng trong phòng",
+      "category": "ROOM_AMENITY",
+      "description": "Máy tính bảng trong phòng giúp khách truy cập thông tin và giải trí, thuận tiện để duyệt thông tin khách sạn hoặc đặt dịch vụ nhanh chóng. Khách có thể tìm kiếm tiện ích này để tận dụng công nghệ trong sắp xếp kỳ nghỉ. Không dùng để chỉ máy vi tính để bàn hoặc điện thoại khách sạn."
+    },
+    {
+      "id": 416,
+      "tag_name": "Nhà tắm chung",
+      "category": "ROOM_AMENITY",
+      "description": "Nhà tắm chung là phòng tắm sử dụng chung bởi nhiều khách và thường nằm ngoài phòng riêng, cung cấp đầy đủ tiện nghi cho việc vệ sinh cá nhân. Khách có thể tìm kiếm loại phòng này để tiết kiệm chi phí cho nhóm đông. Không dùng để chỉ phòng tắm riêng tư trong từng phòng."
+    },
+    {
+      "id": 417,
+      "tag_name": "Nhà vệ sinh cho người khuyết tật",
+      "category": "ROOM_AMENITY",
+      "description": "Nhà vệ sinh cho người khuyết tật được thiết kế để đảm bảo sự tiện lợi và an toàn, với các thiết bị hỗ trợ đặc biệt dành cho người khuyết tật. Khách cần điều kiện tiếp cận đặc biệt có thể tìm kiếm tiện nghi này. Không dùng để chỉ nhà vệ sinh tiêu chuẩn hoặc công cộng."
+    },
+    {
+      "id": 418,
+      "tag_name": "Nhà vệ sinh phụ",
+      "category": "ROOM_AMENITY",
+      "description": "Nhà vệ sinh phụ là một phòng vệ sinh bổ sung trong phòng lưu trú, mang lại sự tiện lợi và giảm thời gian chờ đợi, đặc biệt khi có nhiều khách ở chung phòng. Khách có thể tìm kiếm tiện ích này để có sự thoải mái hơn trong sinh hoạt. Không dùng để chỉ nhà vệ sinh công cộng."
+    },
+    {
+      "id": 419,
+      "tag_name": "Phim theo yêu cầu",
+      "category": "ROOM_AMENITY",
+      "description": "Phim theo yêu cầu cho phép khách chọn xem phim ngay trong phòng, mang lại trải nghiệm giải trí cá nhân hóa. Khách tận hưởng tiện ích này để thư giãn bằng các bộ phim yêu thích. Không dùng để chỉ các kênh truyền hình tiêu chuẩn hoặc dịch vụ phát trực tuyến."
+    },
+    {
+      "id": 420,
+      "tag_name": "Phòng khách riêng",
+      "category": "ROOM_AMENITY",
+      "description": "Phòng khách riêng là không gian tách biệt trong phòng lưu trú, cho phép khách thư giãn, đọc sách hoặc tiếp khách mà không ảnh hưởng đến không gian ngủ. Tag này hữu ích khi khách muốn có nơi để sinh hoạt chung mà vẫn giữ được sự riêng tư. Không dùng để chỉ phòng ngủ chính, phòng tắm hay nhà bếp."
+    },
+    {
+      "id": 421,
+      "tag_name": "Phòng thay đồ",
+      "category": "ROOM_AMENITY",
+      "description": "Phòng thay đồ trong phòng lưu trú là không gian riêng biệt để khách thay trang phục, sắp xếp hành lý một cách thoải mái. Điều này đặc biệt hữu ích cho khách cần chuẩn bị nhanh cho các sự kiện hay hoạt động. Không dùng để chỉ phòng tắm, phòng ngủ hay tủ quần áo."
+    },
+    {
+      "id": 422,
+      "tag_name": "Phòng tắm có băng ghế tắm",
+      "category": "ROOM_AMENITY",
+      "description": "Phòng tắm có băng ghế tắm là phòng tắm được trang bị băng ghế để khách có thể ngồi thư giãn trong khi tắm. Tag này hữu ích cho khách có nhu cầu hỗ trợ hoặc thích sự thoải mái khi tắm. Không dùng để chỉ bồn tắm hay phòng spa."
+    },
+    {
+      "id": 423,
+      "tag_name": "Phòng tắm có lối đi thoai thoải",
+      "category": "ROOM_AMENITY",
+      "description": "Phòng tắm có lối đi thoai thoải là phòng tắm thiết kế với lối đi bằng phẳng, dễ tiếp cận cho người lớn tuổi hoặc người có nhu cầu đặc biệt. Tag này phù hợp cho khách cần sự tiện lợi khi di chuyển. Không dùng để chỉ phòng tắm tiêu chuẩn hoặc phòng có bậc cửa cao."
+    },
+    {
+      "id": 424,
+      "tag_name": "Phòng tắm dành cho người khuyết tật",
+      "category": "ROOM_AMENITY",
+      "description": "Phòng tắm dành cho người khuyết tật được thiết kế với các tiện nghi hỗ trợ như tay vịn, vòi sen di động, giúp khách dễ dàng sử dụng và tiếp cận. Tag này quan trọng cho sự thoải mái và an toàn của người khuyết tật. Không dùng để chỉ phòng tắm tiêu chuẩn hay không có các thiết bị hỗ trợ."
+    },
+    {
+      "id": 425,
+      "tag_name": "Phòng tắm phụ",
+      "category": "ROOM_AMENITY",
+      "description": "Phòng tắm phụ là phòng tắm bổ sung trong không gian lưu trú, cung cấp thêm sự tiện lợi cho gia đình hoặc nhóm đông người khi cần sử dụng đồng thời nhiều phòng tắm. Tag này hữu ích khi khách tìm kiếm không gian lưu trú rộng rãi với nhiều tiện nghi. Không dùng để chỉ phòng tắm chính hay tiện nghi phòng tắm cơ bản."
+    },
+    {
+      "id": 426,
+      "tag_name": "Phòng tắm đứng",
+      "category": "ROOM_AMENITY",
+      "description": "Phòng tắm đứng là loại phòng tắm có vòi sen đứng, phù hợp cho khách muốn tắm nhanh chóng mà không cần bồn tắm. Tag này hữu ích cho những ai ưa thích sự tiện lợi và tiết kiệm không gian. Không dùng để chỉ phòng tắm có bồn hoặc spa."
+    },
+    {
+      "id": 427,
+      "tag_name": "Phòng và hoặc bộ dụng cụ phù hợp cho người khiếm thính",
+      "category": "ROOM_AMENITY",
+      "description": "Phòng và hoặc bộ dụng cụ phù hợp cho người khiếm thính cung cấp các thiết bị như máy báo động ánh sáng, hệ thống giao tiếp đặc biệt để hỗ trợ người khiếm thính. Tag này đảm bảo tiện nghi và an toàn cho người dùng có yêu cầu cụ thể. Không dùng để chỉ các phòng không có thiết bị hỗ trợ cho người khiếm thính."
+    },
+    {
+      "id": 428,
+      "tag_name": "Quyền sử dụng spa miễn phí",
+      "category": "ROOM_AMENITY",
+      "description": "Quyền sử dụng spa miễn phí là quyền lợi dành cho khách lưu trú, cho phép tiếp cận các dịch vụ spa mà không cần trả thêm chi phí. Tag này hữu ích cho khách yêu thích thư giãn và chăm sóc sức khỏe trong kỳ nghỉ. Không dùng để chỉ các dịch vụ spa cần thêm phí."
+    },
+    {
+      "id": 429,
+      "tag_name": "Sưởi",
+      "category": "ROOM_AMENITY",
+      "description": "Sưởi là hệ thống điều chỉnh nhiệt độ trong phòng, giữ không gian ấm áp và thoải mái, đặc biệt quan trọng trong điều kiện thời tiết lạnh. Tag này hữu ích khi khách tìm phòng với điều kiện nhiệt độ ổn định. Không dùng để chỉ điều hòa không khí hay quạt mát."
+    },
+    {
+      "id": 430,
+      "tag_name": "Sử sụng clb thể thao",
+      "category": "ROOM_AMENITY",
+      "description": "Sử dụng câu lạc bộ thể thao là tiện ích cho phép khách duy trì chế độ tập luyện thể dục khi đi du lịch, với các trang thiết bị thể thao sẵn có. Tag này hữu ích cho khách yêu thích vận động và thể hình. Không dùng để chỉ phòng gym riêng trong phòng lưu trú."
+    },
+    {
+      "id": 431,
+      "tag_name": "TV có phụ đề",
+      "category": "ROOM_AMENITY",
+      "description": "TV có phụ đề là thiết bị hỗ trợ hiển thị phụ đề trên các chương trình truyền hình, giúp khách có nhu cầu nghe kém hoặc thích đọc phụ đề. Tag này hữu ích cho người sử dụng cần hỗ trợ nghe hoặc muốn trải nghiệm nội dung đa ngôn ngữ. Không dùng để chỉ TV không có khả năng hiển thị phụ đề."
+    },
+    {
+      "id": 432,
+      "tag_name": "TV màn hình phẳng",
+      "category": "ROOM_AMENITY",
+      "description": "TV màn hình phẳng là thiết bị giải trí trong phòng với thiết kế gọn nhẹ và hình ảnh sắc nét. Tag này hữu ích cho khách muốn trải nghiệm xem TV với chất lượng cao. Không dùng để chỉ TV kiểu cũ hoặc với màn hình cong."
+    },
+    {
+      "id": 433,
+      "tag_name": "TV trong phòng tắm",
+      "category": "ROOM_AMENITY",
+      "description": "TV trong phòng tắm là tiện ích cao cấp, cho phép khách xem chương trình giải trí hoặc tin tức trong khi sử dụng phòng tắm. Tag này hữu ích cho người muốn sự tiện lợi và giải trí ngay cả khi thư giãn. Không dùng để chỉ các phòng tắm không có TV."
+    },
+    {
+      "id": 434,
+      "tag_name": "Tay nắm đòn bẩy trên cửa",
+      "category": "ROOM_AMENITY",
+      "description": "Tay nắm đòn bẩy trên cửa giúp dễ dàng mở và đóng cửa, phù hợp cho người có nhu cầu đặc biệt hoặc tay yếu. Tag này hữu ích cho khách tìm kiếm phòng lưu trú với sự tiện ích và an toàn cải thiện. Không dùng để chỉ cửa không có tay nắm đặc biệt."
+    },
+    {
+      "id": 435,
+      "tag_name": "Thang máy",
+      "category": "ROOM_AMENITY",
+      "description": "Thang máy là tiện nghi cần thiết trong khách sạn, giúp khách dễ dàng di chuyển giữa các tầng, đặc biệt cần thiết cho người lớn tuổi hoặc có nhu cầu về khả năng tiếp cận. Tag này phù hợp khi khách tìm kiếm sự thuận tiện trong việc đi lại trong khách sạn. Không dùng để chỉ cầu thang bộ hoặc thang máy ngoài khách sạn."
+    },
+    {
+      "id": 436,
+      "tag_name": "Thanh vịn chống trượt",
+      "category": "ROOM_AMENITY",
+      "description": "Thanh vịn chống trượt trong phòng tắm giúp tăng cường an toàn cho người sử dụng, đặc biệt hữu ích cho người lớn tuổi hoặc có nhu cầu đặc biệt. Tag này phù hợp cho khách tìm kiếm sự an toàn khi sử dụng phòng tắm. Không dùng để chỉ các tiện ích phòng tắm khác không có tính năng an toàn tương tự."
+    },
+    {
+      "id": 437,
+      "tag_name": "Thiết bị bảo vệ ban đêm hạ thấp trên cửa",
+      "category": "ROOM_AMENITY",
+      "description": "Thiết bị bảo vệ ban đêm hạ thấp trên cửa là tính năng an ninh trong phòng lưu trú, cung cấp sự an toàn và yên tâm cho khách trong suốt thời gian nghỉ ngơi. Tag này hữu ích cho khách quan tâm đến an toàn cá nhân khi lưu trú. Không dùng để chỉ hệ thống an ninh ngoài phòng lưu trú."
+    },
+    {
+      "id": 438,
+      "tag_name": "Thiết bị chơi điện tử",
+      "category": "ROOM_AMENITY",
+      "description": "Thiết bị chơi điện tử trong phòng cung cấp cho khách thêm lựa chọn giải trí với các trò chơi video. Tag này hữu ích cho người đặc biệt yêu thích các trò chơi điện tử và muốn thư giãn ngay tại phòng. Không dùng để chỉ máy tính hoặc thiết bị giải trí khác không liên quan đến video game."
+    },
+    {
+      "id": 439,
+      "tag_name": "Thiết bị phát dữ liệu di động",
+      "category": "ROOM_AMENITY",
+      "description": "Thiết bị phát dữ liệu di động trong phòng cho phép khách tạo kết nối internet cá nhân, thuận tiện cho công việc hoặc giải trí khi di chuyển. Tag này hữu ích cho khách cần truy cập internet ổn định. Không dùng để chỉ wifi công cộng hoặc không có khả năng phát dữ liệu riêng."
+    },
+    {
+      "id": 440,
+      "tag_name": "Thiết bị điện thoại thông minh",
+      "category": "ROOM_AMENITY",
+      "description": "Thiết bị điện thoại thông minh trong phòng giúp khách tiếp cận nhanh chóng các dịch vụ và thông tin của khách sạn thông qua thiết bị hiện đại. Khách có thể sử dụng để liên lạc với lễ tân, đặt dịch vụ hoặc giải trí trực tuyến. Không dùng để chỉ truyền hình hoặc các thiết bị điện tử khác."
+    },
+    {
+      "id": 441,
+      "tag_name": "Tiện nghi bể bơi",
+      "category": "ROOM_AMENITY",
+      "description": "Tiện nghi bể bơi trong phòng cung cấp cho khách không gian thư giãn riêng tư với một bể bơi nhỏ gọn ngay tại phòng. Khách có thể tận hưởng bơi lội hoặc ngâm mình mà không cần ra khu vực công cộng. Không dùng để chỉ hồ bơi chung của khách sạn hoặc ngoài trời."
+    },
+    {
+      "id": 442,
+      "tag_name": "Tiện nghi cho em bé theo yêu cầu",
+      "category": "ROOM_AMENITY",
+      "description": "Tiện nghi cho em bé theo yêu cầu bao gồm các vật dụng như cũi, ghế ăn và bồn tắm trẻ em, có sẵn trong phòng khi khách có nhu cầu. Phù hợp cho các gia đình có trẻ nhỏ cần sự chăm sóc tiện lợi. Không dùng để chỉ dịch vụ trông trẻ hoặc tiện nghi tiêu chuẩn khác trong phòng."
+    },
+    {
+      "id": 443,
+      "tag_name": "Truyền hình cáp vệ tinh",
+      "category": "ROOM_AMENITY",
+      "description": "Truyền hình cáp vệ tinh trong phòng cung cấp đa dạng kênh quốc tế, giúp khách cập nhật thông tin và thư giãn với nhiều lựa chọn giải trí. Thích hợp cho những ai yêu thích xem TV vào thời gian nghỉ ngơi. Không dùng để chỉ các thiết bị nghe nhìn khác như máy chiếu hoặc loa."
+    },
+    {
+      "id": 444,
+      "tag_name": "Trò chơi board game xếp hình",
+      "category": "ROOM_AMENITY",
+      "description": "Trò chơi board game xếp hình trong phòng là tiện ích giải trí cho khách, giúp thư giãn với các hoạt động nhẹ nhàng trong thời gian lưu trú. Đặc biệt phù hợp cho các gia đình hoặc nhóm bạn. Không dùng để chỉ các trò chơi điện tử hay hoạt động thể thao."
+    },
+    {
+      "id": 445,
+      "tag_name": "Trạm nối ipod",
+      "category": "ROOM_AMENITY",
+      "description": "Trạm nối iPod trong phòng cho phép khách kết nối và phát nhạc từ thiết bị cá nhân, tận hưởng âm nhạc theo sở thích. Khách có thể thư giãn với giai điệu yêu thích mà không cần mang theo loa riêng. Không dùng để chỉ hệ thống âm thanh phức tạp hoặc dàn karaoke."
+    },
+    {
+      "id": 446,
+      "tag_name": "Tương thích với tty ttd",
+      "category": "ROOM_AMENITY",
+      "description": "Tương thích với TTY TTD là tính năng trong phòng hỗ trợ khách có nhu cầu sử dụng thiết bị điện thoại đặc biệt, đảm bảo liên lạc dễ dàng cho người khiếm thính. Khách có thể yêu cầu khi đặt phòng. Không dùng để chỉ điện thoại thông thường hoặc dịch vụ internet."
+    },
+    {
+      "id": 447,
+      "tag_name": "Tầng cao",
+      "category": "ROOM_AMENITY",
+      "description": "Tầng cao chỉ các phòng nằm ở vị trí cao trong khách sạn, mang đến tầm nhìn rộng mở và không gian yên tĩnh hơn. Khách tìm kiếm sự riêng tư và tránh ồn ào có thể chọn tầng này. Không dùng để chỉ phòng trên tầng trệt hoặc khu vực công cộng."
+    },
+    {
+      "id": 448,
+      "tag_name": "Tầng hạn chế",
+      "category": "ROOM_AMENITY",
+      "description": "Tầng hạn chế dành riêng cho khách cần sự riêng tư và an ninh cao, thường phù hợp với khách VIP hay người có yêu cầu đặc biệt. Tầng này có thể yêu cầu thẻ truy cập riêng để bảo đảm an toàn. Không dùng để chỉ các tầng phổ thông hoặc khu vực dịch vụ công cộng."
+    },
+    {
+      "id": 449,
+      "tag_name": "Tầng thượng",
+      "category": "ROOM_AMENITY",
+      "description": "Tầng thượng là khu vực ở đỉnh khách sạn, nơi khách có thể ngắm quang cảnh toàn thành phố và tận hưởng không khí ngoài trời. Thích hợp cho những ai tìm kiếm không gian thư giãn riêng biệt. Không dùng để chỉ các phòng hoặc dịch vụ dưới tầng thượng."
+    },
+    {
+      "id": 450,
+      "tag_name": "Tắm suối nước nóng",
+      "category": "ROOM_AMENITY",
+      "description": "Tắm suối nước nóng trong phòng mang đến trải nghiệm thư giãn độc đáo với nguồn nước khoáng chất trong lành. Khách có thể tận hưởng liệu pháp chăm sóc sức khỏe ngay trong sự tiện lợi của phòng riêng. Không dùng để chỉ hồ bơi nước nóng hay spa khu vực chung."
+    },
+    {
+      "id": 451,
+      "tag_name": "Tủ lạnh",
+      "category": "ROOM_AMENITY",
+      "description": "Tủ lạnh trong phòng giúp khách có thể bảo quản đồ uống và thực phẩm cá nhân một cách thuận tiện. Đặc biệt hữu ích cho những ai lưu trú dài ngày hoặc có chế độ ăn riêng. Không dùng để chỉ các dịch vụ ăn uống khác trong khách sạn."
+    },
+    {
+      "id": 452,
+      "tag_name": "WiFi miễn phí",
+      "category": "ROOM_AMENITY",
+      "description": "WiFi miễn phí cho phép khách truy cập internet không giới hạn trong phòng để làm việc hoặc giải trí. Khách có thể dễ dàng kết nối mọi lúc mà không phải lo lắng về phí dịch vụ. Không dùng để chỉ các dịch vụ internet có tính phí hoặc yếu tố ngoài phòng."
+    },
+    {
+      "id": 453,
+      "tag_name": "WiFi tính phí",
+      "category": "ROOM_AMENITY",
+      "description": "WiFi tính phí trong phòng cung cấp tùy chọn kết nối internet có thu phí, thường đi kèm với chất lượng dịch vụ đảm bảo. Khách có nhu cầu truy cập mạng ổn định có thể chọn gói này. Không dùng để chỉ WiFi miễn phí hoặc các tiện nghi không liên quan đến kết nối mạng."
+    },
+    {
+      "id": 454,
+      "tag_name": "Xông khô",
+      "category": "ROOM_AMENITY",
+      "description": "Xông khô trong phòng là dịch vụ giúp khách thư giãn với hơi nóng khô, mang lại cảm giác như ở spa. Phù hợp với những ai muốn cải thiện sức khỏe và giảm stress. Không dùng để chỉ xông hơi nước hoặc các liệu pháp spa ngoài phòng."
+    },
+    {
+      "id": 455,
+      "tag_name": "Ít gây dị ứng",
+      "category": "ROOM_AMENITY",
+      "description": "Phòng ít gây dị ứng được thiết kế với vật liệu chống dị ứng và hệ thống lọc không khí đặc biệt, phù hợp với khách nhạy cảm và có nhu cầu chăm sóc sức khỏe. Đảm bảo một môi trường lưu trú sạch sẽ. Không dùng để chỉ hệ thống điều hòa thông thường hoặc các tiện nghi tiêu chuẩn khác."
+    },
+    {
+      "id": 456,
+      "tag_name": "Đi lên bằng cầu thang",
+      "category": "ROOM_AMENITY",
+      "description": "Phòng chỉ có thể đi lên bằng cầu thang, lý tưởng cho khách không ngại cầu thang và muốn luyện tập nhẹ nhàng. Thích hợp cho ai cần vận động hàng ngày. Không dùng để chỉ phòng có thang máy hoặc cầu thang máy."
+    },
+    {
+      "id": 457,
+      "tag_name": "Điều hòa",
+      "category": "ROOM_AMENITY",
+      "description": "Điều hòa trong phòng cung cấp khả năng điều chỉnh nhiệt độ theo ý muốn, đảm bảo không gian thoải mái cho khách bất kể thời tiết bên ngoài. Rất quan trọng cho những vùng có khí hậu khắc nghiệt. Không dùng để chỉ hệ thống sưởi hay thông gió riêng biệt."
+    },
+    {
+      "id": 458,
+      "tag_name": "Điều hòa cá nhân",
+      "category": "ROOM_AMENITY",
+      "description": "Điều hòa cá nhân cho phép khách tự điều chỉnh nhiệt độ phòng theo sở thích, mang lại trải nghiệm tiện nghi và thoải mái. Phù hợp với những khách có nhu cầu đặc biệt về nhiệt độ. Không dùng để chỉ điều hòa chung cho cả tòa nhà."
+    },
+    {
+      "id": 459,
+      "tag_name": "Đèn đọc sách",
+      "category": "ROOM_AMENITY",
+      "description": "Đèn đọc sách trong phòng cung cấp ánh sáng tối ưu cho việc đọc, đảm bảo không mỏi mắt và tạo cảm giác thư giãn. Khách thích đọc sách hoặc làm việc cần đèn hỗ trợ có thể tìm kiếm tiện ích này. Không dùng để chỉ hệ thống chiếu sáng chính trong phòng."
+    },
+    {
+      "id": 460,
+      "tag_name": "Được phép đưa thú nuôi vào",
+      "category": "ROOM_AMENITY",
+      "description": "Khách sạn cho phép khách mang thú nuôi vào phòng, tạo điều kiện cho những ai không muốn xa rời vật nuôi trong kỳ nghỉ. Tag này hữu ích khi tìm phòng thân thiện với thú cưng. Không dùng để chỉ dịch vụ chăm sóc thú cưng hoặc khu nuôi thú riêng."
+    },
+    {
+      "id": 461,
+      "tag_name": "Được vào phòng chờ thương gia",
+      "category": "ROOM_AMENITY",
+      "description": "Khách sạn cung cấp quyền vào phòng chờ thương gia, nơi khách có thể thư giãn trong không gian cao cấp với tiện ích đặc biệt. Tag này hữu ích khi tìm khách sạn có dịch vụ dành riêng cho khách hàng đặc biệt. Không dùng để chỉ các dịch vụ phòng hoặc lounge khác."
+    },
+    {
+      "id": 462,
+      "tag_name": "Đồ dùng làm bếp",
+      "category": "ROOM_AMENITY",
+      "description": "Phòng được trang bị đồ dùng làm bếp, cho phép khách tự chế biến món ăn ngay tại chỗ. Tag này phù hợp cho những ai thích tự nấu nướng trong kỳ nghỉ. Không dùng để chỉ nhà hàng hoặc dịch vụ ăn uống bên ngoài phòng."
+    },
+    {
+      "id": 463,
+      "tag_name": "Đồ gỗ ngoài trời",
+      "category": "ROOM_AMENITY",
+      "description": "Đồ gỗ ngoài trời trong khu vực phòng tạo không gian thư giãn giữa thiên nhiên, lý tưởng cho những ai thích ngồi ngoài trời. Tag này hữu dụng khi tìm kiếm phòng có không gian ngoài trời riêng. Không dùng để chỉ nội thất trong nhà hoặc tiện nghi cảnh quan chung."
+    },
+    {
+      "id": 464,
+      "tag_name": "Đồ uống mời khách miễn phí",
+      "category": "ROOM_AMENITY",
+      "description": "Khách sạn phục vụ đồ uống miễn phí trong phòng, như một cử chỉ chào đón hoặc trong khung giờ đặc biệt. Tag này phù hợp cho những khách thích nhận thêm tiện ích nhỏ khi lưu trú. Không dùng để chỉ minibar hoặc quầy bar ngoài phòng."
+    },
+    {
+      "id": 465,
+      "tag_name": "Hướng Biển",
+      "category": "ROOM_VIEW",
+      "description": "Phòng có hướng biển cho phép khách ngắm nhìn biển xanh và nghe tiếng sóng vỗ. Tag này hữu ích khi tìm phòng có cảnh quan đại dương. Không dùng để chỉ bể bơi hoặc khu vực nước khác."
+    },
+    {
+      "id": 466,
+      "tag_name": "Hướng Bể bơi",
+      "category": "ROOM_VIEW",
+      "description": "Phòng với hướng bể bơi mang lại tầm nhìn ra hồ bơi mát mẻ, thích hợp cho những ai muốn có nhìn gần khu vực bơi lội. Tag này không dùng để chỉ hướng biển, hồ hoặc sông."
+    },
+    {
+      "id": 467,
+      "tag_name": "Hướng Hồ",
+      "category": "ROOM_VIEW",
+      "description": "Phòng có hướng hồ mang đến cảnh quan yên bình của mặt nước tĩnh lặng, lý tưởng cho khách muốn thư giãn. Tag này không dùng để chỉ hướng biển, sông hoặc bể bơi."
+    },
+    {
+      "id": 468,
+      "tag_name": "Hướng Ngoài trời",
+      "category": "ROOM_VIEW",
+      "description": "Hướng ngoài trời của phòng mang đến không khí thông thoáng và ánh sáng tự nhiên, thích hợp cho những ai yêu thích thiên nhiên. Không dùng để chỉ hướng cụ thể như biển hoặc thành phố."
+    },
+    {
+      "id": 469,
+      "tag_name": "Hướng Núi",
+      "category": "ROOM_VIEW",
+      "description": "Phòng có hướng núi cho phép khách chiêm ngưỡng cảnh quan núi non hùng vĩ và yên tĩnh. Tag này không dùng để chỉ hướng biển, hồ hoặc sông."
+    },
+    {
+      "id": 470,
+      "tag_name": "Hướng Sông",
+      "category": "ROOM_VIEW",
+      "description": "Phòng với hướng sông cho góc nhìn mê đắm với dòng nước dịu dàng và cảnh quan tự nhiên xung quanh. Không dùng để chỉ hướng hồ, bể bơi hoặc biển."
+    },
+    {
+      "id": 471,
+      "tag_name": "Hướng Thiên nhiên",
+      "category": "ROOM_VIEW",
+      "description": "Hướng thiên nhiên mang đến không gian hài hòa với cây xanh và cảnh quan xung quanh, dành cho ai yêu thiên nhiên. Không dùng để chỉ hướng biển, hồ hoặc sông."
+    },
+    {
+      "id": 472,
+      "tag_name": "Hướng Thành phố",
+      "category": "ROOM_VIEW",
+      "description": "Phòng hướng thành phố cung cấp cái nhìn sôi động về khu đô thị với ánh đèn lung linh, phù hợp cho khách thích không khí náo nhiệt. Không dùng để chỉ hướng núi, hồ hoặc biển."
+    },
+    {
+      "id": 473,
+      "tag_name": "Không có cửa sổ",
+      "category": "ROOM_VIEW",
+      "description": "Phòng không có cửa sổ tạo ra không gian yên tĩnh, ít bị ảnh hưởng bởi ánh sáng và âm thanh. Thích hợp cho khách cần nghỉ ngơi hoàn toàn. Không dùng để chỉ hướng nhìn nào cả."
+    },
+    {
+      "id": 474,
+      "tag_name": "Cặp đôi",
+      "category": "SUITABLE_FOR",
+      "description": "Khách sạn có không gian và dịch vụ thích hợp cho cặp đôi, với không gian riêng tư và lãng mạn. Tag này phù hợp cho những ai tìm kiếm nơi nghỉ ngơi với người đặc biệt. Không dùng để chỉ nhóm khách hoặc gia đình."
+    },
+    {
+      "id": 475,
+      "tag_name": "Gia đình có thanh thiếu niên",
+      "category": "SUITABLE_FOR",
+      "description": "Khách sạn có dịch vụ và tiện ích phù hợp cho gia đình có thanh thiếu niên, đảm bảo mọi thành viên đều hài lòng. Hữu ích khi tìm nơi chốn cho cả gia đình lớn. Không dùng để chỉ gia đình không có trẻ lớn."
+    },
+    {
+      "id": 476,
+      "tag_name": "Gia đình có trẻ nhỏ",
+      "category": "SUITABLE_FOR",
+      "description": "Khách sạn thích hợp cho gia đình có trẻ nhỏ, với tiện nghi và dịch vụ đáp ứng nhu cầu của trẻ em và phụ huynh. Tag này không dùng để chỉ nơi chỉ phù hợp cho người lớn hoặc thanh thiếu niên."
+    },
+    {
+      "id": 477,
+      "tag_name": "Khách du lịch một mình",
+      "category": "SUITABLE_FOR",
+      "description": "Khách du lịch một mình sẽ tìm thấy môi trường an toàn và nhiều dịch vụ tiện ích phù hợp. Tag này dành cho ai tìm sự tiện lợi và độc lập khi đi du lịch. Không dùng để chỉ nhóm du khách hoặc gia đình."
+    },
+    {
+      "id": 478,
+      "tag_name": "Khách đi công tác",
+      "category": "SUITABLE_FOR",
+      "description": "Khách sạn phù hợp cho khách đi công tác với không gian làm việc tiện nghi và dịch vụ hỗ trợ chuyên nghiệp. Thích hợp cho ai cần kết hợp công việc với lưu trú. Không dùng để chỉ khách du lịch nghỉ dưỡng."
+    },
+    {
+      "id": 479,
+      "tag_name": "Nhóm du khách",
+      "category": "SUITABLE_FOR",
+      "description": "Khách sạn phù hợp cho nhóm du khách với phòng lớn và không gian sinh hoạt chung, thuận tiện cho gặp gỡ và hoạt động nhóm. Không dùng để chỉ khách du lịch cá nhân hoặc gia đình nhỏ."
+    }
+  ]
+}

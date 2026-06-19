@@ -8,6 +8,7 @@ import os
 import sys
 import threading
 from contextlib import asynccontextmanager
+from logging.handlers import RotatingFileHandler
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,6 +22,8 @@ from fastapi.responses import JSONResponse
 
 def _configure_logging() -> None:
     log_level = getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO)
+    log_dir = os.getenv("QU_TRACE_LOG_DIR", os.path.join(os.path.dirname(__file__), "logs"))
+    os.makedirs(log_dir, exist_ok=True)
 
     # Dedicated formatter for the ota.flow trace logger (not propagated to root)
     _flow_fmt = logging.Formatter(
@@ -35,8 +38,46 @@ def _configure_logging() -> None:
         flow_log.addHandler(_h)
     flow_log.propagate = False  # avoid double output with uvicorn root handler
 
+    # Dedicated file sink for QueryUnderstanding deep traces.
+    # Pipeline code only emits logger.info(); this handler decides where it is stored.
+    qu_trace_path = os.getenv(
+        "QU_TRACE_LOG_FILE",
+        os.path.join(log_dir, "query_understanding_trace.log"),
+    )
+    os.makedirs(os.path.dirname(qu_trace_path) or ".", exist_ok=True)
+    qu_trace_log = logging.getLogger("query_understanding")
+    qu_trace_log.setLevel(log_level)
+    qu_file_handler = next(
+        (
+            handler
+            for handler in qu_trace_log.handlers
+            if isinstance(handler, RotatingFileHandler)
+            and getattr(handler, "baseFilename", None) == os.path.abspath(qu_trace_path)
+        ),
+        None,
+    )
+    if qu_file_handler is None:
+        qu_file_handler = RotatingFileHandler(
+            qu_trace_path,
+            maxBytes=5 * 1024 * 1024,
+            backupCount=3,
+            encoding="utf-8",
+        )
+        qu_file_handler.setFormatter(_flow_fmt)
+        qu_trace_log.addHandler(qu_file_handler)
+
+    # Same pipeline can be imported as app.query_understanding.* in test/debug paths.
+    app_qu_trace_log = logging.getLogger("app.query_understanding")
+    app_qu_trace_log.setLevel(log_level)
+    if not any(
+        isinstance(handler, RotatingFileHandler)
+        and getattr(handler, "baseFilename", None) == os.path.abspath(qu_trace_path)
+        for handler in app_qu_trace_log.handlers
+    ):
+        app_qu_trace_log.addHandler(qu_file_handler)
+
     # App-wide namespaces inherit root handler (uvicorn stdout)
-    for _ns in ("app", "ota", "api"):
+    for _ns in ("app", "ota", "api", "query_understanding"):
         logging.getLogger(_ns).setLevel(log_level)
 
 

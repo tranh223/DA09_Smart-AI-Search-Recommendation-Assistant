@@ -293,8 +293,6 @@ export function ChatBot({ isOpen, onOpen, onClose, onRecommend, onClearRecommend
         user_id: 'frontend-user',
         session_id: sessionId.current,
         query: txt,
-        user_profile: {},
-        slots: {},
         rerank_options: { top_k: 5 },
       });
       setIsTyping(false);
