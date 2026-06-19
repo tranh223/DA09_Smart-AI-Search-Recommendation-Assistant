@@ -8,6 +8,7 @@ from app.db.mongo.mongo_client import get_collection
 from app.utils.util import transform_id
 from bson import ObjectId
 from app.analytics.metrics.evaluator import evaluate_session
+from openai.types.responses import ResponseUsage
 
 try:
     from kafka import KafkaConsumer, KafkaProducer
@@ -132,6 +133,17 @@ def log_booking(session_id: str):
     }
     producer_send(session_id, value)
 
+def log_token(usage: ResponseUsage, session_id: str):
+    value = {
+        "session_id": session_id,
+        "type": "TOKEN",
+        "log": {
+            'inp': usage.input_tokens,
+            'out': usage.output_tokens
+        }
+    }
+    producer_send(session_id, value)
+
 def start_log_listener():
     if KafkaConsumer is None:
         print("[Kafka] kafka-python not installed, skip listener.")
@@ -170,7 +182,9 @@ def start_log_listener():
                 "ttft": [],
                 "booking": False,
                 "evaluated": False,
-                "end": None  
+                "end": None,
+                "input_token": 0,
+                "output_token": 0  
             }
             if msg_type != 'SESSION_END':
                 if msg_type == 'RAG_CHAT':
@@ -202,6 +216,13 @@ def start_log_listener():
                 elif msg_type == 'BOOKING':
                     update_query = {"$set": {"booking": log}}
                     default_fields.pop("booking", None)
+                elif msg_type == 'TOKEN':
+                    update_query = {"$inc": {
+                        "input_token": log.get('inp', 0),
+                        "output_token": log.get('out', 0)
+                    }}
+                    default_fields.pop("input_token", None)
+                    default_fields.pop("output_token", None)
                 if update_query:
                     update_query["$setOnInsert"] = default_fields
                     sessions_collection.update_one(filter_query, update_query, upsert=True)
@@ -241,7 +262,7 @@ def log_booking_for_graph(hotel_id, user_id, hotel_name):
 
 def clear_log(session_id: str, collection):
     '''
-    xóa reaction, final reaction, latency, ttft, booking của phiên chat sau khi đánh giá
+    xóa reaction, final reaction, latency, ttft, booking, inp & out token của phiên chat sau khi đánh giá
     '''
     collection.update_one(
         {"_id": ObjectId(session_id)},
@@ -252,7 +273,9 @@ def clear_log(session_id: str, collection):
                 "final_reaction": "",
                 "latency": "",
                 "ttft": "",
-                "booking": ""
+                "booking": "",
+                "input_token": "",
+                "output_token": ""
             }
         }
     )

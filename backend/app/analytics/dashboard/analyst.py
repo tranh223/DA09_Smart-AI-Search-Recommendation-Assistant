@@ -1,5 +1,5 @@
 from app.db.mongo.mongo_client import get_collection
-
+from datetime import datetime
 import calendar
 
 # # def analysis_by_day(month: int):
@@ -43,8 +43,12 @@ import calendar
 #         "booking": booking
 #     }
 
+# apply for gpt-4o-mini (unit: $)
+COST_PER_INPUT_TOKEN = 0.15 / 1000000
+COST_PER_OUTPUT_TOKEN = 0.6 / 1000000
 
-def analysis_by_day(month: int, year: int = 2026):
+def analysis_by_day(month: int):
+    year = datetime.now().year()
     eval_collection = get_collection("Eval")
 
     # Lấy hết document trong tháng, đánh index theo "date" để tra cứu nhanh
@@ -64,6 +68,8 @@ def analysis_by_day(month: int, year: int = 2026):
         "context_precision": [],
         "context_recall": [],
     }
+    input_token = []
+    output_token = []
 
     num_days = calendar.monthrange(year, month)[1]
 
@@ -76,16 +82,22 @@ def analysis_by_day(month: int, year: int = 2026):
             latency.append(0)
             ttft.append(0)
             booking.append(0)
+            input_token.append(0)
+            output_token.append(0)
             continue
 
         csat_list = doc.get("csat") or []
         latency_list = doc.get("latency") or []
         ttft_list = doc.get("ttft") or []
         booking_list = doc.get("booking") or []
+        input_token_lst = doc.get('input_token', [])
+        output_token_lst = doc.get('output_token', [])
 
         csat.append(sum(csat_list) / len(csat_list) if csat_list else 0)
         latency.append(sum(latency_list) / len(latency_list) if latency_list else 0)
         ttft.append(sum(ttft_list) / len(ttft_list) if ttft_list else 0)
+        input_token.append(round(sum(input_token_lst) / len(input_token_lst), 2) if input_token_lst else 0)
+        output_token.append(round(sum(output_token_lst) / len(output_token_lst), 2) if output_token_lst else 0)
 
         if booking_list:
             booked = sum(1 for b in booking_list if b is True)
@@ -105,7 +117,11 @@ def analysis_by_day(month: int, year: int = 2026):
         "ragas": ragas,
         "latency": latency,
         "ttft": ttft,
-        "booking": booking
+        "booking": booking,
+        'input_token': input_token,
+        'output_token': output_token,
+        'input_token_cost': [round(i * COST_PER_INPUT_TOKEN, 2) for i in input_token],
+        'output_token_cost': [round(i * COST_PER_OUTPUT_TOKEN, 2) for i in output_token]
     }
 
 def analysis_by_month(year: int):
@@ -126,47 +142,54 @@ def analysis_by_month(year: int):
         "context_precision": [],
         "context_recall": [],
     }
+    input_token_month = []
+    output_token_month = []
 
     for month in range(1, 13):
-            csat  = []
-            latency = []
-            ttft = []
-            booking = []
-            ragas = {
-                "faithfulness": [],
-                "answer_relevance": [],
-                "context_precision": [],
-                "context_recall": [],
-                }
-           
-            for doc in eval_collection.find({"date": {"$regex": f"{year}-{month:02d}-"}}):
-                print(doc)
-                csat.append(sum(doc.get("csat"))/len(doc.get("csat")))
-                latency.append(sum(doc.get("latency"))/len(doc.get("latency")))
-                ttft.append(sum(doc.get("ttft"))/len(doc.get("ttft")))
-                booked = 0
-                book = doc.get("booking")
-                for b in book:
-                    if b == True:
-                        booked += 1
-                booking.append(booked/len(book))
-                if "ragas" in doc:
-                    print(doc["ragas"])
-                    ragas["faithfulness"].append(doc["ragas"].get("faithfulness"))
-                    ragas["answer_relevance"].append(doc["ragas"].get("answer_relevancy"))
-                    ragas["context_precision"].append(doc["ragas"].get("context_precision"))
-                    ragas["context_recall"].append(doc["ragas"].get("context_recall"))
-            
-            
-            months.append(month)
-            csat_month.append(sum(csat)/len(csat) if len(csat) > 0 else 0)
-            latency_month.append(sum(latency)/len(latency) if len(latency) > 0 else 0)
-            ttft_month.append(sum(ttft)/len(ttft) if len(ttft) > 0 else 0)
-            booking_month.append(sum(booking)/len(booking) if len(booking) > 0 else 0)
-            ragas_month["faithfulness"].append(sum(ragas["faithfulness"])/len(ragas["faithfulness"]) if len(ragas["faithfulness"]) > 0 else 0)
-            ragas_month["answer_relevance"].append(sum(ragas["answer_relevance"])/len(ragas["answer_relevance"]) if len(ragas["answer_relevance"]) > 0 else 0)
-            ragas_month["context_precision"].append(sum(ragas["context_precision"])/len(ragas["context_precision"]) if len(ragas["context_precision"]) > 0 else 0)
-            ragas_month["context_recall"].append(sum(ragas["context_recall"])/len(ragas["context_recall"]) if len(ragas["context_recall"]) > 0 else 0)
+        csat  = []
+        latency = []
+        ttft = []
+        booking = []
+        ragas = {
+            "faithfulness": [],
+            "answer_relevance": [],
+            "context_precision": [],
+            "context_recall": [],
+            }
+        input_token = []
+        output_token = []
+        
+        for doc in eval_collection.find({"date": {"$regex": f"{year}-{month:02d}-"}}):
+            print(doc)
+            csat.append(sum(doc.get("csat"))/len(doc.get("csat")))
+            latency.append(sum(doc.get("latency"))/len(doc.get("latency")))
+            ttft.append(sum(doc.get("ttft"))/len(doc.get("ttft")))
+            booked = 0
+            book = doc.get("booking")
+            for b in book:
+                if b == True:
+                    booked += 1
+            booking.append(booked/len(book))
+            if "ragas" in doc:
+                print(doc["ragas"])
+                ragas["faithfulness"].append(doc["ragas"].get("faithfulness"))
+                ragas["answer_relevance"].append(doc["ragas"].get("answer_relevancy"))
+                ragas["context_precision"].append(doc["ragas"].get("context_precision"))
+                ragas["context_recall"].append(doc["ragas"].get("context_recall"))
+            input_token += doc.get('input_token', [])
+            output_token += doc.get('output_token', [])
+        
+        months.append(month)
+        csat_month.append(sum(csat)/len(csat) if len(csat) > 0 else 0)
+        latency_month.append(sum(latency)/len(latency) if len(latency) > 0 else 0)
+        ttft_month.append(sum(ttft)/len(ttft) if len(ttft) > 0 else 0)
+        booking_month.append(sum(booking)/len(booking) if len(booking) > 0 else 0)
+        ragas_month["faithfulness"].append(sum(ragas["faithfulness"])/len(ragas["faithfulness"]) if len(ragas["faithfulness"]) > 0 else 0)
+        ragas_month["answer_relevance"].append(sum(ragas["answer_relevance"])/len(ragas["answer_relevance"]) if len(ragas["answer_relevance"]) > 0 else 0)
+        ragas_month["context_precision"].append(sum(ragas["context_precision"])/len(ragas["context_precision"]) if len(ragas["context_precision"]) > 0 else 0)
+        ragas_month["context_recall"].append(sum(ragas["context_recall"])/len(ragas["context_recall"]) if len(ragas["context_recall"]) > 0 else 0)
+        input_token_month.append(round(sum(input_token) / len(input_token), 2) if input_token else 0)
+        output_token_month.append(round(sum(output_token) / len(output_token), 2) if output_token else 0)
     
     return {
         "months": months,
@@ -174,7 +197,11 @@ def analysis_by_month(year: int):
         "latency": latency_month,
         "ttft": ttft_month,
         "booking": booking_month,
-        "ragas": ragas_month
+        "ragas": ragas_month,
+        'input_token': input_token_month,
+        'output_token': output_token_month,
+        'input_token_cost': [round(i * COST_PER_INPUT_TOKEN, 2) for i in input_token_month],
+        'output_token_cost': [round(i * COST_PER_OUTPUT_TOKEN, 2) for i in output_token_month]
     }
 
 # print(analysis_by_month(2026))
