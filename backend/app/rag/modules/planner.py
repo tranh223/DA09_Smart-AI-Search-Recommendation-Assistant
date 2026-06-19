@@ -16,7 +16,6 @@ PLANNER_SYSTEM_PROMPT = """You are a smart Planner. When given a user query, do 
 4. Clearly determine which information sources are needed to answer the question or complete the task:
    - RAG Database (vector search)
    - Knowledge Graph
-   - User Profile
    - Short-term Memory
    - Hotel SQL (if policy/rules must be fetched precisely)
 Return the result as structured JSON with the following schema:
