@@ -54,7 +54,7 @@ def build_graph():
     )
 
     # rewrite fan-out → RAG và Recommend chạy song song
-    graph.add_edge("clarify", END)
+    graph.add_edge("clarify", "analytics")
     graph.add_edge("rewrite", "rag")
     graph.add_edge("rewrite", "recommend")
     graph.add_edge("recommend", "rerank")

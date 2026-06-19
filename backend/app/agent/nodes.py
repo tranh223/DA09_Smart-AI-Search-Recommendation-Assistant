@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import threading
+from datetime import datetime, timezone
 from typing import Any
 
 from app.agent.latency import build_latency_summary
@@ -112,6 +113,97 @@ def _load_conversation_summary(user_id: str) -> str:
         return ""
 
 
+def _has_meaningful_value(value: Any) -> bool:
+    if value is None or value == "":
+        return False
+    if isinstance(value, dict):
+        return any(_has_meaningful_value(item) for item in value.values())
+    if isinstance(value, list):
+        return any(_has_meaningful_value(item) for item in value)
+    return True
+
+
+def _merge_server_over_fallback(
+    server_value: dict[str, Any],
+    fallback_value: dict[str, Any],
+) -> dict[str, Any]:
+    merged = dict(fallback_value or {})
+    for key, value in (server_value or {}).items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = _merge_server_over_fallback(value, merged[key])
+        elif _has_meaningful_value(value):
+            merged[key] = value
+    return merged
+
+
+def _load_session_context(session_id: str) -> dict[str, Any]:
+    if not session_id:
+        return {}
+    try:
+        from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
+        from app.utils.util import transform_id  # noqa: PLC0415
+
+        sessions = get_collection("Sessions")
+        doc = sessions.find_one(
+            {"_id": transform_id(session_id)},
+            {"session_context": 1},
+        )
+        session_context = doc.get("session_context") if doc else None
+        return session_context if isinstance(session_context, dict) else {}
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[session_node] MongoDB session_context load failed: %s", exc)
+        return {}
+
+
+def _load_long_term_profile(user_id: str) -> dict[str, Any]:
+    if not user_id:
+        return {}
+    try:
+        from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
+        from app.utils.util import transform_id  # noqa: PLC0415
+
+        users = get_collection("Users")
+        projection = {"long_term_profile": 1, "profile": 1, "name": 1}
+        doc = users.find_one({"_id": transform_id(user_id)}, projection)
+        if doc is None:
+            doc = users.find_one({"user_id": user_id}, projection)
+        if not doc:
+            return {}
+        profile = doc.get("profile") if isinstance(doc.get("profile"), dict) else {}
+        long_term = doc.get("long_term_profile") or profile.get("long_term_profile")
+        return long_term if isinstance(long_term, dict) else {}
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[session_node] MongoDB long_term_profile load failed: %s", exc)
+        return {}
+
+
+def _build_server_user_profile(state: AgentState) -> dict[str, Any]:
+    user_id = state.get("user_id") or "anonymous_user"
+    session_id = state.get("session_id") or ""
+    fallback = state.get("user_profile") or {}
+
+    server_session_context = _load_session_context(session_id)
+    fallback_session_context = fallback.get("session_context") if isinstance(fallback, dict) else {}
+    session_context = _merge_server_over_fallback(
+        server_session_context,
+        fallback_session_context if isinstance(fallback_session_context, dict) else {},
+    )
+
+    server_long_term = _load_long_term_profile(user_id)
+    fallback_long_term = fallback.get("long_term_profile") if isinstance(fallback, dict) else {}
+    long_term_profile = _merge_server_over_fallback(
+        server_long_term,
+        fallback_long_term if isinstance(fallback_long_term, dict) else {},
+    )
+
+    return {
+        "user_id": user_id,
+        "name": fallback.get("name") if isinstance(fallback, dict) else None,
+        "long_term_profile": long_term_profile,
+        "session_context": session_context,
+    }
+
+
 def session_node(state: AgentState) -> dict[str, Any]:
     """Load short-term memory từ MongoDB và compress history nếu quá dài.
 
@@ -138,9 +230,16 @@ def session_node(state: AgentState) -> dict[str, Any]:
         or state.get("conversation_summary")
         or ""
     )
+    user_profile = _build_server_user_profile(state)
+    session_context = user_profile.get("session_context") or {}
     logger.debug(
-        "[%s][session] loaded history=%d turns  summary=%s",
-        req_id, len(history), bool(summary),
+        "[%s][session] loaded history=%d turns  summary=%s  dst=%s  check_in=%s  check_out=%s",
+        req_id,
+        len(history),
+        bool(summary),
+        session_context.get("destination"),
+        session_context.get("check_in"),
+        session_context.get("check_out"),
     )
 
     # Compress nếu lịch sử quá dài
@@ -158,6 +257,7 @@ def session_node(state: AgentState) -> dict[str, Any]:
     return {
         "chat_history": history,
         "conversation_summary": summary,
+        "user_profile": user_profile,
     }
 
 
@@ -217,6 +317,23 @@ def intent_node(state: AgentState) -> dict[str, Any]:
 def _keyword_intent_fallback(query: str, state: AgentState) -> dict[str, Any]:
     """Fallback khi QU pipeline không khả dụng."""
     slots: dict[str, Any] = state.get("slots") or {}
+    if not slots:
+        user_profile = state.get("user_profile") or {}
+        session_context = user_profile.get("session_context") if isinstance(user_profile, dict) else {}
+        if isinstance(session_context, dict):
+            price = session_context.get("session_price_range") or {}
+            slots = {
+                "destination": session_context.get("destination"),
+                "check_in": session_context.get("check_in"),
+                "check_out": session_context.get("check_out"),
+                "number_of_guests": session_context.get("number_of_guests"),
+                "has_pet": session_context.get("has_pet"),
+                "has_children": session_context.get("has_children"),
+                "nearby_place": session_context.get("nearby_place"),
+                "budget_min": price.get("min") if isinstance(price, dict) else None,
+                "budget_max": price.get("max") if isinstance(price, dict) else None,
+                "currency": (price.get("currency") if isinstance(price, dict) else None) or "VND",
+            }
     intent = "hotel_search"
     if any(k in query.lower() for k in ("so sánh", "compare")):
         intent = "hotel_similar"
@@ -544,6 +661,11 @@ def analytics_node(state: AgentState) -> dict[str, Any]:
     )
 
     if session_id:
+        _persist_profile_state_directly(
+            session_id=session_id,
+            user_id=state.get("user_id") or "",
+            user_profile=state.get("updated_user_profile") or state.get("user_profile") or {},
+        )
         _emit_analytics(
             session_id=session_id,
             query=state.get("raw_query") or "",
@@ -552,6 +674,67 @@ def analytics_node(state: AgentState) -> dict[str, Any]:
         )
 
     return {"latency_summary": latency_summary}
+
+
+def _persist_profile_state_directly(
+    *,
+    session_id: str,
+    user_id: str,
+    user_profile: dict[str, Any],
+) -> None:
+    if not session_id or not isinstance(user_profile, dict):
+        return
+    try:
+        from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
+        from app.utils.util import transform_id  # noqa: PLC0415
+
+        now = datetime.now(timezone.utc)
+        session_context = user_profile.get("session_context")
+        long_term_profile = user_profile.get("long_term_profile")
+
+        session_set: dict[str, Any] = {
+            "user_id": user_id or user_profile.get("user_id"),
+            "updated_at": now,
+        }
+        if isinstance(session_context, dict):
+            session_set["session_context"] = session_context
+
+        sessions = get_collection("Sessions")
+        sessions.update_one(
+            {"_id": transform_id(session_id)},
+            {
+                "$set": session_set,
+                "$setOnInsert": {
+                    "history": [],
+                    "num_like": 0,
+                    "num_dislike": 0,
+                    "final_reaction": None,
+                    "latency": [],
+                    "ttft": [],
+                    "booking": False,
+                    "evaluated": False,
+                    "end": None,
+                },
+            },
+            upsert=True,
+        )
+
+        if user_id and isinstance(long_term_profile, dict):
+            users = get_collection("Users")
+            users.update_one(
+                {"_id": transform_id(user_id)},
+                {
+                    "$set": {
+                        "user_id": user_id,
+                        "long_term_profile": long_term_profile,
+                        "updated_at": now,
+                    },
+                    "$setOnInsert": {"created_at": now},
+                },
+                upsert=True,
+            )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[analytics_node] direct Mongo profile persist failed: %s", exc)
 
 
 def _emit_analytics(
@@ -563,12 +746,53 @@ def _emit_analytics(
 ) -> None:
     """Gửi events Kafka. Bắt toàn bộ exception để không block graph."""
     try:
-        from app.analytics.logging.logger import log_chat, log_latency  # noqa: PLC0415
+        from app.analytics.logging.logger import log_latency  # noqa: PLC0415
         answer = final_response.get("answer") or ""
         if query and answer:
-            log_chat(question=query, answer=answer, session_id=session_id)
+            _persist_chat_history_directly(
+                session_id=session_id,
+                question=query,
+                answer=answer,
+            )
         total_s = (latency_summary.get("total_ms") or 0) / 1000.0
         if total_s > 0:
             log_latency(time=total_s, session_id=session_id)
     except Exception as exc:  # noqa: BLE001
         logger.warning("[analytics_node] Kafka emit failed (non-fatal): %s", exc)
+
+
+def _persist_chat_history_directly(
+    *,
+    session_id: str,
+    question: str,
+    answer: str,
+) -> None:
+    try:
+        from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
+        from app.utils.util import transform_id  # noqa: PLC0415
+
+        sessions = get_collection("Sessions")
+        sessions.update_one(
+            {"_id": transform_id(session_id)},
+            {
+                "$push": {
+                    "history": {
+                        "user_query": question,
+                        "llm_answer": answer,
+                    }
+                },
+                "$setOnInsert": {
+                    "num_like": 0,
+                    "num_dislike": 0,
+                    "final_reaction": None,
+                    "latency": [],
+                    "ttft": [],
+                    "booking": False,
+                    "evaluated": False,
+                    "end": None,
+                },
+            },
+            upsert=True,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[analytics_node] direct Mongo history persist failed: %s", exc)
