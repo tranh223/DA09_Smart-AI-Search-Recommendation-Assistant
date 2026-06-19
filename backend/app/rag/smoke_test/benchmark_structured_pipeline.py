@@ -401,7 +401,7 @@ def main() -> int:
         "benchmark": "structured_rag_pipeline",
         "created_at": datetime.now().isoformat(timespec="seconds"),
         "environment": {
-            "llm_provider": os.getenv("LLM_PROVIDER", ""),
+            "llm_model": os.getenv("LLM_MODEL", ""),
             "langsmith_tracing": os.getenv("LANGSMITH_TRACING", ""),
             "langsmith_project": os.getenv("LANGSMITH_PROJECT", ""),
             "enable_rag": not args.disable_rag,

@@ -48,11 +48,36 @@ def string_list(value: Any) -> list[str]:
     return [str(item) for item in as_list(value) if item is not None]
 
 
+# Vietnamese "đ/Đ" are standalone chars — NFD doesn't decompose them → map explicitly
+_VN_CHAR_MAP = str.maketrans("đĐ", "dD")
+
+# Common city aliases used in queries/profiles but differ from DB values
+_CITY_ALIASES: dict[str, str] = {
+    "tp.hcm": "ho chi minh",
+    "tphcm": "ho chi minh",
+    "sai gon": "ho chi minh",
+    "saigon": "ho chi minh",
+    "tp ho chi minh": "ho chi minh",
+    "thanh pho ho chi minh": "ho chi minh",
+    "ha noi": "ha noi",   # already normalized, keep for completeness
+    "hn": "ha noi",
+    "da lat": "da lat",
+    "dalat": "da lat",
+    "da nang": "da nang",
+    "danang": "da nang",
+}
+
+
 def normalize_text(value: Any) -> str:
     text = "" if value is None else str(value)
+    # Step 1: map đ/Đ → d/D before NFD decomposition
+    text = text.translate(_VN_CHAR_MAP)
+    # Step 2: NFD decompose then strip combining marks (dấu hỏi, sắc, huyền, etc.)
     decomposed = unicodedata.normalize("NFD", text)
     without_marks = "".join(char for char in decomposed if unicodedata.category(char) != "Mn")
-    return " ".join(without_marks.casefold().split())
+    normalized = " ".join(without_marks.casefold().split())
+    # Step 3: resolve city aliases
+    return _CITY_ALIASES.get(normalized, normalized)
 
 
 def parse_datetime(value: Any) -> datetime | None:

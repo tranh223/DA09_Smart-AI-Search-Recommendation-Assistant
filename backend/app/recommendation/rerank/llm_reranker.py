@@ -89,36 +89,22 @@ def _compact_response_text(value: str, limit: int = 500) -> str:
     return value[:limit] + "..."
 
 
-def _openrouter_response(settings: Settings, query: str | None, profile: dict[str, Any], candidates: list[dict[str, Any]]) -> dict[str, Any]:
-    import requests
+def _openai_response(settings: Settings, query: str | None, profile: dict[str, Any], candidates: list[dict[str, Any]]) -> dict[str, Any]:
+    from openai import OpenAI  # noqa: PLC0415
 
+    client = OpenAI(api_key=settings.openai_api_key)
     messages = build_llm_messages(query, profile, candidates)
-    payload = {
-        "model": settings.openrouter_model,
-        "messages": messages,
-        "temperature": 0.1,
-        "response_format": {"type": "json_object"},
-    }
-    headers = {
-        "Authorization": f"Bearer {settings.openrouter_api_key}",
-        "Content-Type": "application/json",
-        "X-Title": "OTA Hotel Reranking Demo",
-    }
-    response = requests.post(
-        "https://openrouter.ai/api/v1/chat/completions",
-        headers=headers,
-        json=payload,
+
+    response = client.chat.completions.create(
+        model=settings.llm_model,
+        messages=messages,
+        temperature=settings.rerank_temperature,
+        response_format={"type": "json_object"},
         timeout=settings.llm_timeout_seconds,
     )
-    if not response.ok:
-        raise RuntimeError(f"openrouter_http_{response.status_code}: {_compact_response_text(response.text)}")
-    raw = response.json()
-    choices = raw.get("choices") if isinstance(raw, dict) else None
-    if not choices:
-        raise RuntimeError(f"openrouter_missing_choices: {_compact_response_text(json.dumps(raw, ensure_ascii=False, default=str))}")
-    content = choices[0].get("message", {}).get("content") if isinstance(choices[0], dict) else None
+    content = response.choices[0].message.content if response.choices else None
     if not content:
-        raise RuntimeError("openrouter_empty_message_content")
+        raise RuntimeError("openai_empty_message_content")
     return json.loads(content)
 
 
@@ -141,7 +127,7 @@ def rerank_with_llm(
     detail: dict[str, Any] = {
         "requested": bool(use_llm),
         "candidate_ids": [item["item_id"] for item in candidates],
-        "model": settings.openrouter_model,
+        "model": settings.llm_model,
         "request": None,
         "reason": None,
         "raw_response": None,
@@ -164,15 +150,15 @@ def rerank_with_llm(
         if dry_run:
             detail["reason"] = "options.llm_dry_run=true"
             return {}, "dry_run", True, detail
-        if not settings.openrouter_api_key:
-            detail["reason"] = "missing_openrouter_api_key"
+        if not settings.openai_api_key:
+            detail["reason"] = "missing_openai_api_key"
             return {}, "fallback", True, detail
         payload = None
         last_error = None
         max_attempts = max(settings.llm_max_retries + 1, 1)
         for attempt in range(1, max_attempts + 1):
             try:
-                payload = _openrouter_response(settings, query, profile, candidates)
+                payload = _openai_response(settings, query, profile, candidates)
                 detail["attempts"].append({"attempt": attempt, "ok": True})
                 break
             except Exception as error:
@@ -181,13 +167,13 @@ def rerank_with_llm(
                 if attempt < max_attempts:
                     time.sleep(min(0.5 * attempt, 2.0))
         if payload is None:
-            detail["reason"] = f"{type(last_error).__name__}: {last_error}" if last_error else "openrouter_no_response"
+            detail["reason"] = f"{type(last_error).__name__}: {last_error}" if last_error else "openai_no_response"
             return {}, "fallback", True, detail
         validated = validate_llm_output(payload, allowed_ids)
         detail["raw_response"] = payload
         detail["validated"] = summarize_llm_validation(payload, allowed_ids)
-        detail["reason"] = None if validated else "openrouter_response_has_no_valid_items"
-        return validated, "openrouter", not bool(validated), detail
+        detail["reason"] = None if validated else "openai_response_has_no_valid_items"
+        return validated, "openai", not bool(validated), detail
     except Exception as error:
         detail["reason"] = f"{type(error).__name__}: {error}"
         return {}, "fallback", True, detail

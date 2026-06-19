@@ -15,6 +15,9 @@ from app.recommendation.models import PriceRange, Profile, RecommendInput, Sessi
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_CANDIDATE_LIMIT_PER_SOURCE = 10
+MAX_CANDIDATE_LIMIT_PER_SOURCE = 50
+
 
 # ── QueryUnderstandingPipeline singleton ─────────────────────────────────────
 # Khởi tạo một lần duy nhất (lazy, thread-safe) để tránh load lại
@@ -50,13 +53,111 @@ def _get_pipeline() -> Any:
     return _pipeline
 
 
+def _candidate_limit_per_source(state: AgentState) -> int:
+    """Read candidate retrieval fanout independently from rerank top_k."""
+    raw_limit = state.get("candidate_limit_per_source", DEFAULT_CANDIDATE_LIMIT_PER_SOURCE)
+    try:
+        limit = int(raw_limit or DEFAULT_CANDIDATE_LIMIT_PER_SOURCE)
+    except (TypeError, ValueError):
+        limit = DEFAULT_CANDIDATE_LIMIT_PER_SOURCE
+    return min(max(limit, 1), MAX_CANDIDATE_LIMIT_PER_SOURCE)
+
+
 # ── Session node ─────────────────────────────────────────────────────────────
 
+def _load_chat_history(session_id: str) -> list[dict[str, Any]]:
+    """Load chat history từ MongoDB Sessions collection.
+
+    Format MongoDB: [{"user_query": "...", "llm_answer": "..."}]
+    Normalize sang format QU pipeline: [{"role": "user", "content": "..."}, ...]
+    """
+    if not session_id:
+        return []
+    try:
+        from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
+        from app.utils.util import transform_id  # noqa: PLC0415
+        sessions = get_collection("Sessions")
+        doc = sessions.find_one({"_id": transform_id(session_id)}, {"history": 1})
+        if not doc or not isinstance(doc.get("history"), list):
+            return []
+        normalized: list[dict[str, Any]] = []
+        for item in doc["history"]:
+            if not isinstance(item, dict):
+                continue
+            if "role" in item and "content" in item:
+                normalized.append(item)
+            else:
+                if item.get("user_query"):
+                    normalized.append({"role": "user", "content": item["user_query"]})
+                if item.get("llm_answer"):
+                    normalized.append({"role": "assistant", "content": item["llm_answer"]})
+        return normalized
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[session_node] MongoDB history load failed: %s", exc)
+        return []
+
+
+def _load_conversation_summary(user_id: str) -> str:
+    """Load conversation summary từ MongoDB Summary collection."""
+    if not user_id:
+        return ""
+    try:
+        from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
+        from app.utils.util import transform_id  # noqa: PLC0415
+        summaries = get_collection("Summary")
+        doc = summaries.find_one({"user_id": transform_id(user_id)}, {"content": 1})
+        return doc.get("content") or "" if doc else ""
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[session_node] MongoDB summary load failed: %s", exc)
+        return ""
+
+
 def session_node(state: AgentState) -> dict[str, Any]:
-    """Ensure memory fields exist in state."""
+    """Load short-term memory từ MongoDB và compress history nếu quá dài.
+
+    Flow:
+      1. Load chat_history từ MongoDB Sessions (normalize về role/content format)
+      2. Load conversation_summary từ MongoDB Summary
+      3. Nếu history >= 6 turns → gọi summarize_chat() để compress (LLM_MODEL)
+      4. Inject vào state để intent_node dùng làm conversation context
+
+    Fallback: nếu MongoDB hoặc OpenAI fail, dùng giá trị từ request (client-side history).
+    """
+    req_id = state.get("request_id") or state.get("session_id") or "-"
+    user_id = state.get("user_id") or ""
+    session_id = state.get("session_id") or ""
+
+    # Load từ MongoDB (ưu tiên DB, fallback về giá trị client gửi lên)
+    history: list[dict[str, Any]] = (
+        _load_chat_history(session_id)
+        or state.get("chat_history")
+        or []
+    )
+    summary: str = (
+        _load_conversation_summary(user_id)
+        or state.get("conversation_summary")
+        or ""
+    )
+    logger.debug(
+        "[%s][session] loaded history=%d turns  summary=%s",
+        req_id, len(history), bool(summary),
+    )
+
+    # Compress nếu lịch sử quá dài
+    try:
+        from app.memory.short_term.summary.summarizer import summarize_chat  # noqa: PLC0415
+        prev_len = len(history)
+        summary, history = summarize_chat(summary, history, user_id)
+        if len(history) < prev_len:
+            logger.debug(
+                "[%s][session] history compressed %d→%d turns", req_id, prev_len, len(history),
+            )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[session_node] summarize_chat failed — dùng history gốc: %s", exc)
+
     return {
-        "chat_history": state.get("chat_history", []),
-        "conversation_summary": state.get("conversation_summary", ""),
+        "chat_history": history,
+        "conversation_summary": summary,
     }
 
 
@@ -82,10 +183,12 @@ def intent_node(state: AgentState) -> dict[str, Any]:
         user_profile_raw = {**user_profile_raw, "user_id": user_id}
 
     chat_history: list[dict[str, str]] = state.get("chat_history") or []
-    limit = int(((state.get("rerank_options") or {}).get("top_k") or 10))
+    limit = _candidate_limit_per_source(state)
 
+    req_id = state.get("request_id") or state.get("session_id") or "-"
     pipeline = _get_pipeline()
     if pipeline is None:
+        logger.warning("[%s][intent] QU pipeline unavailable → keyword fallback", req_id)
         return _keyword_intent_fallback(query, state)
 
     try:
@@ -94,12 +197,19 @@ def intent_node(state: AgentState) -> dict[str, Any]:
             user_profile_input=user_profile_raw,
             conversation_history=chat_history,
         )
-        return pipeline_result_to_state(result, query=query, limit_per_source=limit)
+        mapped = pipeline_result_to_state(result, query=query, limit_per_source=limit)
+        logger.debug(
+            "[%s][intent] QU pipeline OK  intent=%s  destination=%s  slot_ok=%s",
+            req_id,
+            mapped.get("intent"),
+            (mapped.get("slots") or {}).get("destination"),
+            mapped.get("slot_is_complete"),
+        )
+        return mapped
     except Exception as exc:  # noqa: BLE001
         logger.warning(
-            "[intent_node] pipeline.run() failed — keyword fallback. error=%s: %s",
-            type(exc).__name__,
-            exc,
+            "[%s][intent] pipeline.run() failed → keyword fallback. error=%s: %s",
+            req_id, type(exc).__name__, exc,
         )
         return _keyword_intent_fallback(query, state)
 
@@ -137,27 +247,56 @@ def slot_check_node(state: AgentState) -> dict[str, Any]:
     Hàm này đảm bảo giá trị được đọc đúng bởi route_slot_check.
     Fallback destination-check để an toàn khi test gọi node này độc lập.
     """
+    req_id = state.get("request_id") or state.get("session_id") or "-"
     decision = state.get("slot_is_complete")
     if decision is not None:
+        logger.debug(
+            "[%s][slot_check] slot_is_complete=%s → route=%s",
+            req_id, decision, "complete" if decision else "clarify",
+        )
         return {"slot_is_complete": decision, "needs_clarification": not decision}
     has_destination = bool((state.get("slots") or {}).get("destination"))
+    logger.debug(
+        "[%s][slot_check] fallback destination_check=%s → route=%s",
+        req_id, has_destination, "complete" if has_destination else "clarify",
+    )
     return {"slot_is_complete": has_destination, "needs_clarification": not has_destination}
 
 
 # ── Clarify node ──────────────────────────────────────────────────────────────
 
 def clarify_node(state: AgentState) -> dict[str, Any]:
-    """Trả câu hỏi làm rõ được QU pipeline sinh ra."""
+    """Trả câu hỏi làm rõ được QU pipeline sinh ra.
+
+    final_response được format đúng schema của ChatData để _build_chat_data()
+    trong chat.py map được chính xác (không đi qua format_response_node).
+    """
+    req_id = state.get("request_id") or state.get("session_id") or "-"
     question = (
         state.get("clarification_question")
         or "Anh/chị muốn đặt phòng tại thành phố hoặc điểm đến nào?"
     )
+    missing = state.get("clarification_missing_fields") or []
+    intent = state.get("intent") or "clarification_needed"
+    latency = build_latency_summary(state)
+
+    logger.debug(
+        "[%s][clarify] missing_fields=%s  question=%.60s",
+        req_id, missing, question,
+    )
     return {
         "clarification_question": question,
         "final_response": {
-            "type": "clarification",
-            "question": question,
-            "missing_fields": state.get("clarification_missing_fields") or [],
+            "answer": question,
+            "intent": intent,
+            "recommendations": [],
+            "sources": [],
+            "next_suggestions": [],
+            "needs_clarification": True,
+            "clarification_question": question,
+            "missing_fields": missing,
+            "explanation": "",
+            "latency": latency,
         },
     }
 
@@ -172,8 +311,23 @@ def rewrite_node(state: AgentState) -> dict[str, Any]:
 # ── RAG node ──────────────────────────────────────────────────────────────────
 
 def rag_node(state: AgentState) -> dict[str, Any]:
-    """RAG placeholder — chờ app/rag/ được implement."""
-    return {"rag_docs": [], "rag_answer": "", "rag_confidence": 0.0}
+    """Chạy RAG pipeline (planner → retrieval → aggregation → generation).
+
+    Chỉ kích hoạt với intent liên quan đến Q&A / thông tin / đặc điểm khách sạn:
+      information, special_feature, hotel_similar
+
+    Intent hotel_search / personalization / trending bỏ qua RAG để giảm latency
+    (RAG chạy song song với recommend+rerank nên không block).
+
+    Fallback: trả empty nếu RAG chatbot không khởi tạo được.
+    """
+    from app.agent.rag_adapter import run_rag  # noqa: PLC0415
+    return run_rag(
+        query=state.get("rewritten_query") or state.get("raw_query") or "",
+        intent=state.get("intent") or "",
+        slots=state.get("slots") or {},
+        chat_history=state.get("chat_history") or [],
+    )
 
 
 # ── Recommend node ────────────────────────────────────────────────────────────
@@ -184,10 +338,18 @@ def recommend_node(state: AgentState) -> dict[str, Any]:
     Ưu tiên recommend_input đã được intent_node (QU pipeline) build sẵn.
     Fallback: build từ slots thủ công (client cũ hoặc khi QU không khả dụng).
     """
+    req_id = state.get("request_id") or state.get("session_id") or "-"
     recommend_input = _resolve_recommend_input(state)
     if recommend_input is None:
+        logger.warning("[%s][recommend] recommend_input=None (no destination) → empty candidates", req_id)
         return {"recommend_input": None, "merged_candidates": []}
+    try:
+        dst = recommend_input.session_context.destination if hasattr(recommend_input, "session_context") else "?"
+    except Exception:  # noqa: BLE001
+        dst = "?"
+    logger.debug("[%s][recommend] running candidate pipeline  dst=%s", req_id, dst)
     merged = run_candidate_pipeline(recommend_input, trace=False)
+    logger.debug("[%s][recommend] candidates=%d", req_id, len(merged))
     return {"recommend_input": recommend_input, "merged_candidates": merged}
 
 
@@ -228,16 +390,24 @@ def _resolve_recommend_input(state: AgentState) -> RecommendInput | None:
 
 def rerank_node(state: AgentState) -> dict[str, Any]:
     """Chạy production reranker trên merged candidates."""
+    req_id = state.get("request_id") or state.get("session_id") or "-"
     recommend_input = state.get("recommend_input")
     merged = state.get("merged_candidates") or []
     if not recommend_input or not merged:
+        logger.warning(
+            "[%s][rerank] skipped — recommend_input=%s  candidates=%d",
+            req_id, recommend_input is not None, len(merged),
+        )
         return {"rerank_result": {"ranked_hotels": [], "ranked_items": []}, "ranked_recommendations": []}
 
+    logger.debug("[%s][rerank] running on %d candidates", req_id, len(merged))
     rerank_result = run_rerank_from_merged(
         inp=recommend_input,
         merged=merged,
         options=state.get("rerank_options"),
     )
+    ranked_hotels = rerank_result.get("ranked_hotels") or []
+    logger.debug("[%s][rerank] ranked=%d", req_id, len(ranked_hotels))
     ranked_recommendations = [
         {
             "hotel_id": item.get("hotel_id") or item.get("item_id"),
@@ -250,6 +420,7 @@ def rerank_node(state: AgentState) -> dict[str, Any]:
             "sources": item.get("sources", []),
             "reasons": item.get("reasons", []),
             "warnings": item.get("warnings", []),
+            "primary_image": item.get("primary_image"),
             "metadata": {
                 "destination": item.get("destination"),
                 "price_min": item.get("price_min"),
@@ -257,9 +428,10 @@ def rerank_node(state: AgentState) -> dict[str, Any]:
                 "currency": item.get("currency"),
                 "feature_scores": item.get("feature_scores"),
                 "negative_penalty": item.get("negative_penalty"),
+                "primary_image": item.get("primary_image"),
             },
         }
-        for item in rerank_result.get("ranked_hotels", [])
+        for item in ranked_hotels
     ]
     return {"rerank_result": rerank_result, "ranked_recommendations": ranked_recommendations}
 
@@ -277,12 +449,18 @@ def response_builder_node(state: AgentState) -> dict[str, Any]:
 
     Fallback: nếu LLM không khả dụng, trả về plain-text tĩnh.
     """
+    req_id = state.get("request_id") or state.get("session_id") or "-"
     ranked = state.get("ranked_recommendations") or []
+    rag_answer = state.get("rag_answer") or ""
+    logger.debug(
+        "[%s][response_builder] building LLM response  ranked=%d  rag_answer=%s",
+        req_id, len(ranked), bool(rag_answer),
+    )
     result = build_response_with_llm(
         query=state.get("rewritten_query") or state.get("raw_query") or "",
         intent=state.get("intent") or "hotel_search",
         destination=(state.get("slots") or {}).get("destination") or "",
-        rag_answer=state.get("rag_answer") or "",
+        rag_answer=rag_answer,
         ranked_recommendations=ranked,
     )
     return result  # keys: synthesized_answer, hotel_reasons, next_suggestions
@@ -320,13 +498,15 @@ def explain_node(state: AgentState) -> dict[str, Any]:
 def format_response_node(state: AgentState) -> dict[str, Any]:
     """Chuẩn hoá schema API response trả về UI.
 
-    Output bao gồm:
+    Output:
       - answer: câu trả lời tổng hợp (LLM hoặc fallback)
-      - recommendations: danh sách khách sạn (mỗi item có ai_reason nếu LLM thành công)
-      - sources: tài liệu RAG (hiện trống, sẽ có khi RAG implement)
+      - recommendations: danh sách khách sạn (mỗi item có ai_reason)
+      - sources: tài liệu RAG (rag_docs từ RAG pipeline)
       - next_suggestions: gợi ý câu hỏi tiếp theo
       - intent / needs_clarification / explanation: metadata
+      - latency: per-stage timing để client hiển thị / debug
     """
+    latency = build_latency_summary(state)
     return {
         "final_response": {
             "answer": state.get("synthesized_answer") or state.get("rag_answer") or "",
@@ -336,10 +516,59 @@ def format_response_node(state: AgentState) -> dict[str, Any]:
             "next_suggestions": state.get("next_suggestions") or [],
             "needs_clarification": state.get("needs_clarification", False),
             "explanation": state.get("explanation") or "",
+            "latency": latency,
         }
     }
 
 
 def analytics_node(state: AgentState) -> dict[str, Any]:
-    """Tổng hợp latency từng giai đoạn và xác định bottleneck."""
-    return {"latency_summary": build_latency_summary(state)}
+    """Emit analytics events qua Kafka và build latency summary.
+
+    Gửi 2 loại event lên Kafka topic 'users-topic':
+      - RAG_CHAT: cặp (query, answer) để Kafka consumer lưu vào MongoDB Sessions
+      - LATENCY: tổng thời gian xử lý (giây) để tracking SLA
+
+    Graceful fallback: nếu Kafka không khả dụng (producer=None), bỏ qua
+    và chỉ trả về latency_summary.
+    """
+    req_id = state.get("request_id") or state.get("session_id") or "-"
+    session_id = state.get("session_id") or ""
+    latency_summary = build_latency_summary(state)
+
+    logger.debug(
+        "[%s][analytics] total_ms=%s  bottleneck=%s(%s ms)",
+        req_id,
+        latency_summary.get("total_ms"),
+        latency_summary.get("bottleneck_stage"),
+        latency_summary.get("bottleneck_ms"),
+    )
+
+    if session_id:
+        _emit_analytics(
+            session_id=session_id,
+            query=state.get("raw_query") or "",
+            final_response=state.get("final_response") or {},
+            latency_summary=latency_summary,
+        )
+
+    return {"latency_summary": latency_summary}
+
+
+def _emit_analytics(
+    *,
+    session_id: str,
+    query: str,
+    final_response: dict[str, Any],
+    latency_summary: dict[str, Any],
+) -> None:
+    """Gửi events Kafka. Bắt toàn bộ exception để không block graph."""
+    try:
+        from app.analytics.logging.logger import log_chat, log_latency  # noqa: PLC0415
+        answer = final_response.get("answer") or ""
+        if query and answer:
+            log_chat(question=query, answer=answer, session_id=session_id)
+        total_s = (latency_summary.get("total_ms") or 0) / 1000.0
+        if total_s > 0:
+            log_latency(time=total_s, session_id=session_id)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[analytics_node] Kafka emit failed (non-fatal): %s", exc)

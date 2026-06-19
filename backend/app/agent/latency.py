@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 import time
 from collections.abc import Callable
 from typing import Any, TypeVar
 
+from app.agent.tracer import extract_node_context, log_node_done
+
 NodeFn = TypeVar("NodeFn", bound=Callable[[dict[str, Any]], dict[str, Any]])
+logger = logging.getLogger(__name__)
 
 
 def merge_latency_trace(
@@ -23,15 +27,41 @@ def elapsed_ms(start: float) -> float:
 
 
 def with_timing(node_name: str, node_fn: NodeFn) -> NodeFn:
-    """Wrap a graph node to record wall-clock duration in ``latency_trace``."""
+    """Wrap a graph node to record wall-clock duration in ``latency_trace``.
+
+    Tích lũy toàn bộ lịch sử timing (không overwrite) bằng cách merge với
+    giá trị latency_trace đã có trong state từ các node trước đó.
+
+    Mỗi node khi hoàn thành sẽ emit một log line qua ``ota.flow`` logger
+    với timing và context cụ thể của node đó (intent, candidates count...).
+    """
 
     def wrapped(state: dict[str, Any]) -> dict[str, Any]:
         start = time.perf_counter()
-        result = node_fn(state) or {}
-        return {
-            **result,
-            "latency_trace": {node_name: elapsed_ms(start)},
-        }
+        request_id = state.get("request_id") or state.get("session_id") or "-"
+        logger.debug("[graph][%s] node=%s start", request_id, node_name)
+        try:
+            result = node_fn(state) or {}
+        except Exception:
+            ms = elapsed_ms(start)
+            logger.exception(
+                "[graph][%s] node=%s FAILED after %.2fms",
+                request_id, node_name, ms,
+            )
+            raise
+
+        # Accumulate: merge existing trace + result's trace (parallel nodes) + current node
+        trace: dict[str, float] = dict(state.get("latency_trace") or {})
+        if "latency_trace" in result:
+            trace.update(result.pop("latency_trace"))
+        node_ms = elapsed_ms(start)
+        trace[node_name] = node_ms
+
+        # Emit structured flow trace line (ota.flow logger)
+        context = extract_node_context(node_name, state, result)
+        log_node_done(request_id, node_name, node_ms, context)
+
+        return {**result, "latency_trace": trace}
 
     wrapped.__name__ = getattr(node_fn, "__name__", node_name)
     wrapped.__doc__ = node_fn.__doc__
@@ -74,8 +104,9 @@ def build_latency_summary(state: dict[str, Any]) -> dict[str, Any]:
     }
     qu_bottleneck = max(qu_timing, key=qu_timing.get) if qu_timing else None
 
-    rerank_debug = (state.get("rerank_result") or {}).get("debug") or {}
-    rerank_latency_ms = rerank_debug.get("latency_ms")
+    rerank_result = state.get("rerank_result") or {}
+    rerank_latency_ms = rerank_result.get("latency_ms")
+    rerank_breakdown = rerank_result.get("latency_breakdown") or {}
 
     return {
         "total_ms": total_ms,
@@ -88,4 +119,5 @@ def build_latency_summary(state: dict[str, Any]) -> dict[str, Any]:
         "qu_bottleneck": qu_bottleneck,
         "qu_bottleneck_ms": qu_timing.get(qu_bottleneck) if qu_bottleneck else None,
         "rerank_reported_ms": rerank_latency_ms,
+        "rerank_breakdown_ms": rerank_breakdown,
     }

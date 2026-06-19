@@ -27,6 +27,8 @@ class CandidateHotel(BaseModel):
     available: bool = False
     available_rooms: Optional[int] = None
     keyword_score: Optional[float] = None
+    primary_image: Optional[str] = None
+    images: List[Dict[str, Any]] = Field(default_factory=list)
 
     @field_validator("item_id", mode="before")
     @classmethod

@@ -2,7 +2,6 @@
 Planner Module
 Xác định các vị trí liên quan để query người dùng
 """
-import os
 from utils.llm_client import llm_client
 
 from utils.langsmith_tracer import tracer
@@ -76,7 +75,6 @@ def plan(query: str) -> dict:
         result = llm_client.call_with_structured_output(
             messages,
             system_prompt=PLANNER_SYSTEM_PROMPT,
-            provider=os.getenv("LLM_PROVIDER", "openai"),
         )
         logger.info(f"Plan created: {result}")
         return result

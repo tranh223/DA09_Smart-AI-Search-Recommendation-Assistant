@@ -1,4 +1,5 @@
 import json
+import os
 
 from query_understanding.enums import SearchTask
 from query_understanding.llm import OpenAIResponsesClient
@@ -33,10 +34,10 @@ class SearchPlanner:
     def __init__(
         self,
         client: OpenAIResponsesClient | None = None,
-        model: str = "gpt-4o-mini",
+        model: str | None = None,
     ) -> None:
         self.client = client or OpenAIResponsesClient()
-        self.model = model
+        self.model = model or os.getenv("LLM_MODEL", "gpt-4o-mini")
         self.last_trace: dict[str, object] = {}
 
     def run(self, query: str, conversation_history: list[dict[str, str]] | None = None) -> SearchPlanResult:

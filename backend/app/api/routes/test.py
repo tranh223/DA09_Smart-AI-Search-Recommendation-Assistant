@@ -1,18 +1,22 @@
-"""Test endpoints — gọi trực tiếp từng module để debug/kiểm tra hệ thống.
+"""Test endpoints — isolated module testing for development/QA.
 
-Tất cả endpoint ở đây bypass LangGraph và gọi module thẳng,
-giúp isolate vấn đề ở từng tầng riêng lẻ.
+**These endpoints are disabled in production.**
+Enable via env: ENABLE_TEST_ENDPOINTS=true
+
+All endpoints bypass LangGraph and call modules directly,
+which makes it easy to isolate failures by layer.
 
 Endpoints:
   POST /test/query-understanding  — test QU Pipeline
-  POST /test/recommend            — test Candidate Generation + Merge
+  POST /test/recommend            — test Candidate Generation
   POST /test/rerank               — test full Recommend + Rerank
   POST /test/response-builder     — test LLM Response Builder
-  POST /test/full                 — chạy toàn bộ graph, trả về full state (debug)
+  POST /test/full                 — run full graph, return complete AgentState (debug)
 """
 
 from __future__ import annotations
 
+import logging
 import time
 from typing import Any
 
@@ -26,34 +30,28 @@ from app.recommendation.models import (
     SessionContext,
 )
 
-router = APIRouter(prefix="/test", tags=["test"])
+logger = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/test", tags=["test / debug"])
 
 
 # ── Request models ────────────────────────────────────────────────────────────
 
 class QURequest(BaseModel):
-    """Input cho test Query Understanding Pipeline."""
     query: str = Field(..., examples=["Tìm khách sạn 4 sao ở Đà Nẵng gần biển, 2 người, ngân sách 2 triệu"])
     user_id: str = Field(default="test_user")
     user_profile: dict[str, Any] = Field(
         default_factory=dict,
-        description="Profile người dùng. Có thể để {} để test với profile trống.",
-        examples=[{
-            "session_context": {
-                "destination": "Đà Nẵng",
-                "check_in": "2026-07-15",
-                "check_out": "2026-07-18",
-            }
-        }],
+        description="Có thể để {} để test với profile trống.",
+        examples=[{"session_context": {"destination": "Đà Nẵng", "check_in": "2026-07-15"}}],
     )
     chat_history: list[dict[str, str]] = Field(
         default_factory=list,
-        description="Lịch sử hội thoại. [{\"role\": \"user\", \"content\": \"...\"}]",
+        description='[{"role": "user", "content": "..."}]',
     )
 
 
 class RecommendRequest(BaseModel):
-    """Input cho test Candidate Generation / Rerank (bỏ qua QU Pipeline)."""
     user_id: str = Field(default="test_user")
     query: str = Field(default="", examples=["khách sạn gần biển Mỹ Khê"])
     destination: str = Field(..., examples=["Đà Nẵng"])
@@ -68,14 +66,12 @@ class RecommendRequest(BaseModel):
 
 
 class ResponseBuilderRequest(BaseModel):
-    """Input cho test LLM Response Builder."""
     query: str = Field(..., examples=["Tìm khách sạn ở Hội An cho cặp đôi"])
     intent: str = Field(default="hotel_search")
     destination: str = Field(default="")
-    rag_answer: str = Field(default="", description="Câu trả lời RAG (có thể để trống)")
+    rag_answer: str = Field(default="")
     recommendations: list[dict[str, Any]] = Field(
         default_factory=list,
-        description="Danh sách gợi ý giả lập. Để [] để test với list rỗng.",
         examples=[[
             {
                 "hotel_id": "101",
@@ -84,15 +80,20 @@ class ResponseBuilderRequest(BaseModel):
                 "reasons": ["Vị trí trung tâm phố cổ", "Hồ bơi ngoài trời"],
                 "metadata": {"price_min": 1500000, "price_max": 3000000},
             },
-            {
-                "hotel_id": "102",
-                "hotel_name": "Silk Sense Hoi An River Resort",
-                "score": 0.87,
-                "reasons": ["Bên sông Thu Bồn", "Bữa sáng included"],
-                "metadata": {"price_min": 900000, "price_max": 1800000},
-            },
         ]],
     )
+
+
+class FullGraphRequest(BaseModel):
+    """Full graph debug — same input shape as /chat but returns full AgentState."""
+
+    user_id: str = Field(default="test_user")
+    session_id: str = Field(default="test_session")
+    query: str = Field(default="Tìm khách sạn ở Đà Nẵng", min_length=1)
+    user_profile: dict[str, Any] = Field(default_factory=dict)
+    slots: dict[str, Any] = Field(default_factory=dict)
+    candidate_limit_per_source: int = Field(default=10, ge=1, le=50)
+    rerank_options: dict[str, Any] = Field(default_factory=dict)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -109,7 +110,9 @@ def _build_recommend_input(req: RecommendRequest) -> RecommendInput:
             nearby_place=req.nearby_place,
             has_children=req.has_children,
             has_pet=req.has_pet,
-            session_price_range=PriceRange(max=req.budget_max) if req.budget_max else PriceRange(),
+            session_price_range=(
+                PriceRange(max=req.budget_max) if req.budget_max else PriceRange()
+            ),
         ),
         original_query=req.query or req.destination,
         limit_per_source=req.limit,
@@ -120,11 +123,11 @@ def _build_recommend_input(req: RecommendRequest) -> RecommendInput:
 
 @router.post(
     "/query-understanding",
-    summary="Test Query Understanding Pipeline",
+    summary="Test: Query Understanding Pipeline",
     description=(
-        "Gọi trực tiếp QueryUnderstandingPipeline. "
-        "Trả về intent, slots, slot_is_complete và toàn bộ qu_trace để debug. "
-        "**Không** chạy recommendation."
+        "Calls QueryUnderstandingPipeline directly. "
+        "Returns intent, slots, slot_is_complete, and full qu_trace. "
+        "Does **not** run recommendation."
     ),
 )
 async def test_query_understanding(req: QURequest):
@@ -135,7 +138,7 @@ async def test_query_understanding(req: QURequest):
     if pipeline is None:
         raise HTTPException(
             status_code=503,
-            detail="QueryUnderstandingPipeline not available (check OPENAI_API_KEY and startup logs).",
+            detail="QueryUnderstandingPipeline unavailable — check OPENAI_API_KEY and startup logs.",
         )
 
     user_profile = {**req.user_profile, "user_id": req.user_id}
@@ -148,6 +151,7 @@ async def test_query_understanding(req: QURequest):
             conversation_history=req.chat_history,
         )
     except Exception as exc:
+        logger.error("[test/qu] pipeline.run failed: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail=f"Pipeline error: {exc}") from exc
 
     elapsed_ms = round((time.perf_counter() - t0) * 1000)
@@ -168,10 +172,10 @@ async def test_query_understanding(req: QURequest):
 
 @router.post(
     "/recommend",
-    summary="Test Candidate Generation",
+    summary="Test: Candidate Generation",
     description=(
-        "Gọi trực tiếp Candidate Generation (embedding + trending + personalization). "
-        "Bỏ qua QU Pipeline — dùng để test DB (Qdrant, MongoDB, Neo4j) và logic nguồn ứng viên."
+        "Calls Candidate Generation (embedding + trending + personalization) directly. "
+        "Bypasses QU Pipeline. Tests Qdrant, MongoDB, Neo4j connectivity."
     ),
 )
 async def test_recommend(req: RecommendRequest):
@@ -183,6 +187,7 @@ async def test_recommend(req: RecommendRequest):
     try:
         merged = run_candidate_pipeline(inp, trace=False)
     except Exception as exc:
+        logger.error("[test/recommend] candidate pipeline failed: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail=f"Candidate pipeline error: {exc}") from exc
 
     elapsed_ms = round((time.perf_counter() - t0) * 1000)
@@ -211,10 +216,10 @@ async def test_recommend(req: RecommendRequest):
 
 @router.post(
     "/rerank",
-    summary="Test Recommend + Rerank Pipeline",
+    summary="Test: Recommend + Rerank Pipeline",
     description=(
-        "Chạy đầy đủ Candidate Generation → Merge → Rerank. "
-        "Bỏ qua QU Pipeline. Trả về danh sách khách sạn đã được xếp hạng."
+        "Runs full Candidate Generation → Merge → Rerank. "
+        "Bypasses QU Pipeline. Returns ranked hotel list."
     ),
 )
 async def test_rerank(req: RecommendRequest):
@@ -226,18 +231,20 @@ async def test_rerank(req: RecommendRequest):
     try:
         merged = run_candidate_pipeline(inp, trace=False)
     except Exception as exc:
+        logger.error("[test/rerank] candidate pipeline failed: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail=f"Candidate pipeline error: {exc}") from exc
 
     t1 = time.perf_counter()
     try:
         rerank_result = run_rerank_from_merged(inp=inp, merged=merged)
     except Exception as exc:
+        logger.error("[test/rerank] rerank failed: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail=f"Rerank error: {exc}") from exc
 
     elapsed_ms = round((time.perf_counter() - t0) * 1000)
     rerank_ms = round((time.perf_counter() - t1) * 1000)
 
-    ranked = rerank_result.get("ranked_hotels") or []
+    ranked: list[dict] = rerank_result.get("ranked_hotels") or []
     return {
         "elapsed_ms": elapsed_ms,
         "rerank_ms": rerank_ms,
@@ -264,10 +271,10 @@ async def test_rerank(req: RecommendRequest):
 
 @router.post(
     "/response-builder",
-    summary="Test LLM Response Builder",
+    summary="Test: LLM Response Builder",
     description=(
-        "Gọi trực tiếp LLM Response Builder với dữ liệu tuỳ chỉnh. "
-        "Dùng để kiểm tra chất lượng tổng hợp kết quả và giải thích lý do."
+        "Calls LLM Response Builder directly with custom data. "
+        "Use to evaluate synthesis quality and explanation generation."
     ),
 )
 async def test_response_builder(req: ResponseBuilderRequest):
@@ -283,10 +290,10 @@ async def test_response_builder(req: ResponseBuilderRequest):
             ranked_recommendations=req.recommendations,
         )
     except Exception as exc:
+        logger.error("[test/response-builder] failed: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail=f"Response builder error: {exc}") from exc
 
     elapsed_ms = round((time.perf_counter() - t0) * 1000)
-
     return {
         "elapsed_ms": elapsed_ms,
         "synthesized_answer": result.get("synthesized_answer"),
@@ -297,36 +304,31 @@ async def test_response_builder(req: ResponseBuilderRequest):
 
 @router.post(
     "/full",
-    summary="Full Graph — Debug Mode",
+    summary="Test: Full Graph (debug)",
     description=(
-        "Chạy toàn bộ LangGraph workflow (giống /chat) nhưng trả về "
-        "full AgentState thay vì chỉ `final_response`. "
-        "Dùng để debug end-to-end, kiểm tra từng field trong state."
+        "Runs the complete LangGraph workflow (same as `/chat`) but returns "
+        "the **full AgentState** instead of just `final_response`. "
+        "Use for end-to-end debugging and state inspection."
     ),
 )
-async def test_full(
-    user_id: str = "test_user",
-    session_id: str = "test_session",
-    query: str = "Tìm khách sạn ở Đà Nẵng",
-    user_profile: dict[str, Any] | None = None,
-    slots: dict[str, Any] | None = None,
-    rerank_options: dict[str, Any] | None = None,
-):
+async def test_full(req: FullGraphRequest):
     from app.api.routes.chat import _merge_slots_into_profile, graph  # noqa: PLC0415
 
-    profile = dict(user_profile or {})
-    profile["user_id"] = user_id
+    if graph is None:
+        raise HTTPException(status_code=503, detail="Graph not available — compilation failed.")
 
-    if slots:
-        profile = _merge_slots_into_profile(profile, slots)
+    profile: dict[str, Any] = {**req.user_profile, "user_id": req.user_id}
+    if req.slots:
+        profile = _merge_slots_into_profile(profile, req.slots)
 
-    state = {
-        "user_id": user_id,
-        "session_id": session_id,
-        "raw_query": query,
+    state: dict[str, Any] = {
+        "user_id": req.user_id,
+        "session_id": req.session_id,
+        "raw_query": req.query,
         "user_profile": profile,
-        "slots": slots or {},
-        "rerank_options": rerank_options or {},
+        "slots": req.slots,
+        "candidate_limit_per_source": req.candidate_limit_per_source,
+        "rerank_options": req.rerank_options,
         "request_started_at": time.perf_counter(),
     }
 
@@ -334,23 +336,23 @@ async def test_full(
     try:
         result = await graph.ainvoke(state)
     except Exception as exc:
+        logger.error("[test/full] graph.ainvoke failed: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail=f"Graph error: {exc}") from exc
 
     elapsed_ms = round((time.perf_counter() - t0) * 1000)
 
-    # Serialize — loại bỏ các object Pydantic không JSON-serializable
-    safe_result: dict[str, Any] = {}
+    # Serialize — strip non-JSON-serializable Pydantic objects
+    safe: dict[str, Any] = {}
     for k, v in result.items():
         if k == "recommend_input" and v is not None:
-            # RecommendInput Pydantic — serialize
-            safe_result[k] = v.model_dump()
+            safe[k] = v.model_dump()
         elif k == "merged_candidates" and v:
-            safe_result[k] = [c.model_dump() for c in v]
+            safe[k] = [c.model_dump() for c in v]
         else:
-            safe_result[k] = v
+            safe[k] = v
 
     return {
         "elapsed_ms": elapsed_ms,
-        "latency_summary": safe_result.get("latency_summary"),
-        "state": safe_result,
+        "latency_summary": safe.get("latency_summary"),
+        "state": safe,
     }

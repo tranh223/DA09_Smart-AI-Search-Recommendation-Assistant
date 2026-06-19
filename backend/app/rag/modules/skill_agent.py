@@ -10,7 +10,6 @@ It is used to decide which retrieval paths to call.
 
 from __future__ import annotations
 
-import os
 import time
 
 from typing import Any, Dict, Literal
@@ -62,11 +61,9 @@ def route_intent(query: str) -> Dict[str, Any]:
         }
     ]
 
-    provider = os.getenv("LLM_PROVIDER", "openai")
     result = llm_client.call_with_structured_output(
         messages,
         system_prompt=SKILL_AGENT_SYSTEM_PROMPT,
-        provider=provider,
     )
 
     elapsed_ms = int((time.perf_counter() - start) * 1000)

@@ -87,6 +87,7 @@ class HotelSqlTool:
         self.base_url = (
             base_url
             or os.getenv("DA10_API_BASE_URL")
+            or os.getenv("HOTEL_API_BASE_URL")
             or DEFAULT_DA10_API_BASE_URL
         ).rstrip("/")
         self.api_key = (

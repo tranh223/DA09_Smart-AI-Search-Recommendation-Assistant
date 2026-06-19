@@ -1,11 +1,10 @@
 from __future__ import annotations
 
+import decimal
 import logging
 import time
 from datetime import timedelta
 from typing import Any, TypedDict
-
-import requests
 
 from .booking_signals import compute_booking_signals
 from .config import load_settings
@@ -48,19 +47,47 @@ SESSION_OPTION_KEYS = {
 }
 
 
-def _hotel_api_config(settings: Any, options: dict[str, Any]) -> tuple[str, str]:
-    base_url = str(options.get("hotel_api_base_url") or getattr(settings, "hotel_api_base_url", "") or "").rstrip("/")
-    api_key = str(options.get("hotel_api_key") or getattr(settings, "hotel_api_key", "") or "")
-    return base_url, api_key
+# ── Global engine pool (one engine per DSN, reused across requests) ────────
+_engines: dict[str, Any] = {}
 
 
-def _enrich_candidates_from_hotel_api(
+def _get_sync_engine(dsn: str) -> Any:
+    """Return (and cache) a synchronous SQLAlchemy engine for *dsn*."""
+    if dsn not in _engines:
+        from sqlalchemy import create_engine
+        # Supabase pooler uses postgresql:// — SQLAlchemy sync dialect is fine.
+        _engines[dsn] = create_engine(
+            dsn,
+            pool_size=5,
+            max_overflow=10,
+            pool_pre_ping=True,
+            pool_recycle=300,
+            connect_args={"connect_timeout": 10},
+        )
+        logging.getLogger(__name__).info("[Hotel DB] Created new SQLAlchemy engine for DSN host.")
+    return _engines[dsn]
+
+
+def _decimal_safe(val: Any) -> Any:
+    """Recursively convert Decimal / date types to JSON-friendly primitives."""
+    if isinstance(val, decimal.Decimal):
+        return float(val)
+    if hasattr(val, "isoformat"):
+        return val.isoformat()
+    if isinstance(val, dict):
+        return {k: _decimal_safe(v) for k, v in val.items()}
+    if isinstance(val, list):
+        return [_decimal_safe(v) for v in val]
+    return val
+
+
+def _enrich_candidates_from_db(
     candidate_items: list[dict],
     settings: Any,
     options: dict[str, Any],
 ) -> tuple[list[dict], str, dict[str, Any]]:
-    # Always attempt hotel API enrichment (caller no longer toggles this).
-    base_url, api_key = _hotel_api_config(settings, options)
+    """Synchronous DB enrichment using SQLAlchemy ORM + eager selectinload."""
+    log = logging.getLogger(__name__)
     debug: dict[str, Any] = {
         "requested": True,
         "requested_ids": [],
@@ -68,40 +95,179 @@ def _enrich_candidates_from_hotel_api(
         "missing_ids": [],
         "errors": [],
     }
-    if not base_url or not api_key:
-        debug["reason"] = "hotel_api_base_url_or_key_missing"
-        return candidate_items, "input_api_fallback", debug
 
-    enriched_candidates: list[dict[str, Any]] = []
+    postgres_dsn = str(
+        options.get("postgres_dsn") or getattr(settings, "postgres_dsn", "") or ""
+    ).strip()
+    if not postgres_dsn:
+        debug["reason"] = "postgres_dsn_missing"
+        log.warning("[Hotel DB] POSTGRES_DSN not configured — skipping DB enrichment.")
+        return candidate_items, "db_skipped", debug
+
+    # Collect numeric hotel IDs
+    hotel_ids: list[int] = []
     for candidate in candidate_items:
         item_id = _candidate_id(candidate)
-        if not item_id:
-            enriched_candidates.append(candidate)
-            continue
-        debug["requested_ids"].append(item_id)
-        try:
-            url = f"{base_url}/api/hotels/{item_id}"
-            response = requests.get(url, headers={"X-API-Key": api_key}, timeout=10)
-            if response.status_code == 200:
-                hotel_data = response.json() or {}
-                enriched = dict(candidate)
-                enriched.update(hotel_data)
-                enriched["item_id"] = item_id
-                enriched_candidates.append(enriched)
-                debug["enriched_ids"].append(item_id)
-            elif response.status_code == 404:
-                debug["missing_ids"].append(item_id)
-                enriched_candidates.append(candidate)
-            else:
-                debug["errors"].append(
-                    {"item_id": item_id, "status_code": response.status_code, "body": response.text}
-                )
-                enriched_candidates.append(candidate)
-        except Exception as error:
-            debug["errors"].append({"item_id": item_id, "error": str(error)})
-            enriched_candidates.append(candidate)
+        if item_id and item_id.isdigit():
+            hotel_ids.append(int(item_id))
+            debug["requested_ids"].append(item_id)
 
-    return enriched_candidates, "hotel_api_enriched", debug
+    if not hotel_ids:
+        debug["reason"] = "no_valid_ids"
+        return candidate_items, "db_skipped", debug
+
+    try:
+        from sqlalchemy.orm import Session, selectinload
+        from sqlalchemy import select
+        from .db_models import HotelModel
+
+        t0 = time.perf_counter()
+        engine = _get_sync_engine(postgres_dsn)
+        engine_ms = (time.perf_counter() - t0) * 1000
+
+        # Log trước khi query để biết đang fetch bao nhiêu hotel
+        log.info(
+            "[Hotel DB] ▶ Querying %d hotels from Supabase (engine pool: %.2f ms)",
+            len(hotel_ids), engine_ms,
+        )
+
+        t1 = time.perf_counter()
+        with Session(engine) as session:
+            stmt = (
+                select(HotelModel)
+                .where(HotelModel.id.in_(hotel_ids))
+                .options(
+                    selectinload(HotelModel.images),
+                    selectinload(HotelModel.policy),
+                    selectinload(HotelModel.suitability),
+                    selectinload(HotelModel.amenities),
+                    selectinload(HotelModel.rooms),
+                    selectinload(HotelModel.nearby_places),
+                    selectinload(HotelModel.activities),
+                )
+            )
+            result = session.execute(stmt)
+            hotels = result.scalars().all()
+        query_ms = (time.perf_counter() - t1) * 1000
+
+        log.info(
+            "[Hotel DB] ◀ Fetched %d/%d hotels | DB query: %.2f ms",
+            len(hotels), len(hotel_ids), query_ms,
+        )
+
+        # Build id → dict map
+        t2 = time.perf_counter()
+        hotels_map: dict[int, dict] = {}
+        for h in hotels:
+            amenity_names = [am.name for am in h.amenities]
+            room_prices = [float(rm.price) for rm in h.rooms if rm.price is not None]
+            h_dict: dict[str, Any] = {
+                "id": h.id,
+                "name": h.name,
+                "property_type": h.property_type,
+                "accommodation_type": h.accommodation_type,
+                "star_rating": _decimal_safe(h.star_rating),
+                "is_luxury": h.is_luxury,
+                "review_score": _decimal_safe(h.review_score),
+                "review_count": h.review_count,
+                "address": h.address,
+                "city": h.city,
+                "city_id": h.city_id,
+                "area": h.area,
+                "country": h.country,
+                "latitude": h.latitude,
+                "longitude": h.longitude,
+                "description": h.description,
+                "source_url": h.source_url,
+                # Flattened derived fields for normalizer
+                "amenities": amenity_names,
+                "price_min": min(room_prices) if room_prices else None,
+                "price_max": max(room_prices) if room_prices else None,
+                "images": [
+                    {"url": img.url, "is_primary": img.is_primary}
+                    for img in h.images
+                ],
+                "primary_image": h.images[0].url if h.images else None,
+                "policy": (
+                    {
+                        "check_in_from": h.policy.check_in_from,
+                        "check_out_until": h.policy.check_out_until,
+                        "service_fee_pct": _decimal_safe(h.policy.service_fee_pct),
+                        "child_policy": h.policy.child_policy,
+                        "pet_policy": h.policy.pet_policy,
+                        "deposit_required": h.policy.deposit_required,
+                        "policy_notes": h.policy.policy_notes or [],
+                    }
+                    if h.policy else None
+                ),
+                "suitable_for": [
+                    suit.suitable_for_tag for suit in h.suitability
+                ],
+                "rooms": [
+                    {
+                        "id": rm.id,
+                        "name": rm.name,
+                        "price": _decimal_safe(rm.price),
+                        "room_size": rm.room_size,
+                        "max_occupancy": rm.max_occupancy,
+                        "bed_type": rm.bed_type,
+                        "room_view": rm.room_view,
+                        "room_amenities": rm.room_amenities or [],
+                        "review_score": _decimal_safe(rm.review_score),
+                    }
+                    for rm in h.rooms
+                ],
+                "nearby_places": [
+                    np.name for np in h.nearby_places
+                ],
+                "activities": [
+                    {
+                        "id": act.id,
+                        "title": act.title,
+                        "description": act.description,
+                        "price_amount": _decimal_safe(act.price_amount),
+                        "review_score": _decimal_safe(act.review_score),
+                    }
+                    for act in h.activities
+                ],
+            }
+            hotels_map[h.id] = h_dict
+        serialize_ms = (time.perf_counter() - t2) * 1000
+
+        # Merge enriched data back into candidates
+        t3 = time.perf_counter()
+        enriched_candidates: list[dict] = []
+        for candidate in candidate_items:
+            item_id = _candidate_id(candidate)
+            if item_id and item_id.isdigit():
+                int_id = int(item_id)
+                if int_id in hotels_map:
+                    enriched = dict(candidate)
+                    enriched.update(hotels_map[int_id])
+                    enriched["item_id"] = str(int_id)
+                    debug["enriched_ids"].append(item_id)
+                    enriched_candidates.append(enriched)
+                    continue
+                else:
+                    debug["missing_ids"].append(item_id)
+            enriched_candidates.append(candidate)
+        merge_ms = (time.perf_counter() - t3) * 1000
+
+        total_ms = engine_ms + query_ms + serialize_ms + merge_ms
+        log.info(
+            "[Hotel DB] Enrichment done | Enriched %d/%d | Serialize: %.2f ms | Merge: %.2f ms | Total: %.2f ms",
+            len(debug["enriched_ids"]), len(hotel_ids),
+            serialize_ms, merge_ms, total_ms,
+        )
+        return enriched_candidates, "hotel_db_enriched", debug
+
+    except Exception as exc:
+        log.error(
+            "[Hotel DB] Enrichment failed: %s: %s",
+            type(exc).__name__, str(exc),
+        )
+        debug["errors"].append({"error": str(exc)})
+        return candidate_items, "db_error", debug
 
 
 def _load_profile_and_bookings(
@@ -182,13 +348,8 @@ def _with_input_session_context(profile: dict[str, Any] | None, user_id: str | N
     return merged
 
 
-def _enrich_candidates_from_postgres(
-    candidate_items: list[dict],
-    settings: Any,
-    options: dict[str, Any],
-) -> tuple[list[dict], str, dict[str, Any]]:
-    # Postgres enrichment removed; keep a no-op placeholder for backward compatibility
-    return candidate_items, "input", {"requested": False}
+# _enrich_candidates_from_postgres — alias kept for import compatibility
+# _enrich_candidates_from_postgres = _enrich_candidates_from_db
 
 
 def _candidate_id(candidate: dict[str, Any]) -> str:
@@ -384,7 +545,13 @@ def rerank(
     query: str | None,
     options: dict | None,
 ) -> dict:
+    log = logging.getLogger(__name__)
     started = time.perf_counter()
+
+    if not candidate_items:
+        log.info("[Rerank] No candidates — returning empty immediately.")
+        return {"ranked_items": [], "ranked_hotels": []}
+
     settings = load_settings()
     opts = as_dict(options)
     top_k = int(opts.get("top_k", 5) or 5)
@@ -402,19 +569,44 @@ def rerank(
     # control whether to write pretty debug JSON files (may be large)
     debug_write = _bool_option(opts.get("write_debug_file"), True)
 
-    # Enrich candidates from hotel API only. Postgres enrichment removed.
-    candidate_items, api_source, api_debug = _enrich_candidates_from_hotel_api(candidate_items or [], settings, opts)
-    candidate_source = api_source
-    candidate_enrichment_debug = {"hotel_api": api_debug}
-    raw_candidates_by_id = {_candidate_id(candidate): _json_safe(candidate) for candidate in candidate_items}
+    # ── Phase 1: DB Enrichment ───────────────────────────────────────────
+    t_enrich = time.perf_counter()
+    candidate_items, candidate_source, db_debug = _enrich_candidates_from_db(
+        candidate_items or [], settings, opts
+    )
+    enrich_ms = (time.perf_counter() - t_enrich) * 1000
+    log.info(
+        "[Rerank] Phase 1 DB Enrichment | %.2f ms | enriched=%d/%d",
+        enrich_ms,
+        len(db_debug.get("enriched_ids", [])),
+        len(db_debug.get("requested_ids", [])),
+    )
+    candidate_enrichment_debug = {"hotel_db": db_debug}
+
+    # ── Phase 2: Normalize candidates ───────────────────────────────────
+    t_norm = time.perf_counter()
+    raw_candidates_by_id = {_candidate_id(c): _json_safe(c) for c in candidate_items}
     candidates = normalize_candidates(candidate_items)
     candidate_ids = [item["item_id"] for item in candidates]
+    norm_ms = (time.perf_counter() - t_norm) * 1000
+    log.info("[Rerank] Phase 2 Normalize | %.2f ms | %d candidates", norm_ms, len(candidates))
+
+    # ── Phase 3: Load profile + bookings ────────────────────────────────
+    t_profile = time.perf_counter()
     _loaded = _load_profile_and_bookings(user_id, user_context, candidate_ids, settings)
     raw_profile = _loaded["profile"]
     bookings = _loaded["bookings"]
     profile_source = _loaded["profile_source"]
     booking_source = _loaded["booking_source"]
     booking_counts = _loaded["booking_counts"]
+    profile_ms = (time.perf_counter() - t_profile) * 1000
+    log.info(
+        "[Rerank] Phase 3 Profile+Bookings | %.2f ms | bookings=%d | source=%s",
+        profile_ms, len(bookings), profile_source,
+    )
+
+    # ── Phase 4: Score candidates ────────────────────────────────────────
+    t_score = time.perf_counter()
     profile = normalize_profile(_with_input_session_context(raw_profile, user_id, opts))
     signals = apply_trend_scores(compute_booking_signals(bookings, candidates, user_id))
 
@@ -475,10 +667,20 @@ def rerank(
 
     scored.sort(key=lambda item: item["base_score"], reverse=True)
     scored_debug_items.sort(key=lambda item: item["base_score"], reverse=True)
+    score_ms = (time.perf_counter() - t_score) * 1000
+    log.info(
+        "[Rerank] Phase 4 Scoring | %.2f ms | scored=%d filtered=%d",
+        score_ms, len(scored), filtered,
+    )
+
+    # ── Phase 5: LLM rerank ──────────────────────────────────────────────
+    t_llm = time.perf_counter()
     llm_candidates = scored[:llm_top_n]
     llm_results, llm_source, llm_fallback, llm_debug = rerank_with_llm(
         settings, query, profile, llm_candidates, use_llm, llm_dry_run
     )
+    llm_ms = (time.perf_counter() - t_llm) * 1000
+    log.info("[Rerank] Phase 5 LLM | %.2f ms | source=%s used=%s", llm_ms, llm_source, bool(llm_results))
 
     ranked: list[dict[str, Any]] = []
     for item in scored:
@@ -492,6 +694,7 @@ def rerank(
             {
                 "item_id": item["item_id"],
                 "name": item.get("name"),
+                "primary_image": item.get("primary_image"),
                 "final_score": round_score(final_score),
                 "base_score": round_score(item["base_score"]),
                 "llm_score": None if llm_score is None else round_score(llm_score),
@@ -523,11 +726,22 @@ def rerank(
                 "negative_penalty": item["negative_penalty"],
                 "reasons": item["reasons"],
                 "warnings": item["warnings"],
+                "primary_image": item.get("primary_image"),
             }
         )
         ranked_hotels.append(hotel)
 
+    # ── Phase 6: Build final ranking ─────────────────────────────────────
+    t_rank = time.perf_counter()
     fallback_used = llm_fallback or (use_llm and not llm_results)
+    rank_ms = (time.perf_counter() - t_rank) * 1000
+
+    latency_ms = round((time.perf_counter() - started) * 1000, 2)
+    log.info(
+        "[Rerank] ✅ DONE | Total: %.2f ms | Breakdown → Enrich: %.2f ms | Norm: %.2f ms | Profile: %.2f ms | Score: %.2f ms | LLM: %.2f ms | Rank: %.2f ms",
+        latency_ms, enrich_ms, norm_ms, profile_ms, score_ms, llm_ms, rank_ms,
+    )
+
     debug = {
         "total_candidates": len(candidates),
         "after_hard_filter": len(scored),
@@ -548,7 +762,6 @@ def rerank(
             },
         "llm_used": bool(llm_results),
         "fallback_used": fallback_used,
-        # mock_mode removed for production
         "candidate_source": candidate_source,
         "candidate_enrichment_debug": candidate_enrichment_debug,
         "diversified": diversify_recommendations,
@@ -559,8 +772,16 @@ def rerank(
         "llm_debug": llm_debug,
         "llm_candidates": [c["item_id"] for c in llm_candidates],
         "llm_results": llm_results,
+        "latency_ms": latency_ms,
+        "latency_breakdown": {
+            "enrich_db_ms": round(enrich_ms, 2),
+            "normalize_ms": round(norm_ms, 2),
+            "profile_load_ms": round(profile_ms, 2),
+            "scoring_ms": round(score_ms, 2),
+            "llm_ms": round(llm_ms, 2),
+            "rank_ms": round(rank_ms, 2),
+        },
     }
-    latency_ms = round((time.perf_counter() - started) * 1000, 2)
     write_rerank_log(
         settings,
         {
@@ -577,7 +798,6 @@ def rerank(
             "fallback_used": fallback_used,
             "candidate_source": candidate_source,
             "candidate_enrichment_debug": candidate_enrichment_debug,
-            # include detailed buckets
             "raw_candidates": raw_candidates_by_id,
             "normalized_candidates": candidates,
             "booking_signals_all": signals,
@@ -595,11 +815,18 @@ def rerank(
                 "long_term_top_hotel_types": profile.get("long_term", {}).get("hotel_types"),
             },
             "latency_ms": latency_ms,
+            "latency_breakdown": debug["latency_breakdown"],
         },
         write_debug_file=debug_write,
     )
 
-    output = {"ranked_items": ranked, "ranked_hotels": ranked_hotels}
+    output = {
+        "ranked_items": ranked,
+        "ranked_hotels": ranked_hotels,
+        # Luôn expose latency để latency.py (build_latency_summary) đọc được
+        "latency_ms": latency_ms,
+        "latency_breakdown": debug["latency_breakdown"],
+    }
     if return_debug:
         output["debug"] = debug
     return output
