@@ -270,6 +270,8 @@ def pipeline_result_to_state(
 
     return {
         "intent": _derive_intent(pipeline_result),
+        "user_profile": asdict(updated_profile),
+        "updated_user_profile": asdict(updated_profile),
         "slots": slots,
         "slot_is_complete": has_plan,
         "needs_clarification": not has_plan,

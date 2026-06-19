@@ -38,8 +38,17 @@ from query_understanding.models.intent import (
 )
 
 
-DEFAULT_TAG_INDEX_PATH = Path("data/vector_db/tag_hotel.faiss")
-DEFAULT_TAG_METADATA_PATH = Path("data/vector_db/tag_hotel_metadata.json")
+# Fix path resolution: parents[3] = backend folder, then go up to project root
+BACKEND_DIR = Path(__file__).resolve().parents[3]  # backend/
+PROJECT_ROOT = BACKEND_DIR.parent  # d:/VFS/DA09/DA09_Smart-AI-Search-Recommendation-Assistant/ parent
+DEFAULT_VECTOR_DB_DIR = PROJECT_ROOT.parent / "data" / "vector_db"  # d:/VFS/DA09/data/vector_db/
+
+DEFAULT_TAG_INDEX_PATH = Path(
+    os.getenv("QU_TAG_INDEX_PATH", str(DEFAULT_VECTOR_DB_DIR / "tag_hotel.faiss"))
+)
+DEFAULT_TAG_METADATA_PATH = Path(
+    os.getenv("QU_TAG_METADATA_PATH", str(DEFAULT_VECTOR_DB_DIR / "tag_hotel_metadata.json"))
+)
 
 
 class SemanticTagMapper:
@@ -60,6 +69,7 @@ class SemanticTagMapper:
         self.score_threshold = score_threshold
         self.close_score_delta = close_score_delta
         self.top_k = max(1, top_k)
+        self.keep_close_matches = _env_flag("QU_SEMANTIC_KEEP_CLOSE_MATCHES")
         self.embedding_fn = embedding_fn
         self.last_trace: dict[str, object] = {}
         self._client: OpenAI | None = None
@@ -78,8 +88,10 @@ class SemanticTagMapper:
 
         if not self._ensure_loaded():
             result = self._fallback_result(items, reason="index_unavailable")
+            load_trace = dict(self.last_trace)
             self.last_trace = {
                 "path": "semantic_mapping",
+                **load_trace,
                 "status": "index_unavailable",
                 "mapped_items": [asdict(item) for item in result.mapped_items],
             }
@@ -88,12 +100,12 @@ class SemanticTagMapper:
         texts = [item.text for item in items]
         try:
             embeddings = self._embed_texts(texts)
-        except RuntimeError as exc:
+        except Exception as exc:  # noqa: BLE001
             result = self._fallback_result(items, reason=str(exc))
             self.last_trace = {
                 "path": "semantic_mapping",
                 "status": "embedding_error",
-                "error": str(exc),
+                "error": f"{type(exc).__name__}: {exc}",
                 "mapped_items": [asdict(item) for item in result.mapped_items],
             }
             return result
@@ -119,12 +131,15 @@ class SemanticTagMapper:
                 continue
 
             best_score = candidates[0][1]
-            selected_candidates = [
-                candidate
-                for candidate in candidates[: self.top_k]
-                if candidate[1] > self.score_threshold
-                and best_score - candidate[1] <= self.close_score_delta
-            ]
+            if self.keep_close_matches:
+                selected_candidates = [
+                    candidate
+                    for candidate in candidates[: self.top_k]
+                    if candidate[1] > self.score_threshold
+                    and best_score - candidate[1] <= self.close_score_delta
+                ]
+            else:
+                selected_candidates = [candidates[0]] if best_score > self.score_threshold else []
 
             if not selected_candidates:
                 mapped_items.append(
@@ -163,7 +178,8 @@ class SemanticTagMapper:
             "score_threshold": self.score_threshold,
             "close_score_delta": self.close_score_delta,
             "top_k": self.top_k,
-            "selection": "top_k_close_score",
+            "selection": "top_k_close_score" if self.keep_close_matches else "best_match",
+            "keep_close_matches": self.keep_close_matches,
             "mapped_items": [asdict(item) for item in result.mapped_items],
         }
         return result
@@ -171,25 +187,43 @@ class SemanticTagMapper:
     def _ensure_loaded(self) -> bool:
         if self._loaded:
             return True
+        self.last_trace = {
+            "path": "semantic_mapping",
+            "status": "loading_index",
+            "index_path": str(self.index_path),
+            "metadata_path": str(self.metadata_path),
+            "index_exists": self.index_path.exists(),
+            "metadata_exists": self.metadata_path.exists(),
+            "faiss_available": faiss is not None,
+            "numpy_available": np is not None,
+        }
         if faiss is None or np is None:
+            self.last_trace["load_error"] = "missing_dependency"
             return False
         if not self.index_path.exists() or not self.metadata_path.exists():
+            self.last_trace["load_error"] = "missing_index_or_metadata_file"
             return False
 
-        metadata_payload = json.loads(self.metadata_path.read_text(encoding="utf-8-sig"))
-        metadata_items = metadata_payload.get("items", [])
-        if not isinstance(metadata_items, list) or not metadata_items:
-            return False
+        try:
+            # Ensure proper UTF-8 encoding for Vietnamese text
+            metadata_payload = json.loads(self.metadata_path.read_text(encoding="utf-8"))
+            metadata_items = metadata_payload.get("items", [])
+            if not isinstance(metadata_items, list) or not metadata_items:
+                self.last_trace["load_error"] = "empty_or_invalid_metadata_items"
+                return False
 
-        base_index = faiss.read_index(str(self.index_path))
-        category_rows: dict[str, list[dict[str, object]]] = {}
-        category_vectors: dict[str, list[np.ndarray]] = {}
-        for row in metadata_items:
-            item_id = int(row["id"])
-            category = str(row["category"])
-            vector = np.asarray(base_index.reconstruct(item_id), dtype=np.float32)
-            category_rows.setdefault(category, []).append(row)
-            category_vectors.setdefault(category, []).append(vector)
+            base_index = faiss.read_index(str(self.index_path))
+            category_rows: dict[str, list[dict[str, object]]] = {}
+            category_vectors: dict[str, list[np.ndarray]] = {}
+            for row in metadata_items:
+                item_id = int(row["id"])
+                category = str(row["category"])
+                vector = np.asarray(base_index.reconstruct(item_id), dtype=np.float32)
+                category_rows.setdefault(category, []).append(row)
+                category_vectors.setdefault(category, []).append(vector)
+        except Exception as exc:  # noqa: BLE001
+            self.last_trace["load_error"] = f"{type(exc).__name__}: {exc}"
+            return False
 
         for category, vectors in category_vectors.items():
             matrix = np.vstack(vectors).astype(np.float32)
@@ -200,6 +234,14 @@ class SemanticTagMapper:
             self._category_rows[category] = category_rows[category]
 
         self._loaded = True
+        self.last_trace = {
+            "path": "semantic_mapping",
+            "status": "index_loaded",
+            "index_path": str(self.index_path),
+            "metadata_path": str(self.metadata_path),
+            "metadata_items": len(metadata_items),
+            "categories": {category: len(rows) for category, rows in self._category_rows.items()},
+        }
         return True
 
     def _embed_texts(self, texts: list[str]) -> np.ndarray:
@@ -224,7 +266,13 @@ class SemanticTagMapper:
         if OpenAI is None:
             raise RuntimeError("openai is required for semantic tag mapping.")
         if self._client is None:
-            self._client = OpenAI(api_key=api_key)
+            embedding_base_url = (
+                os.getenv("OPENAI_EMBEDDINGS_BASE_URL")
+                or os.getenv("OPENAI_EMBEDDING_BASE_URL")
+                or os.getenv("BASE_URL")
+                or "https://api.openai.com/v1"
+            )
+            self._client = OpenAI(api_key=api_key, base_url=embedding_base_url)
         response = self._client.embeddings.create(
             model=self.embedding_model,
             input=texts,
@@ -291,3 +339,10 @@ class SemanticTagMapper:
         return SemanticMappingResult(
             mapped_items=mapped_items,
         )
+
+
+def _env_flag(name: str, default: bool = False) -> bool:
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
+    return raw_value.strip().lower() in {"1", "true", "yes", "on"}

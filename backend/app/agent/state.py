@@ -44,6 +44,7 @@ class AgentState(TypedDict, total=False):
 
     # Trace đầy đủ từ QueryUnderstandingPipeline — dùng cho debug / analytics
     qu_trace: dict[str, Any]
+    updated_user_profile: dict[str, Any]
 
     # ── Recommend pipeline ───────────────────────────────────────────────────
     recommend_input: RecommendInput

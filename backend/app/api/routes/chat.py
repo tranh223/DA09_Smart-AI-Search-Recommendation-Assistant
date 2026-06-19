@@ -163,16 +163,18 @@ async def chat(req: ChatRequest, request: Request) -> APIResponse:
             detail="Service unavailable: workflow engine failed to initialize.",
         )
 
-    user_profile: dict[str, Any] = {**req.user_profile, "user_id": req.user_id}
+    fallback_user_profile: dict[str, Any] = {**req.user_profile, "user_id": req.user_id}
     if req.slots:
-        user_profile = _merge_slots_into_profile(user_profile, req.slots)
+        fallback_user_profile = _merge_slots_into_profile(fallback_user_profile, req.slots)
 
     state: dict[str, Any] = {
         "request_id": req_id,
         "user_id": req.user_id,
         "session_id": req.session_id,
         "raw_query": req.query,
-        "user_profile": user_profile,
+        # Backward-compatible seed only. session_node replaces this with
+        # server-side state from MongoDB when available.
+        "user_profile": fallback_user_profile,
         "slots": req.slots,
         "candidate_limit_per_source": req.candidate_limit_per_source,
         "rerank_options": req.rerank_options,

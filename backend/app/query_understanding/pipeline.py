@@ -1,6 +1,12 @@
+import json
+import logging
+import os
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from query_understanding.checker import ModelChecker
@@ -29,6 +35,32 @@ from query_understanding.session_profile import (
     SessionProfileUpdater,
     normalize_long_term_trip_type_value,
 )
+
+logger = logging.getLogger(__name__)
+_BACKEND_DIR = Path(__file__).resolve().parents[2]
+_QU_TRACE_DIR = Path(os.getenv("QU_TRACE_LOG_DIR", str(_BACKEND_DIR / "logs")))
+JSON_TRACE_FILES = {
+    "user_profile": Path(
+        os.getenv("QU_USER_PROFILE_LOG_FILE", str(_QU_TRACE_DIR / "qu_user_profile.json"))
+    ),
+    "active_user_profile": Path(
+        os.getenv("QU_ACTIVE_USER_PROFILE_LOG_FILE", str(_QU_TRACE_DIR / "qu_active_user_profile.json"))
+    ),
+    "current_active_profile": Path(
+        os.getenv(
+            "QU_CURRENT_ACTIVE_PROFILE_LOG_FILE",
+            str(_QU_TRACE_DIR / "qu_current_active_profile.json"),
+        )
+    ),
+    "tag_mapping": Path(
+        os.getenv("QU_TAG_MAPPING_LOG_FILE", str(_QU_TRACE_DIR / "qu_tag_mapping.json"))
+    ),
+    "query_classification": Path(
+        os.getenv("QU_QUERY_CLASSIFICATION_LOG_FILE", str(_QU_TRACE_DIR / "qu_query_classification.json"))
+    ),
+}
+_JSON_TRACE_LOCK = threading.Lock()
+
 
 @dataclass(slots=True)
 class PipelineTrace:
@@ -86,6 +118,29 @@ class QueryUnderstandingPipeline:
         coerce_start = time.perf_counter()
         user_profile = self._coerce_user_profile(user_profile_input)
         timing["user_profile_coerce_ms"] = _elapsed_ms(coerce_start)
+        _log_qu_trace(
+            "user_profile_coerced",
+            {
+                "user_id": user_profile.user_id,
+                "user_profile": asdict(user_profile),
+                "session_context": asdict(user_profile.session_context),
+            },
+        )
+        _log_qu_json(
+            "user_profile",
+            "user_profile_coerced",
+            {
+                "user_id": user_profile.user_id,
+                "query": query,
+                "long_term_profile": asdict(user_profile.long_term_profile),
+                "session_context": asdict(user_profile.session_context),
+            },
+        )
+        self._log_current_active_profile_snapshot(
+            query=query,
+            user_profile=user_profile,
+            stage="request_state_loaded",
+        )
         recent_user_queries = self._recent_user_queries(conversation_history)
         guardrail_start = time.perf_counter()
         guardrail_result = self.guardrail.classify(
@@ -94,8 +149,32 @@ class QueryUnderstandingPipeline:
             recent_user_queries=recent_user_queries,
         )
         timing["guardrail_ms"] = _elapsed_ms(guardrail_start)
+        _log_qu_json(
+            "query_classification",
+            "guardrail_classified",
+            {
+                "user_id": user_profile.user_id,
+                "query": query,
+                "guardrail": asdict(guardrail_result),
+                "guardrail_trace": dict(self.guardrail.last_trace),
+            },
+        )
         if not guardrail_result.allow:
             timing["total_pipeline_ms"] = _elapsed_ms(pipeline_start)
+            _log_qu_json(
+                "query_classification",
+                "query_classified",
+                {
+                    "user_id": user_profile.user_id,
+                    "query": query,
+                    "classification": "blocked_by_guardrail",
+                    "can_build_plan": False,
+                    "guardrail": asdict(guardrail_result),
+                    "missing_fields": [],
+                    "search_plan": {},
+                    "router": {},
+                },
+            )
             return PipelineResult(
                 trace=PipelineTrace(
                     query=query,
@@ -143,6 +222,7 @@ class QueryUnderstandingPipeline:
             ), precheck_extract_detail = self._extract_merge_current_profile_with_timing(
                 query,
                 user_profile,
+                conversation_history=conversation_history or [],
             )
             timing["precheck_extract_merge_ms"] = _elapsed_ms(precheck_extract_start)
             timing["precheck_extract_merge_detail"] = precheck_extract_detail
@@ -162,6 +242,31 @@ class QueryUnderstandingPipeline:
 
         if not plan_readiness.can_build_plan:
             timing["total_pipeline_ms"] = _elapsed_ms(pipeline_start)
+            _log_qu_json(
+                "query_classification",
+                "query_classified",
+                {
+                    "user_id": user_profile.user_id,
+                    "query": query,
+                    "classification": "clarification_needed",
+                    "can_build_plan": False,
+                    "guardrail": asdict(guardrail_result),
+                    "initial_plan_readiness": asdict(initial_plan_readiness),
+                    "plan_readiness": asdict(plan_readiness),
+                    "post_extract_plan_readiness": (
+                        asdict(post_extract_plan_readiness) if post_extract_plan_readiness else {}
+                    ),
+                    "intent": asdict(precheck_intent_result) if precheck_intent_result else {},
+                    "conversation_history": (
+                        dict(self.intent_extractor.last_trace).get("conversation_history", [])
+                        if precheck_intent_result
+                        else []
+                    ),
+                    "missing_fields": getattr(plan_readiness, "missing_fields", []),
+                    "search_plan": {},
+                    "router": {},
+                },
+            )
             return PipelineResult(
                 trace=PipelineTrace(
                     query=query,
@@ -216,6 +321,7 @@ class QueryUnderstandingPipeline:
                 self._timed_extract_merge_current_profile,
                 query,
                 user_profile,
+                conversation_history or [],
             )
             search_plan_result, search_plan_ms = search_plan_future.result()
             (intent_result, session_update, active_profile), extract_merge_ms, extract_merge_detail = (
@@ -237,6 +343,29 @@ class QueryUnderstandingPipeline:
         )
         timing["router_ms"] = _elapsed_ms(router_start)
         timing["total_pipeline_ms"] = _elapsed_ms(pipeline_start)
+        _log_qu_json(
+            "query_classification",
+            "query_classified",
+            {
+                "user_id": user_profile.user_id,
+                "query": query,
+                "classification": "plan_ready",
+                "can_build_plan": True,
+                "guardrail": asdict(guardrail_result),
+                "initial_plan_readiness": asdict(initial_plan_readiness),
+                "plan_readiness": asdict(plan_readiness),
+                "intent": asdict(intent_result),
+                "conversation_history": dict(self.intent_extractor.last_trace).get("conversation_history", []),
+                "search_plan": asdict(search_plan_result),
+                "router": asdict(router_result),
+                "recommendation_intent_types": [
+                    str(step.intent_type) for step in router_result.recommendation_plan
+                ],
+                "rag_intent_types": [
+                    str(step.intent_type) for step in router_result.rag_plan
+                ],
+            },
+        )
 
         return PipelineResult(
             trace=PipelineTrace(
@@ -273,10 +402,12 @@ class QueryUnderstandingPipeline:
         self,
         query: str,
         user_profile: UserProfile,
+        conversation_history: list[dict[str, str]] | None = None,
     ) -> tuple[Any, SessionProfileUpdateResult, ActiveProfile]:
         result, _ = self._extract_merge_current_profile_with_timing(
             query,
             user_profile,
+            conversation_history=conversation_history,
         )
         return result
 
@@ -284,21 +415,63 @@ class QueryUnderstandingPipeline:
         self,
         query: str,
         user_profile: UserProfile,
+        conversation_history: list[dict[str, str]] | None = None,
     ) -> tuple[tuple[Any, SessionProfileUpdateResult, ActiveProfile], dict[str, float]]:
         detail_start = time.perf_counter()
         intent_start = time.perf_counter()
         intent_result = self.intent_extractor.extract(
             query,
             user_id=user_profile.user_id,
+            conversation_history=conversation_history,
         )
         intent_extract_ms = _elapsed_ms(intent_start)
+        _log_qu_trace(
+            "intent_extracted",
+            {
+                "user_id": user_profile.user_id,
+                "query": query,
+                "conversation_history": dict(self.intent_extractor.last_trace).get("conversation_history", []),
+                "intent": asdict(intent_result),
+            },
+        )
         semantic_mapping_start = time.perf_counter()
         semantic_mapping = self.semantic_mapper.map_items(intent_result.semantic_preferences.items)
         semantic_mapping_ms = _elapsed_ms(semantic_mapping_start)
+        _log_qu_trace(
+            "tag_mapping_completed",
+            {
+                "user_id": user_profile.user_id,
+                "semantic_mapping": asdict(semantic_mapping),
+                "semantic_mapper_trace": dict(self.semantic_mapper.last_trace),
+            },
+        )
         tag_graph_expansion_start = time.perf_counter()
         graph_seed_items = self._build_tag_graph_seed_items(intent_result, semantic_mapping)
         runtime_tag_expansion = self.tag_graph_expander.expand_mapping(graph_seed_items)
         tag_graph_expansion_ms = _elapsed_ms(tag_graph_expansion_start)
+        _log_qu_trace(
+            "tag_graph_expansion_completed",
+            {
+                "user_id": user_profile.user_id,
+                "graph_seed_items": [asdict(item) for item in graph_seed_items],
+                "runtime_tag_expansion": asdict(runtime_tag_expansion),
+                "tag_graph_expansion_trace": dict(self.tag_graph_expander.last_trace),
+            },
+        )
+        _log_qu_json(
+            "tag_mapping",
+            "tag_mapping_completed",
+            {
+                "user_id": user_profile.user_id,
+                "query": query,
+                "semantic_preferences": asdict(intent_result.semantic_preferences),
+                "semantic_mapping": asdict(semantic_mapping),
+                "semantic_mapper_trace": dict(self.semantic_mapper.last_trace),
+                "graph_seed_items": [asdict(item) for item in graph_seed_items],
+                "runtime_tag_expansion": asdict(runtime_tag_expansion),
+                "tag_graph_expansion_trace": dict(self.tag_graph_expander.last_trace),
+            },
+        )
         session_update_start = time.perf_counter()
         session_update = self._apply_session_profile_update(
             user_profile,
@@ -308,9 +481,36 @@ class QueryUnderstandingPipeline:
             query=query,
         )
         session_profile_update_ms = _elapsed_ms(session_update_start)
+        _log_qu_trace(
+            "session_context_updated",
+            {
+                "user_id": user_profile.user_id,
+                "applied_updates": dict(session_update.applied_updates),
+                "session_context": asdict(user_profile.session_context),
+                "semantic_mapping": dict(session_update.semantic_mapping),
+            },
+        )
         active_profile_start = time.perf_counter()
         active_profile = self._build_active_profile(user_profile)
         active_profile_merge_ms = _elapsed_ms(active_profile_start)
+        _log_qu_json(
+            "active_user_profile",
+            "active_user_profile_merged",
+            {
+                "user_id": user_profile.user_id,
+                "query": query,
+                "active_profile": asdict(active_profile),
+                "updated_session_context": asdict(user_profile.session_context),
+                "applied_updates": dict(session_update.applied_updates),
+            },
+        )
+        self._log_current_active_profile_snapshot(
+            query=query,
+            user_profile=user_profile,
+            active_profile=active_profile,
+            stage="after_session_profile_update",
+            applied_updates=dict(session_update.applied_updates),
+        )
         detail = {
             "intent_extract_ms": intent_extract_ms,
             "semantic_mapping_ms": semantic_mapping_ms,
@@ -334,9 +534,14 @@ class QueryUnderstandingPipeline:
         self,
         query: str,
         user_profile: UserProfile,
+        conversation_history: list[dict[str, str]] | None = None,
     ) -> tuple[tuple[Any, SessionProfileUpdateResult, ActiveProfile], float, dict[str, float]]:
         start = time.perf_counter()
-        result, detail = self._extract_merge_current_profile_with_timing(query, user_profile)
+        result, detail = self._extract_merge_current_profile_with_timing(
+            query,
+            user_profile,
+            conversation_history=conversation_history,
+        )
         return result, _elapsed_ms(start), detail
 
     @staticmethod
@@ -346,6 +551,8 @@ class QueryUnderstandingPipeline:
         queries: list[str] = []
         for item in conversation_history[-5:]:
             query = str(item.get("user_query", "")).strip()
+            if not query and str(item.get("role", "")).strip().lower() == "user":
+                query = str(item.get("content", "")).strip()
             if query:
                 queries.append(query)
         return queries
@@ -370,6 +577,33 @@ class QueryUnderstandingPipeline:
     def _build_active_profile(self, user_profile: UserProfile) -> ActiveProfile:
         merger = getattr(self, "current_profile_merger", None) or CurrentProfileMerger()
         return merger.merge(user_profile)
+
+    def _log_current_active_profile_snapshot(
+        self,
+        *,
+        query: str,
+        user_profile: UserProfile,
+        stage: str,
+        active_profile: ActiveProfile | None = None,
+        applied_updates: dict[str, Any] | None = None,
+    ) -> None:
+        try:
+            snapshot_active_profile = active_profile or self._build_active_profile(user_profile)
+            _log_qu_json(
+                "current_active_profile",
+                "current_active_profile_snapshot",
+                {
+                    "user_id": user_profile.user_id,
+                    "query": query,
+                    "stage": stage,
+                    "active_profile": asdict(snapshot_active_profile),
+                    "long_term_profile": asdict(user_profile.long_term_profile),
+                    "session_context": asdict(user_profile.session_context),
+                    "applied_updates": applied_updates or {},
+                },
+            )
+        except Exception:
+            logger.exception("Failed to log current active profile snapshot.")
 
     def _build_tag_graph_seed_items(
         self,
@@ -559,3 +793,55 @@ class QueryUnderstandingPipeline:
 
 def _elapsed_ms(start: float) -> float:
     return round((time.perf_counter() - start) * 1000, 3)
+
+
+def _log_qu_trace(event: str, payload: dict[str, Any]) -> None:
+    try:
+        logger.info(
+            "query_understanding_trace %s",
+            json.dumps(
+                {
+                    "event": event,
+                    **payload,
+                },
+                ensure_ascii=False,
+                default=str,
+            ),
+        )
+    except Exception:
+        logger.exception("Failed to write query understanding trace log.")
+
+
+def _log_qu_json(log_name: str, event: str, payload: dict[str, Any]) -> None:
+    try:
+        path = JSON_TRACE_FILES.get(log_name)
+        if path is None:
+            return
+        record = {
+            "event": event,
+            "logged_at": datetime.now(timezone.utc).isoformat(),
+            **payload,
+        }
+        _append_json_record(path, record)
+    except Exception:
+        logger.exception("Failed to write query understanding JSON trace.")
+
+
+def _append_json_record(path: Path, record: dict[str, Any]) -> None:
+    with _JSON_TRACE_LOCK:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        records: list[dict[str, Any]] = []
+        if path.exists() and path.stat().st_size > 0:
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                if isinstance(payload, list):
+                    records = [item for item in payload if isinstance(item, dict)]
+            except json.JSONDecodeError:
+                records = []
+        records.append(record)
+        tmp_path = path.with_suffix(path.suffix + ".tmp")
+        tmp_path.write_text(
+            json.dumps(records, ensure_ascii=False, default=str, indent=2),
+            encoding="utf-8",
+        )
+        tmp_path.replace(path)

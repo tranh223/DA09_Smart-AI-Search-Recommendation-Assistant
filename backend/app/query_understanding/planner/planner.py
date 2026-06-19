@@ -83,19 +83,48 @@ class SearchPlanner:
     def _normalize_history(conversation_history: list[dict[str, str]] | None) -> list[dict[str, str]]:
         if not conversation_history:
             return []
-        normalized: list[dict[str, str]] = []
-        for item in conversation_history[-10:]:
+        legacy_turns: list[dict[str, str]] = []
+        role_messages: list[dict[str, str]] = []
+        for item in conversation_history:
+            if not isinstance(item, dict):
+                continue
             user_query = str(item.get("user_query", "")).strip()
             llm_answer = str(item.get("llm_answer", "")).strip()
-            if not user_query and not llm_answer:
+            if user_query or llm_answer:
+                legacy_turns.append(
+                    {
+                        "user_query": user_query,
+                        "llm_answer": llm_answer,
+                    }
+                )
                 continue
-            normalized.append(
-                {
-                    "user_query": user_query,
-                    "llm_answer": llm_answer,
-                }
-            )
-        return normalized
+
+            role = str(item.get("role", "")).strip().lower()
+            content = str(item.get("content", "")).strip()
+            if role in {"user", "assistant"} and content:
+                role_messages.append({"role": role, "content": content})
+
+        if legacy_turns:
+            return legacy_turns[-10:]
+
+        turns: list[dict[str, str]] = []
+        current_user_query: str | None = None
+        for message in role_messages:
+            role = message["role"]
+            content = message["content"]
+            if role == "user":
+                if current_user_query is not None:
+                    turns.append({"user_query": current_user_query, "llm_answer": ""})
+                current_user_query = content
+                continue
+            if role == "assistant" and current_user_query is not None:
+                turns.append({"user_query": current_user_query, "llm_answer": content})
+                current_user_query = None
+
+        if current_user_query is not None:
+            turns.append({"user_query": current_user_query, "llm_answer": ""})
+
+        return turns[-10:]
 
     @staticmethod
     def _build_input_text(
