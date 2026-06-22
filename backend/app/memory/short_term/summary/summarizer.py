@@ -19,6 +19,7 @@ def summarize_chat(summary: str, history: list, user_id: str) -> tuple[str, list
     output: new_summary, new_history
     '''
     TRIGGER_THRESHOLD = 6
+    RECENT_MESSAGES_TO_KEEP = 4
     if len(history) < TRIGGER_THRESHOLD:
         return summary, history    
     # system_prompt = (
@@ -64,7 +65,8 @@ def summarize_chat(summary: str, history: list, user_id: str) -> tuple[str, list
                 print("✅ [summarize_chat] Đã cập nhật Summary mới vào MongoDB thành công.")
             else:
                 print("❌ [summarize_chat] Hàm update_summary báo lỗi DB, nhưng vẫn trả về summary mới cho runtime.")        
-        new_history = [] 
+        # Keep the last two turns available for short follow-up understanding.
+        new_history = history[-RECENT_MESSAGES_TO_KEEP:]
         return new_summary, new_history
     except Exception as e:
         print(f"❌ [summarize_chat] Lỗi khi gọi OpenAI API: {str(e)}")

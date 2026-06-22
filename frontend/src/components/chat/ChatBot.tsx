@@ -290,7 +290,7 @@ export function ChatBot({ isOpen, onOpen, onClose, onRecommend, onClearRecommend
     setIsTyping(true);
     try {
       const data = await sendChatMessage({
-        user_id: 'frontend-user',
+        user_id: 'user_001',
         session_id: sessionId.current,
         query: txt,
         rerank_options: { top_k: 5 },
