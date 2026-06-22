@@ -76,9 +76,8 @@ def _load_chat_history(user_id: str) -> list[dict[str, Any]]:
         return []
     try:
         from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
-        from app.utils.util import transform_id  # noqa: PLC0415
         summaries = get_collection("Summary")
-        doc = summaries.find_one({"user_id": transform_id(user_id)}, {"history": 1})
+        doc = summaries.find_one({"user_id": user_id}, {"history": 1})
         if not doc or not isinstance(doc.get("history"), list):
             return []
         normalized: list[dict[str, Any]] = []
@@ -774,11 +773,10 @@ def _persist_chat_history_directly(
         return
     try:
         from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
-        from app.utils.util import transform_id  # noqa: PLC0415
 
         summaries = get_collection("Summary")
         summaries.update_one(
-            {"user_id": transform_id(user_id)},
+            {"user_id": user_id},
             {
                 "$push": {
                     "history": {
