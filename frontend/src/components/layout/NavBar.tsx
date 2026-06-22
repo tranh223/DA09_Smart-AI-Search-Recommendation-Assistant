@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { t } from '../../styles/theme';
 import { useAuth } from '../../hooks/useAuth';
-import { AuthModal } from '../auth/AuthModal';
 
 export type Route = 'home' | 'hotels';
 
@@ -15,7 +14,6 @@ const LINKS: { label: string; route?: Route }[] = [
 
 export function NavBar({ active, onNavigate }: { active?: Route; onNavigate?: (route: Route) => void } = {}) {
   const { user, role, logout } = useAuth();
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -92,162 +90,125 @@ export function NavBar({ active, onNavigate }: { active?: Route; onNavigate?: (r
         </ul>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {user ? (
-            /* ── Logged in: Avatar + dropdown ── */
-            <div ref={dropdownRef} style={{ position: 'relative' }}>
-              <button
-                onClick={() => setShowDropdown(d => !d)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  background: 'none',
-                  border: `1px solid ${t.border}`,
-                  borderRadius: t.rPill,
-                  padding: '6px 16px 6px 6px',
-                  cursor: 'pointer',
-                  transition: 'border-color .2s, box-shadow .2s',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.borderColor = t.borderStrong;
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(28,27,25,0.08)';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.borderColor = t.border;
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                {/* Avatar circle */}
-                <div style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '50%',
-                  background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`,
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontFamily: t.font,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  letterSpacing: '0.02em',
-                  flexShrink: 0,
-                }}>
-                  {initials}
-                </div>
-                <span style={{
-                  fontFamily: t.font,
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: t.ink,
-                  maxWidth: 120,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}>
-                  {user.name}
-                </span>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{
-                  transition: 'transform .2s',
-                  transform: showDropdown ? 'rotate(180deg)' : '',
-                }}>
-                  <path d="M3 4.5L6 7.5L9 4.5" stroke={t.ink3} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-
-              {/* Dropdown */}
-              {showDropdown && (
-                <div style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 8px)',
-                  right: 0,
-                  minWidth: 200,
-                  background: t.surface,
-                  border: `1px solid ${t.border}`,
-                  borderRadius: 12,
-                  boxShadow: t.shadow,
-                  padding: '8px 0',
-                  animation: 'navDropIn .15s ease',
-                  zIndex: 200,
-                }}>
-                  {/* User info */}
-                  <div style={{
-                    padding: '12px 16px',
-                    borderBottom: `1px solid ${t.border}`,
-                  }}>
-                    <div style={{ fontFamily: t.font, fontSize: 14, fontWeight: 600, color: t.ink }}>
-                      {user.name}
-                    </div>
-                    <div style={{ fontFamily: t.font, fontSize: 12, color: t.ink3, marginTop: 2 }}>
-                      {role === 'admin' ? '👑 Admin' : '👤 User'} · {user.user_id}
-                    </div>
-                  </div>
-
-                  {/* Logout */}
-                  <button
-                    onClick={() => { logout(); setShowDropdown(false); }}
-                    style={{
-                      width: '100%',
-                      padding: '10px 16px',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontFamily: t.font,
-                      fontSize: 13,
-                      fontWeight: 500,
-                      color: '#B91C1C',
-                      textAlign: 'left',
-                      transition: 'background .15s',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.background = '#FEF2F2')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                  >
-                    <span>🚪</span> Đăng xuất
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            /* ── Not logged in: Login button ── */
+          {/* ── Logged in: Avatar + dropdown ── */}
+          <div ref={dropdownRef} style={{ position: 'relative' }}>
             <button
-              id="nav-login-btn"
-              onClick={() => setShowAuthModal(true)}
+              onClick={() => setShowDropdown(d => !d)}
               style={{
-                background: t.navy,
-                color: t.onNavy,
-                padding: '11px 24px',
-                borderRadius: t.rPill,
-                fontFamily: t.font,
-                fontSize: '14px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                border: 'none',
-                textDecoration: 'none',
-                display: 'inline-flex',
+                display: 'flex',
                 alignItems: 'center',
-                gap: 8,
-                transition: 'background .15s, transform .15s',
+                gap: 10,
+                background: 'none',
+                border: `1px solid ${t.border}`,
+                borderRadius: t.rPill,
+                padding: '6px 16px 6px 6px',
+                cursor: 'pointer',
+                transition: 'border-color .2s, box-shadow .2s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = t.navyHover; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = t.navy; e.currentTarget.style.transform = ''; }}
+              onMouseEnter={e => {
+                e.currentTarget.style.borderColor = t.borderStrong;
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(28,27,25,0.08)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.borderColor = t.border;
+                e.currentTarget.style.boxShadow = 'none';
+              }}
             >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.5"/>
-                <path d="M2.5 14C2.5 11.5 5 10 8 10C11 10 13.5 11.5 13.5 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              {/* Avatar circle */}
+              <div style={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                background: `linear-gradient(135deg, ${t.accent}, ${t.accentDark})`,
+                color: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontFamily: t.font,
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                flexShrink: 0,
+              }}>
+                {initials}
+              </div>
+              <span style={{
+                fontFamily: t.font,
+                fontSize: 13,
+                fontWeight: 500,
+                color: t.ink,
+                maxWidth: 120,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}>
+                {user?.name || 'User'}
+              </span>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{
+                transition: 'transform .2s',
+                transform: showDropdown ? 'rotate(180deg)' : '',
+              }}>
+                <path d="M3 4.5L6 7.5L9 4.5" stroke={t.ink3} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Đăng nhập
             </button>
-          )}
+
+            {/* Dropdown */}
+            {showDropdown && (
+              <div style={{
+                position: 'absolute',
+                top: 'calc(100% + 8px)',
+                right: 0,
+                minWidth: 200,
+                background: t.surface,
+                border: `1px solid ${t.border}`,
+                borderRadius: 12,
+                boxShadow: t.shadow,
+                padding: '8px 0',
+                animation: 'navDropIn .15s ease',
+                zIndex: 200,
+              }}>
+                {/* User info */}
+                <div style={{
+                  padding: '12px 16px',
+                  borderBottom: `1px solid ${t.border}`,
+                }}>
+                  <div style={{ fontFamily: t.font, fontSize: 14, fontWeight: 600, color: t.ink }}>
+                    {user?.name}
+                  </div>
+                  <div style={{ fontFamily: t.font, fontSize: 12, color: t.ink3, marginTop: 2 }}>
+                    {role === 'admin' ? '👑 Admin' : '👤 User'} · {user?.user_id}
+                  </div>
+                </div>
+
+                {/* Logout */}
+                <button
+                  onClick={() => { logout(); setShowDropdown(false); }}
+                  style={{
+                    width: '100%',
+                    padding: '10px 16px',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontFamily: t.font,
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: '#B91C1C',
+                    textAlign: 'left',
+                    transition: 'background .15s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#FEF2F2')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                >
+                  <span>🚪</span> Đăng xuất
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </nav>
-
-      {/* Auth Modal */}
-      {showAuthModal && (
-        <AuthModal onClose={() => setShowAuthModal(false)} />
-      )}
 
       {/* Dropdown animation */}
       <style>{`

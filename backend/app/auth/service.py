@@ -29,12 +29,13 @@ USER_PROFILE_COLLECTION = os.getenv("MONGODB_USER_PROFILE_COLLECTION", "Users")
 def _generate_user_id() -> str:
     """Generate the next ``user_XXX`` id by auto-incrementing.
 
-    Scans the Account collection for the highest existing ``user_id``
+    Scans both Account and Users collections for the highest existing ``user_id``
     matching the pattern ``user_\\d+`` and returns the next integer.
-    Falls back to ``user_001`` if the collection is empty.
+    Falls back to ``user_001`` if the collections are empty.
     """
-    col = get_collection(ACCOUNT_COLLECTION)
-    # Find the document with the largest numeric user_id
+    account_col = get_collection(ACCOUNT_COLLECTION)
+    users_col = get_collection(USER_PROFILE_COLLECTION)
+
     pipeline = [
         {"$match": {"user_id": {"$regex": r"^user_\d+$"}}},
         {
@@ -49,35 +50,18 @@ def _generate_user_id() -> str:
         {"$sort": {"_num": -1}},
         {"$limit": 1},
     ]
-    results = list(col.aggregate(pipeline))
 
-    if results:
-        max_num = results[0]["_num"]
-        return f"user_{max_num + 1:03d}"
+    max_num = 0
 
-    # Also check Users collection in case Account is empty but Users has data
-    users_col = get_collection(USER_PROFILE_COLLECTION)
-    users_pipeline = [
-        {"$match": {"user_id": {"$regex": r"^user_\d+$"}}},
-        {
-            "$addFields": {
-                "_num": {
-                    "$toInt": {
-                        "$arrayElemAt": [{"$split": ["$user_id", "_"]}, 1]
-                    }
-                }
-            }
-        },
-        {"$sort": {"_num": -1}},
-        {"$limit": 1},
-    ]
-    users_results = list(users_col.aggregate(users_pipeline))
+    acc_results = list(account_col.aggregate(pipeline))
+    if acc_results:
+        max_num = max(max_num, acc_results[0]["_num"])
 
-    if users_results:
-        max_num = users_results[0]["_num"]
-        return f"user_{max_num + 1:03d}"
+    usr_results = list(users_col.aggregate(pipeline))
+    if usr_results:
+        max_num = max(max_num, usr_results[0]["_num"])
 
-    return "user_001"
+    return f"user_{max_num + 1:03d}"
 
 
 def _serialize_user_profile(doc: dict[str, Any] | None) -> dict[str, Any]:

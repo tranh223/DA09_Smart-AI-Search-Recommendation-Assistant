@@ -1,12 +1,10 @@
-// AuthModal — modal đăng nhập / đăng ký, editorial-style matching VinJourney theme.
-
 import { useState, type CSSProperties, type FormEvent } from 'react';
-import { t } from '../../styles/theme';
-import { useAuth } from '../../hooks/useAuth';
+import { t } from '../styles/theme';
+import { useAuth } from '../hooks/useAuth';
 
 type Mode = 'login' | 'register';
 
-export function AuthModal({ onClose }: { onClose: () => void }) {
+export function AuthPage() {
   const { login, register, loading, error, clearError } = useAuth();
   const [mode, setMode] = useState<Mode>('login');
   const [username, setUsername] = useState('');
@@ -30,7 +28,7 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
       } else {
         await register(username, password, name);
       }
-      onClose();
+      // App.tsx will automatically re-render and navigate away when `user` state updates
     } catch {
       // error is set via context
     }
@@ -42,70 +40,117 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
       : username.length >= 3 && password.length >= 6 && name.length >= 1;
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        onClick={onClose}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(28,27,25,0.45)',
-          backdropFilter: 'blur(6px)',
-          zIndex: 9998,
-          animation: 'authFadeIn .25s ease',
-        }}
-      />
-
-      {/* Modal */}
-      <div style={{
-        position: 'fixed',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        zIndex: 9999,
-        width: 420,
-        maxWidth: 'calc(100vw - 32px)',
-        background: t.surface,
-        borderRadius: t.rPanel,
-        boxShadow: t.shadowLg,
-        overflow: 'hidden',
-        animation: 'authSlideUp .3s cubic-bezier(.16,1,.3,1)',
+    <div style={{
+      display: 'flex',
+      minHeight: '100vh',
+      background: t.bg,
+      fontFamily: t.font,
+    }}>
+      {/* Lưng chừng màn hình bên trái: Hình ảnh du lịch truyền cảm hứng (ẩn trên mobile) */}
+      <div className="auth-hero" style={{
+        flex: 1.2,
+        background: `url('https://images.unsplash.com/photo-1542314831-c53cd4b85d05?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat`,
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        padding: '60px',
+        color: '#fff',
       }}>
-        {/* Header accent bar */}
+        {/* Lớp overlay đen mờ cho ảnh dễ nhìn chữ */}
         <div style={{
-          height: 4,
-          background: `linear-gradient(90deg, ${t.accent}, ${t.accentDark})`,
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%)',
         }} />
 
-        <div style={{ padding: '36px 36px 32px' }}>
-          {/* Logo */}
-          <div style={{
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h1 style={{
             fontFamily: t.serif,
-            fontSize: 22,
+            fontSize: '32px',
+            fontWeight: 700,
+            letterSpacing: '0.02em',
+            margin: 0,
+          }}>
+            VinJourney
+          </h1>
+        </div>
+
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 480 }}>
+          <h2 style={{
+            fontFamily: t.serif,
+            fontSize: '48px',
+            fontWeight: 600,
+            lineHeight: 1.2,
+            margin: '0 0 16px',
+            textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+          }}>
+            Khám phá thế giới theo cách riêng của bạn.
+          </h2>
+          <p style={{
+            fontSize: '16px',
+            lineHeight: 1.6,
+            color: 'rgba(255,255,255,0.9)',
+            margin: 0,
+          }}>
+            VinBot AI sẽ giúp bạn lập kế hoạch, tìm kiếm khách sạn và tạo ra những lịch trình du lịch cá nhân hoá hoàn hảo nhất.
+          </p>
+        </div>
+      </div>
+
+      {/* Nửa bên phải: Form đăng nhập/đăng ký */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '40px 24px',
+        background: t.surface,
+        position: 'relative',
+      }}>
+        <div style={{ width: '100%', maxWidth: 400 }}>
+          {/* Mobile Header (chỉ hiện khi màn nhỏ, auth-hero bị ẩn) */}
+          <div className="auth-mobile-header" style={{
+            fontFamily: t.serif,
+            fontSize: 28,
             fontWeight: 600,
             color: t.ink,
             textAlign: 'center',
-            marginBottom: 4,
+            marginBottom: 32,
+            display: 'none',
           }}>
             VinJourney
           </div>
-          <p style={{
-            fontFamily: t.font,
-            fontSize: 13,
-            color: t.ink3,
-            textAlign: 'center',
-            marginBottom: 28,
-          }}>
-            {mode === 'login' ? 'Đăng nhập để tiếp tục trải nghiệm' : 'Tạo tài khoản mới'}
-          </p>
+
+          <div style={{ marginBottom: 32 }}>
+            <h2 style={{
+              fontFamily: t.font,
+              fontSize: 28,
+              fontWeight: 700,
+              color: t.ink,
+              margin: '0 0 8px',
+            }}>
+              {mode === 'login' ? 'Chào mừng trở lại' : 'Tạo tài khoản mới'}
+            </h2>
+            <p style={{
+              fontFamily: t.font,
+              fontSize: 15,
+              color: t.ink2,
+              margin: 0,
+            }}>
+              {mode === 'login' 
+                ? 'Đăng nhập để xem lịch sử và nhận gợi ý cá nhân hoá.' 
+                : 'Tham gia VinJourney ngay hôm nay.'}
+            </p>
+          </div>
 
           {/* Tab switcher */}
           <div style={{
             display: 'flex',
             background: t.bgSoft,
             borderRadius: t.rPill,
-            padding: 3,
-            marginBottom: 24,
+            padding: 4,
+            marginBottom: 32,
           }}>
             {(['login', 'register'] as Mode[]).map(m => (
               <button
@@ -113,17 +158,17 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
                 onClick={() => switchMode(m)}
                 style={{
                   flex: 1,
-                  padding: '9px 0',
+                  padding: '10px 0',
                   borderRadius: t.rPill,
                   border: 'none',
                   fontFamily: t.font,
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: 600,
                   cursor: 'pointer',
                   transition: 'all .2s',
                   background: mode === m ? t.surface : 'transparent',
                   color: mode === m ? t.ink : t.ink3,
-                  boxShadow: mode === m ? '0 1px 4px rgba(28,27,25,0.1)' : 'none',
+                  boxShadow: mode === m ? '0 2px 8px rgba(28,27,25,0.08)' : 'none',
                 }}
               >
                 {m === 'login' ? 'Đăng nhập' : 'Đăng ký'}
@@ -134,12 +179,12 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
           {/* Form */}
           <form onSubmit={handleSubmit}>
             {mode === 'register' && (
-              <div style={{ marginBottom: 16 }}>
+              <div style={{ marginBottom: 20 }}>
                 <label style={labelStyle}>Tên hiển thị</label>
                 <input
                   id="auth-name"
                   type="text"
-                  placeholder="Nguyễn Văn A"
+                  placeholder="Ví dụ: Nguyễn Văn A"
                   value={name}
                   onChange={e => setName(e.target.value)}
                   style={inputStyle}
@@ -148,7 +193,7 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
               </div>
             )}
 
-            <div style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 20 }}>
               <label style={labelStyle}>Tên đăng nhập</label>
               <input
                 id="auth-username"
@@ -162,7 +207,7 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
               />
             </div>
 
-            <div style={{ marginBottom: 8 }}>
+            <div style={{ marginBottom: 12 }}>
               <label style={labelStyle}>Mật khẩu</label>
               <div style={{ position: 'relative' }}>
                 <input
@@ -179,19 +224,18 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
                   onClick={() => setShowPassword(p => !p)}
                   style={{
                     position: 'absolute',
-                    right: 12,
+                    right: 14,
                     top: '50%',
                     transform: 'translateY(-50%)',
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
                     color: t.ink3,
-                    fontSize: 18,
+                    fontSize: 20,
                     padding: 0,
                     lineHeight: 1,
                   }}
                   tabIndex={-1}
-                  aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 >
                   {showPassword ? '🙈' : '👁'}
                 </button>
@@ -203,18 +247,18 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
               <div style={{
                 background: '#FEF2F2',
                 border: '1px solid #FECACA',
-                borderRadius: 8,
-                padding: '10px 14px',
-                marginTop: 12,
-                marginBottom: 4,
+                borderRadius: 12,
+                padding: '12px 16px',
+                marginTop: 16,
+                marginBottom: 8,
                 fontFamily: t.font,
-                fontSize: 13,
+                fontSize: 14,
                 color: '#B91C1C',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 8,
+                gap: 10,
               }}>
-                <span>⚠️</span>
+                <span style={{ fontSize: 16 }}>⚠️</span>
                 <span>{error}</span>
               </div>
             )}
@@ -225,14 +269,14 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
               disabled={loading || !isValid}
               style={{
                 width: '100%',
-                marginTop: 20,
-                padding: '13px 0',
+                marginTop: 28,
+                padding: '16px 0',
                 border: 'none',
                 borderRadius: t.rPill,
                 background: isValid ? t.navy : t.bgSoft,
                 color: isValid ? t.onNavy : t.ink3,
                 fontFamily: t.font,
-                fontSize: 14,
+                fontSize: 15,
                 fontWeight: 600,
                 cursor: isValid && !loading ? 'pointer' : 'default',
                 transition: 'all .2s',
@@ -242,67 +286,20 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
               {loading
                 ? '⏳ Đang xử lý...'
                 : mode === 'login'
-                  ? 'Đăng nhập'
-                  : 'Tạo tài khoản'}
+                  ? 'Đăng nhập vào hệ thống'
+                  : 'Tạo tài khoản ngay'}
             </button>
           </form>
-
-          {/* Footer hint */}
-          <p style={{
-            fontFamily: t.font,
-            fontSize: 12,
-            color: t.ink3,
-            textAlign: 'center',
-            marginTop: 20,
-            marginBottom: 0,
-          }}>
-            {mode === 'login'
-              ? <>Chưa có tài khoản?{' '}
-                <span onClick={() => switchMode('register')} style={linkStyle}>Đăng ký ngay</span>
-              </>
-              : <>Đã có tài khoản?{' '}
-                <span onClick={() => switchMode('login')} style={linkStyle}>Đăng nhập</span>
-              </>}
-          </p>
         </div>
-
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          style={{
-            position: 'absolute',
-            top: 16,
-            right: 16,
-            background: 'none',
-            border: 'none',
-            fontSize: 20,
-            color: t.ink3,
-            cursor: 'pointer',
-            lineHeight: 1,
-            padding: 4,
-            borderRadius: 6,
-            transition: 'color .15s',
-          }}
-          aria-label="Đóng"
-          onMouseEnter={e => (e.currentTarget.style.color = t.ink)}
-          onMouseLeave={e => (e.currentTarget.style.color = t.ink3)}
-        >
-          ✕
-        </button>
       </div>
 
-      {/* Animation keyframes */}
       <style>{`
-        @keyframes authFadeIn {
-          from { opacity: 0 }
-          to { opacity: 1 }
-        }
-        @keyframes authSlideUp {
-          from { opacity: 0; transform: translate(-50%, -46%) }
-          to { opacity: 1; transform: translate(-50%, -50%) }
+        @media (max-width: 900px) {
+          .auth-hero { display: none !important; }
+          .auth-mobile-header { display: block !important; }
         }
       `}</style>
-    </>
+    </div>
   );
 }
 
@@ -311,29 +308,22 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
 const labelStyle: CSSProperties = {
   display: 'block',
   fontFamily: t.font,
-  fontSize: 13,
-  fontWeight: 500,
-  color: t.ink2,
-  marginBottom: 6,
+  fontSize: 14,
+  fontWeight: 600,
+  color: t.ink,
+  marginBottom: 8,
 };
 
 const inputStyle: CSSProperties = {
   width: '100%',
-  padding: '11px 14px',
-  border: `1px solid ${t.border}`,
-  borderRadius: 10,
+  padding: '14px 16px',
+  border: `1.5px solid ${t.borderStrong}`,
+  borderRadius: 12,
   fontFamily: t.font,
-  fontSize: 14,
+  fontSize: 15,
   color: t.ink,
   background: t.bg,
   outline: 'none',
   transition: 'border-color .2s, box-shadow .2s',
   boxSizing: 'border-box',
-};
-
-const linkStyle: CSSProperties = {
-  color: t.accent,
-  fontWeight: 600,
-  cursor: 'pointer',
-  textDecoration: 'underline',
 };
