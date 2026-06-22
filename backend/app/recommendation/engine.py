@@ -24,10 +24,11 @@ SEARCH TRENDING      (Neo4j unified template)
 """
 
 from __future__ import annotations
+
 import logging
 from typing import Any
 
-from app.recommendation.models import MergedCandidate, RecommendInput
+from app.recommendation.models import CandidateHotel, MergedCandidate, RecommendInput
 from app.recommendation.candidate_generation.orchestrator import generate_candidates
 from app.recommendation.merge.merger import merge_candidates
 from app.recommendation.rerank.reranker import rerank as rerank_candidates
@@ -39,10 +40,16 @@ logger = logging.getLogger(__name__)
 def run_candidate_pipeline(
     inp: RecommendInput,
     trace: bool = False,
-) -> list[MergedCandidate]:
+    return_stats: bool = False,
+) -> list[MergedCandidate] | tuple[list[MergedCandidate], dict[str, int]]:
     """
     Chạy toàn bộ Candidate Generation → Merge.
-    trace=True → in chi tiết từng bước ra console.
+
+    Args:
+        inp:          RecommendInput từ QueryUnderstanding.
+        trace:        True → log chi tiết từng bước qua ota.trace.rec logger.
+        return_stats: True → trả tuple (merged, raw_source_stats) thay vì chỉ merged.
+                      raw_source_stats = {source_name: count} trước khi dedup.
     """
     tracer = RecommendTrace(enabled=trace)
 
@@ -56,15 +63,19 @@ def run_candidate_pipeline(
         inp.original_query[:60],
     )
 
-    raw_candidates = generate_candidates(inp, trace=tracer if trace else None)
+    raw_candidates: list[CandidateHotel] = generate_candidates(
+        inp, trace=tracer if trace else None
+    )
     logger.info("[Engine] Tổng raw candidates: %d", len(raw_candidates))
 
+    # Tính per-source stats từ raw (trước dedup) — dùng cho FlowTrace
+    raw_source_stats: dict[str, int] = {}
+    for c in raw_candidates:
+        raw_source_stats[c.source] = raw_source_stats.get(c.source, 0) + 1
+
     if trace:
-        by_source: dict[str, int] = {}
-        for c in raw_candidates:
-            by_source[c.source] = by_source.get(c.source, 0) + 1
         tracer.section("⑥ REC_MERGE")
-        tracer.step("raw candidates theo nguồn", by_source)
+        tracer.step("raw candidates theo nguồn", raw_source_stats)
         tracer.step("tổng raw (có trùng hotel_id)", len(raw_candidates))
 
     merged = merge_candidates(raw_candidates)
@@ -74,6 +85,8 @@ def run_candidate_pipeline(
         tracer.step("sau dedup", len(merged))
         tracer.merged(merged)
 
+    if return_stats:
+        return merged, raw_source_stats
     return merged
 
 
@@ -105,6 +118,8 @@ def run_rerank_from_merged(
     if "session_context" not in opts:
         opts["session_context"] = inp.session_context.model_dump()
     opts.setdefault("top_k", 8)
+    # Luôn bật return_debug để FlowTrace có thể lấy filtered_items, scored_items, v.v.
+    opts.setdefault("return_debug", True)
 
     user_context = {
         "session_context": inp.session_context.model_dump(),

@@ -11,6 +11,7 @@ from app.agent.latency import build_latency_summary
 from app.agent.qu_adapter import pipeline_result_to_state
 from app.agent.response_builder import build_response_with_llm
 from app.agent.state import AgentState
+from app.core.trace import current_trace
 from app.recommendation.engine import run_candidate_pipeline, run_rerank_from_merged
 from app.recommendation.models import PriceRange, Profile, RecommendInput, SessionContext
 
@@ -417,8 +418,8 @@ def clarify_node(state: AgentState) -> dict[str, Any]:
     }
 
 
-# ── Rewrite node ──────────────────────────────────────────────────────────────
 
+# ── Rewrite node ──────────────────────────────────────────────────────────────
 def rewrite_node(state: AgentState) -> dict[str, Any]:
     """Query rewrite placeholder — pass-through hiện tại, chờ RAG module."""
     return {"rewritten_query": state.get("raw_query", "")}
@@ -458,15 +459,26 @@ def recommend_node(state: AgentState) -> dict[str, Any]:
     recommend_input = _resolve_recommend_input(state)
     if recommend_input is None:
         logger.warning("[%s][recommend] recommend_input=None (no destination) → empty candidates", req_id)
-        return {"recommend_input": None, "merged_candidates": []}
+        return {"recommend_input": None, "merged_candidates": [], "_raw_source_stats": {}}
     try:
         dst = recommend_input.session_context.destination if hasattr(recommend_input, "session_context") else "?"
     except Exception:  # noqa: BLE001
         dst = "?"
     logger.debug("[%s][recommend] running candidate pipeline  dst=%s", req_id, dst)
-    merged = run_candidate_pipeline(recommend_input, trace=False)
-    logger.debug("[%s][recommend] candidates=%d", req_id, len(merged))
-    return {"recommend_input": recommend_input, "merged_candidates": merged}
+
+    # Bật trace logging khi có FlowTrace (logs chi tiết vào ota.trace.rec file)
+    has_flow_trace = current_trace() is not None
+    merged, raw_source_stats = run_candidate_pipeline(
+        recommend_input,
+        trace=has_flow_trace,
+        return_stats=True,
+    )
+    logger.debug("[%s][recommend] candidates=%d  raw_stats=%s", req_id, len(merged), raw_source_stats)
+    return {
+        "recommend_input": recommend_input,
+        "merged_candidates": merged,
+        "_raw_source_stats": raw_source_stats,  # dùng bởi tracer._ctx_recommend
+    }
 
 
 def _resolve_recommend_input(state: AgentState) -> RecommendInput | None:
@@ -523,7 +535,13 @@ def rerank_node(state: AgentState) -> dict[str, Any]:
         options=state.get("rerank_options"),
     )
     ranked_hotels = rerank_result.get("ranked_hotels") or []
-    logger.debug("[%s][rerank] ranked=%d", req_id, len(ranked_hotels))
+    # Expose debug ke tracer — return_debug=True đã được engine.py set mặc định
+    debug = rerank_result.get("debug") or {}
+    rerank_result["llm_used"] = bool(debug.get("llm_used"))
+    logger.debug("[%s][rerank] ranked=%d  filtered=%s  llm=%s",
+                 req_id, len(ranked_hotels),
+                 debug.get("filtered_count", "?"),
+                 debug.get("llm_used", False))
     ranked_recommendations = [
         {
             "hotel_id": item.get("hotel_id") or item.get("item_id"),
