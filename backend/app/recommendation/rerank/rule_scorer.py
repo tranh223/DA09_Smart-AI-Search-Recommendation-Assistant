@@ -56,9 +56,9 @@ def price_far_outside(profile: dict[str, Any], hotel: dict[str, Any]) -> bool:
     hotel_max = to_float(hotel.get("price_max"), None)
     if user_min is None or user_max is None or hotel_min is None or hotel_max is None:
         return False
-    width = max(user_max - user_min, 1.0)
-    return hotel_min > user_max + width * 0.75 or hotel_max < user_min - width * 0.75
-
+        
+    # Trả về True nếu giá khách sạn hoàn toàn nằm ngoài khoảng giá của user
+    return hotel_min > user_max or hotel_max < user_min
 
 def _neg_score(negative: dict, group: str, key: str | None) -> float:
     """Lấy negative score an toàn, trả 0.0 nếu key là None."""
