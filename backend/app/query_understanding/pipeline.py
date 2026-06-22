@@ -147,6 +147,7 @@ class QueryUnderstandingPipeline:
             query,
             user_id=user_profile.user_id,
             recent_user_queries=recent_user_queries,
+            session_context=asdict(user_profile.session_context),
         )
         timing["guardrail_ms"] = _elapsed_ms(guardrail_start)
         _log_qu_json(
@@ -423,6 +424,7 @@ class QueryUnderstandingPipeline:
             query,
             user_id=user_profile.user_id,
             conversation_history=conversation_history,
+            session_context=asdict(user_profile.session_context),
         )
         intent_extract_ms = _elapsed_ms(intent_start)
         _log_qu_trace(
