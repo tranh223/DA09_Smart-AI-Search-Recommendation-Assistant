@@ -66,19 +66,18 @@ def _candidate_limit_per_source(state: AgentState) -> int:
 
 # ── Session node ─────────────────────────────────────────────────────────────
 
-def _load_chat_history(session_id: str) -> list[dict[str, Any]]:
-    """Load chat history từ MongoDB Sessions collection.
+def _load_chat_history(user_id: str) -> list[dict[str, Any]]:
+    """Load chat history từ MongoDB Summary collection.
 
     Format MongoDB: [{"user_query": "...", "llm_answer": "..."}]
     Normalize sang format QU pipeline: [{"role": "user", "content": "..."}, ...]
     """
-    if not session_id:
+    if not user_id:
         return []
     try:
         from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
-        from app.utils.util import transform_id  # noqa: PLC0415
-        sessions = get_collection("Sessions")
-        doc = sessions.find_one({"_id": transform_id(session_id)}, {"history": 1})
+        summaries = get_collection("Summary")
+        doc = summaries.find_one({"user_id": user_id}, {"history": 1})
         if not doc or not isinstance(doc.get("history"), list):
             return []
         normalized: list[dict[str, Any]] = []
@@ -221,7 +220,7 @@ def session_node(state: AgentState) -> dict[str, Any]:
 
     # Load từ MongoDB (ưu tiên DB, fallback về giá trị client gửi lên)
     history: list[dict[str, Any]] = (
-        _load_chat_history(session_id)
+        _load_chat_history(user_id)
         or state.get("chat_history")
         or []
     )
@@ -661,13 +660,15 @@ def analytics_node(state: AgentState) -> dict[str, Any]:
     )
 
     if session_id:
+        user_id = state.get("user_id") or ""
         _persist_profile_state_directly(
             session_id=session_id,
-            user_id=state.get("user_id") or "",
+            user_id=user_id,
             user_profile=state.get("updated_user_profile") or state.get("user_profile") or {},
         )
         _emit_analytics(
             session_id=session_id,
+            user_id=user_id,
             query=state.get("raw_query") or "",
             final_response=state.get("final_response") or {},
             latency_summary=latency_summary,
@@ -740,6 +741,7 @@ def _persist_profile_state_directly(
 def _emit_analytics(
     *,
     session_id: str,
+    user_id: str,
     query: str,
     final_response: dict[str, Any],
     latency_summary: dict[str, Any],
@@ -750,7 +752,7 @@ def _emit_analytics(
         answer = final_response.get("answer") or ""
         if query and answer:
             _persist_chat_history_directly(
-                session_id=session_id,
+                user_id=user_id,
                 question=query,
                 answer=answer,
             )
@@ -763,34 +765,31 @@ def _emit_analytics(
 
 def _persist_chat_history_directly(
     *,
-    session_id: str,
+    user_id: str,
     question: str,
     answer: str,
 ) -> None:
+    if not user_id:
+        return
     try:
         from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
-        from app.utils.util import transform_id  # noqa: PLC0415
 
-        sessions = get_collection("Sessions")
-        sessions.update_one(
-            {"_id": transform_id(session_id)},
+        summaries = get_collection("Summary")
+        summaries.update_one(
+            {"user_id": user_id},
             {
                 "$push": {
                     "history": {
-                        "user_query": question,
-                        "llm_answer": answer,
+                        "$each": [
+                            {
+                                "user_query": question,
+                                "llm_answer": answer,
+                            }
+                        ],
+                        "$slice": -10,
                     }
                 },
-                "$setOnInsert": {
-                    "num_like": 0,
-                    "num_dislike": 0,
-                    "final_reaction": None,
-                    "latency": [],
-                    "ttft": [],
-                    "booking": False,
-                    "evaluated": False,
-                    "end": None,
-                },
+                "$setOnInsert": {"user_id": user_id},
             },
             upsert=True,
         )
