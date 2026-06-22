@@ -290,13 +290,46 @@ def normalize_budget_by_scope(
     if price_min is None and price_max is None:
         return price_min, price_max
 
-    if price_min is None and price_max is not None:
-        price_min = price_max
-    if price_max is None and price_min is not None:
-        price_max = price_min
-    if price_min is None or price_max is None:
+    if budget_scope == "trip_total":
+        if price_min is not None:
+            price_min = price_min / 4
+        if price_max is not None:
+            price_max = price_max / 4
+
+    if price_min is not None and price_max is not None:
+        if price_min == price_max:
+            return _expand_approximate_budget(price_min)
         return price_min, price_max
 
-    if budget_scope == "trip_total":
-        return price_min / 4, price_max / 4
+    if price_max is not None:
+        return _expand_upper_bound_budget(price_max)
+    if price_min is not None:
+        return _expand_lower_bound_budget(price_min)
     return price_min, price_max
+
+
+def _expand_upper_bound_budget(value: float) -> tuple[float | None, float | None]:
+    ratio = _budget_window_ratio(value)
+    return round(value * (1 - ratio), 2), round(value, 2)
+
+
+def _expand_lower_bound_budget(value: float) -> tuple[float | None, float | None]:
+    ratio = _budget_window_ratio(value)
+    return round(value, 2), round(value * (1 + ratio), 2)
+
+
+def _expand_approximate_budget(value: float) -> tuple[float | None, float | None]:
+    ratio = _budget_window_ratio(value)
+    return round(value * (1 - ratio), 2), round(value * (1 + ratio), 2)
+
+
+def _budget_window_ratio(value: float) -> float:
+    if value < 1_500_000:
+        return 0.50
+    if value < 3_000_000:
+        return 0.40
+    if value < 5_000_000:
+        return 0.30
+    if value < 10_000_000:
+        return 0.25
+    return 0.20

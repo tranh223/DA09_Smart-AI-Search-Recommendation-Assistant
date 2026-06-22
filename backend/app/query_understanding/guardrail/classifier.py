@@ -149,6 +149,10 @@ class OTAGuardrailClassifier:
             self.last_trace = {
                 "path": "rule_based_block",
                 "recent_user_queries": self._normalize_recent_user_queries(recent_user_queries),
+                "prompt_cache": {
+                    "enabled": False,
+                    "reason": "rule_based_block",
+                },
                 "result": {
                     "allow": precheck_result.allow,
                     "category": precheck_result.category,
@@ -157,6 +161,14 @@ class OTAGuardrailClassifier:
             }
             return precheck_result
 
+        prompt_cache = self.client.build_prompt_cache_settings(
+            component_name="qu_guardrail",
+            model=self.model,
+            instructions=GUARDRAIL_INSTRUCTIONS,
+            schema_name="guardrail_result",
+            schema=GUARDRAIL_SCHEMA,
+            strict=True,
+        )
         payload = self.client.create_structured_output(
             model=self.model,
             instructions=GUARDRAIL_INSTRUCTIONS,
@@ -164,10 +176,14 @@ class OTAGuardrailClassifier:
             schema_name="guardrail_result",
             schema=GUARDRAIL_SCHEMA,
             safety_identifier=user_id,
+            prompt_cache_key=prompt_cache.get("prompt_cache_key"),
+            prompt_cache_retention=prompt_cache.get("prompt_cache_retention"),
         )
         self.last_trace = {
             "path": "llm",
             "model": self.model,
+            "prompt_cache": prompt_cache,
+            "response_meta": dict(self.client.last_response_meta),
             "input": {
                 "current_query": query,
                 "recent_user_queries": self._normalize_recent_user_queries(recent_user_queries),
