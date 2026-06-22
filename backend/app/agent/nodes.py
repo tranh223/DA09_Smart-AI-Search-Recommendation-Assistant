@@ -1028,20 +1028,20 @@ def _persist_chat_history_directly(
         from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
 
         summaries = get_collection("Summary")
+        history_item = {"user_query": question, "llm_answer": answer}
+
+        # Atomic push: only push when last element is different (prevents consecutive duplicates)
         summaries.update_one(
-            {"user_id": user_id},
             {
-                "$push": {
-                    "history": {
-                        "$each": [
-                            {
-                                "user_query": question,
-                                "llm_answer": answer,
-                            }
-                        ],
-                        "$slice": -10,
-                    }
-                },
+                "$and": [
+                    {"user_id": user_id},
+                    {
+                        "$expr": {"$ne": [{"$arrayElemAt": ["$history", -1]}, history_item]}
+                    },
+                ]
+            },
+            {
+                "$push": {"history": {"$each": [history_item], "$slice": -10}},
                 "$setOnInsert": {"user_id": user_id},
             },
             upsert=True,
