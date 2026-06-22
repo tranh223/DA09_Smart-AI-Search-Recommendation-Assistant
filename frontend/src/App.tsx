@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { HomePage } from './pages/HomePage';
 import { HotelsPage } from './pages/HotelsPage';
+import { AdminPage } from './pages/AdminPage';
 import { ChatBot } from './components/chat/ChatBot';
 import { type RecoQuery } from './services/hotels';
 import { type Route } from './components/layout/NavBar';
+import { useAuth } from './hooks/useAuth';
 
 export default function App() {
+  const { role } = useAuth();
   const [route, setRoute] = useState<Route>('home');
   const [chatOpen, setChatOpen] = useState(false);
   // Gợi ý của VinBot dưới dạng truy vấn API — hiển thị ở lưới trang Khách sạn.
@@ -17,6 +20,12 @@ export default function App() {
     setChatOpen(true);
   };
 
+  // ── Admin role → trang quản trị ─────────────────────────────────────────────
+  if (role === 'admin') {
+    return <AdminPage onNavigate={setRoute} />;
+  }
+
+  // ── User role (hoặc chưa đăng nhập) → app bình thường ──────────────────────
   return (
     <>
       {route === 'hotels'

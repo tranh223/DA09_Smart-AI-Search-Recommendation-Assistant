@@ -8,13 +8,14 @@ import os
 import time
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 
 from app.agent.graph import build_graph
 from app.agent.tracer import log_flow_end, log_flow_start
 from app.api.middleware import get_request_id
 from app.api.models import APIResponse
+from app.auth.dependencies import get_current_user_dep
 from app.core.trace import FlowTrace, reset_trace, set_current_trace
 
 logger = logging.getLogger(__name__)
@@ -35,9 +36,12 @@ CHAT_TIMEOUT_SECONDS = int(os.getenv("CHAT_TIMEOUT_SECONDS", "90"))
 # ── Request / Response models ─────────────────────────────────────────────────
 
 class ChatRequest(BaseModel):
-    """Main chat request body."""
+    """Main chat request body.
 
-    user_id: str = Field(min_length=1, max_length=128)
+    Note: ``user_id`` is no longer accepted in the body.
+    It is extracted automatically from the JWT Bearer token.
+    """
+
     session_id: str = Field(min_length=1, max_length=128)
     query: str = Field(min_length=1, max_length=2000)
 
@@ -67,9 +71,9 @@ class ChatRequest(BaseModel):
             raise ValueError("query must not be blank")
         return v.strip()
 
-    @field_validator("user_id", "session_id")
+    @field_validator("session_id")
     @classmethod
-    def ids_not_blank(cls, v: str) -> str:
+    def session_id_not_blank(cls, v: str) -> str:
         if not v.strip():
             raise ValueError("must not be blank")
         return v.strip()
@@ -154,8 +158,14 @@ def _build_chat_data(final_response: dict[str, Any]) -> ChatData:
         "next-step suggestions, and per-stage latency."
     ),
 )
-async def chat(req: ChatRequest, request: Request) -> APIResponse:
+async def chat(
+    req: ChatRequest,
+    request: Request,
+    current_user: dict = Depends(get_current_user_dep),
+) -> APIResponse:
     req_id = get_request_id()
+    # user_id is extracted from JWT token, not from request body
+    user_id: str = current_user["account"]["user_id"]
 
     if graph is None:
         logger.error("[%s] graph is None — compilation failed at startup", req_id)
@@ -164,13 +174,13 @@ async def chat(req: ChatRequest, request: Request) -> APIResponse:
             detail="Service unavailable: workflow engine failed to initialize.",
         )
 
-    fallback_user_profile: dict[str, Any] = {**req.user_profile, "user_id": req.user_id}
+    fallback_user_profile: dict[str, Any] = {**req.user_profile, "user_id": user_id}
     if req.slots:
         fallback_user_profile = _merge_slots_into_profile(fallback_user_profile, req.slots)
 
     state: dict[str, Any] = {
         "request_id": req_id,
-        "user_id": req.user_id,
+        "user_id": user_id,
         "session_id": req.session_id,
         "raw_query": req.query,
         # Backward-compatible seed only. session_node replaces this with
@@ -185,12 +195,12 @@ async def chat(req: ChatRequest, request: Request) -> APIResponse:
     # ── Khởi tạo FlowTrace cho toàn bộ request ───────────────────────────────
     flow_trace = FlowTrace(
         request_id=req_id,
-        user_id=req.user_id,
+        user_id=user_id,
         session_id=req.session_id,
         query=req.query,
     )
     trace_token = set_current_trace(flow_trace)
-    log_flow_start(req_id, req.user_id, req.session_id, req.query)
+    log_flow_start(req_id, user_id, req.session_id, req.query)
 
     t0 = time.perf_counter()
     try:
@@ -201,7 +211,7 @@ async def chat(req: ChatRequest, request: Request) -> APIResponse:
     except asyncio.TimeoutError:
         logger.warning(
             "[%s] chat timeout after %ds for user=%s query='%.80s'",
-            req_id, CHAT_TIMEOUT_SECONDS, req.user_id, req.query,
+            req_id, CHAT_TIMEOUT_SECONDS, user_id, req.query,
         )
         flow_trace.log_end(needs_clarify=False, intent="timeout", n_recs=0)
         flow_trace.finalize()
@@ -214,7 +224,7 @@ async def chat(req: ChatRequest, request: Request) -> APIResponse:
         elapsed = round((time.perf_counter() - t0) * 1000)
         logger.error(
             "[%s] graph.ainvoke failed after %dms for user=%s: %s",
-            req_id, elapsed, req.user_id, exc, exc_info=True,
+            req_id, elapsed, user_id, exc, exc_info=True,
         )
         flow_trace.log_end(needs_clarify=False, intent="error", n_recs=0)
         flow_trace.finalize()
