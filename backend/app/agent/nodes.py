@@ -782,17 +782,12 @@ def _persist_profile_state_directly(
 
         if user_id and isinstance(long_term_profile, dict):
             users = get_collection("Users")
-            user_key = transform_id(user_id)
-            existing_user = users.find_one(
-                {"$or": [{"_id": user_key}, {"user_id": user_id}]},
-                {"_id": 1},
-            )
-            user_filter = {"_id": existing_user["_id"]} if existing_user else {"_id": user_key}
             users.update_one(
-                user_filter,
+                # {"_id": transform_id(user_id)},
+                {"user_id": user_id},
                 {
                     "$set": {
-                        "user_id": user_id,
+                        # "user_id": user_id,
                         "long_term_profile": long_term_profile,
                         "updated_at": now,
                     },
