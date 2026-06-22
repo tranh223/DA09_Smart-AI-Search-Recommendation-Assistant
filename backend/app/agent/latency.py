@@ -1,5 +1,9 @@
-"""Per-stage latency helpers for the LangGraph workflow."""
+"""Per-stage latency helpers for the LangGraph workflow.
 
+`with_timing` bao bọc mỗi node, ghi timing + context vào:
+  • latency_trace  — dict accumulated trong AgentState (backward-compat)
+  • FlowTrace span — chi tiết đầy đủ qua core.trace contextvar
+"""
 from __future__ import annotations
 
 import logging
@@ -7,7 +11,8 @@ import time
 from collections.abc import Callable
 from typing import Any, TypeVar
 
-from app.agent.tracer import extract_node_context, log_node_done
+from app.agent.tracer import extract_node_context
+from app.core.trace import current_trace
 
 NodeFn = TypeVar("NodeFn", bound=Callable[[dict[str, Any]], dict[str, Any]])
 logger = logging.getLogger(__name__)
@@ -27,41 +32,64 @@ def elapsed_ms(start: float) -> float:
 
 
 def with_timing(node_name: str, node_fn: NodeFn) -> NodeFn:
-    """Wrap a graph node to record wall-clock duration in ``latency_trace``.
-
-    Tích lũy toàn bộ lịch sử timing (không overwrite) bằng cách merge với
-    giá trị latency_trace đã có trong state từ các node trước đó.
-
-    Mỗi node khi hoàn thành sẽ emit một log line qua ``ota.flow`` logger
-    với timing và context cụ thể của node đó (intent, candidates count...).
+    """
+    Bao bọc một graph node để:
+      1. Đo wall-clock elapsed_ms.
+      2. Tích lũy vào latency_trace trong AgentState.
+      3. Tạo Span trong FlowTrace contextvar với toàn bộ context chi tiết.
+      4. Log một dòng tóm tắt lên ota.flow (console).
     """
 
     def wrapped(state: dict[str, Any]) -> dict[str, Any]:
         start = time.perf_counter()
         request_id = state.get("request_id") or state.get("session_id") or "-"
         logger.debug("[graph][%s] node=%s start", request_id, node_name)
+
+        # ── Chạy node thực sự ────────────────────────────────────────────────
         try:
             result = node_fn(state) or {}
         except Exception:
             ms = elapsed_ms(start)
             logger.exception(
-                "[graph][%s] node=%s FAILED after %.2fms",
-                request_id, node_name, ms,
+                "[graph][%s] node=%s FAILED after %.2fms", request_id, node_name, ms,
             )
             raise
 
-        # Accumulate: merge existing trace + result's trace (parallel nodes) + current node
-        trace: dict[str, float] = dict(state.get("latency_trace") or {})
+        # ── Tích lũy latency_trace (backward-compat cho build_latency_summary) ──
+        trace_dict: dict[str, float] = dict(state.get("latency_trace") or {})
         if "latency_trace" in result:
-            trace.update(result.pop("latency_trace"))
+            trace_dict.update(result.pop("latency_trace"))
         node_ms = elapsed_ms(start)
-        trace[node_name] = node_ms
+        trace_dict[node_name] = node_ms
 
-        # Emit structured flow trace line (ota.flow logger)
+        # ── Extract context cho cả console và FlowTrace ───────────────────────
         context = extract_node_context(node_name, state, result)
-        log_node_done(request_id, node_name, node_ms, context)
 
-        return {**result, "latency_trace": trace}
+        # ── Populate FlowTrace span ───────────────────────────────────────────
+        flow_trace = current_trace()
+        if flow_trace is not None:
+            span = flow_trace.begin(node_name)
+            span.finish(status="ok" if True else "error")
+            # Gán đúng elapsed từ thực đo (không tính lại)
+            span.elapsed_ms = node_ms
+            span.data.update(context)
+            flow_trace.log_span(span)
+        else:
+            # Fallback: log trực tiếp qua ota.flow nếu chưa có FlowTrace
+            from app.core.trace import FLOW_LOG
+            scalar_pairs = [
+                f"{k}={v}"
+                for k, v in context.items()
+                if not isinstance(v, (dict, list))
+            ]
+            data_str = "  ".join(scalar_pairs)
+            p = f"[{request_id[:16]}]"
+            if data_str:
+                FLOW_LOG.info("%s ─ %-22s %8.1fms  %s", p, node_name, node_ms, data_str)
+            else:
+                FLOW_LOG.info("%s ─ %-22s %8.1fms", p, node_name, node_ms)
+
+        return {**result, "latency_trace": trace_dict}
 
     wrapped.__name__ = getattr(node_fn, "__name__", node_name)
     wrapped.__doc__ = node_fn.__doc__
@@ -69,7 +97,7 @@ def with_timing(node_name: str, node_fn: NodeFn) -> NodeFn:
 
 
 def build_latency_summary(state: dict[str, Any]) -> dict[str, Any]:
-    """Aggregate stage timings and identify the slowest stage on the critical path."""
+    """Tổng hợp timing các stage, tìm bottleneck trên critical path."""
     trace = dict(state.get("latency_trace") or {})
     started_at = state.get("request_started_at")
 
@@ -98,9 +126,7 @@ def build_latency_summary(state: dict[str, Any]) -> dict[str, Any]:
     bottleneck_stage = max(trace, key=trace.get) if trace else None
     qu_timing_raw = (state.get("qu_trace") or {}).get("timing") or {}
     qu_timing = {
-        k: float(v)
-        for k, v in qu_timing_raw.items()
-        if isinstance(v, (int, float))
+        k: float(v) for k, v in qu_timing_raw.items() if isinstance(v, (int, float))
     }
     qu_bottleneck = max(qu_timing, key=qu_timing.get) if qu_timing else None
 

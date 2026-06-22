@@ -15,6 +15,7 @@ from app.agent.graph import build_graph
 from app.agent.tracer import log_flow_end, log_flow_start
 from app.api.middleware import get_request_id
 from app.api.models import APIResponse
+from app.core.trace import FlowTrace, reset_trace, set_current_trace
 
 logger = logging.getLogger(__name__)
 
@@ -181,6 +182,14 @@ async def chat(req: ChatRequest, request: Request) -> APIResponse:
         "request_started_at": time.perf_counter(),
     }
 
+    # ── Khởi tạo FlowTrace cho toàn bộ request ───────────────────────────────
+    flow_trace = FlowTrace(
+        request_id=req_id,
+        user_id=req.user_id,
+        session_id=req.session_id,
+        query=req.query,
+    )
+    trace_token = set_current_trace(flow_trace)
     log_flow_start(req_id, req.user_id, req.session_id, req.query)
 
     t0 = time.perf_counter()
@@ -194,6 +203,9 @@ async def chat(req: ChatRequest, request: Request) -> APIResponse:
             "[%s] chat timeout after %ds for user=%s query='%.80s'",
             req_id, CHAT_TIMEOUT_SECONDS, req.user_id, req.query,
         )
+        flow_trace.log_end(needs_clarify=False, intent="timeout", n_recs=0)
+        flow_trace.finalize()
+        reset_trace(trace_token)
         raise HTTPException(
             status_code=504,
             detail=f"Request timed out after {CHAT_TIMEOUT_SECONDS}s.",
@@ -204,12 +216,17 @@ async def chat(req: ChatRequest, request: Request) -> APIResponse:
             "[%s] graph.ainvoke failed after %dms for user=%s: %s",
             req_id, elapsed, req.user_id, exc, exc_info=True,
         )
+        flow_trace.log_end(needs_clarify=False, intent="error", n_recs=0)
+        flow_trace.finalize()
+        reset_trace(trace_token)
         raise HTTPException(status_code=500, detail="Pipeline execution failed.") from exc
 
     elapsed_ms = round((time.perf_counter() - t0) * 1000)
     final_response: dict[str, Any] = result.get("final_response") or {}
     data = _build_chat_data(final_response)
 
+    # log_flow_end + finalize JSON trace
     log_flow_end(req_id, elapsed_ms, result)
+    reset_trace(trace_token)
 
     return APIResponse.ok(data=data.model_dump(), request_id=req_id, latency_ms=elapsed_ms)
