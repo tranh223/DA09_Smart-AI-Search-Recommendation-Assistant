@@ -160,6 +160,7 @@ if APP_DIR not in sys.path:
 # ── Application imports ───────────────────────────────────────────────────────
 from app.analytics.logging.logger import start_log_listener  # noqa: E402
 from app.api.middleware import RequestIDMiddleware, get_request_id  # noqa: E402
+from app.api.routes.auth import router as auth_router  # noqa: E402
 from app.api.routes.chat import router as chat_router  # noqa: E402
 from app.api.routes.health import router as health_router  # noqa: E402
 from app.api.routes.test import router as test_router  # noqa: E402
@@ -281,6 +282,7 @@ async def _global_error_handler(request: Request, exc: Exception) -> JSONRespons
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 
+app.include_router(auth_router)
 app.include_router(chat_router)
 app.include_router(health_router)
 

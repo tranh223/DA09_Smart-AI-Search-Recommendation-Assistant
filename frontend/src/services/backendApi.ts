@@ -5,7 +5,6 @@ const BACKEND_BASE_URL = (
 ).replace(/\/$/, '');
 
 export interface BackendChatRequest {
-  user_id: string;
   session_id: string;
   query: string;
   user_profile?: Record<string, unknown>;
@@ -49,13 +48,19 @@ export class BackendApiError extends Error {
 
 export async function sendChatMessage(
   payload: BackendChatRequest,
+  token?: string | null,
 ): Promise<BackendChatData> {
+  const headers: Record<string, string> = {
+    accept: 'application/json',
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${BACKEND_BASE_URL}/chat`, {
     method: 'POST',
-    headers: {
-      accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({
       rerank_options: {},
       ...payload,

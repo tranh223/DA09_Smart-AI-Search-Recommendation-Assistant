@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { t } from '../../styles/theme';
 import { sendChatMessage, type BackendChatData } from '../../services/backendApi';
 import { type Hotel, type HotelListParams, type RecoQuery, extractImages } from '../../services/hotels';
+import { useAuth } from '../../hooks/useAuth';
 
 // Bề rộng chat dock bên phải — trang chừa đúng khoảng này để không bị che.
 export const CHAT_DOCK_WIDTH = 440;
@@ -236,6 +237,7 @@ interface ChatBotProps {
 }
 
 export function ChatBot({ isOpen, onOpen, onClose, onRecommend, onClearRecommend }: ChatBotProps) {
+  const { token } = useAuth();
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [step, setStep] = useState(0);
@@ -290,11 +292,10 @@ export function ChatBot({ isOpen, onOpen, onClose, onRecommend, onClearRecommend
     setIsTyping(true);
     try {
       const data = await sendChatMessage({
-        user_id: 'user_001',
         session_id: sessionId.current,
         query: txt,
         rerank_options: { top_k: 5 },
-      });
+      }, token);
       setIsTyping(false);
       addBotMsg({
         kind: 'bot',
@@ -568,7 +569,7 @@ export function ChatBot({ isOpen, onOpen, onClose, onRecommend, onClearRecommend
                 type="text"
                 value={input}
                 onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSend()}
+                onKeyDown={e => e.key === 'Enter' && !e.nativeEvent.isComposing && handleSend()}
                 placeholder="Nhập tin nhắn hoặc chọn gợi ý bên trên..."
                 style={{
                   flex: 1, padding: '11px 14px',
