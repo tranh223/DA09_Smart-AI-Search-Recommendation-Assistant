@@ -33,7 +33,10 @@ def _configure_logging() -> None:
     flow_log = logging.getLogger("ota.flow")
     flow_log.setLevel(log_level)
     if not flow_log.handlers:
-        _h = logging.StreamHandler(sys.stdout)
+        import io as _io
+        _stream = _io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace") \
+            if hasattr(sys.stdout, "buffer") else sys.stdout
+        _h = logging.StreamHandler(_stream)
         _h.setFormatter(_flow_fmt)
         flow_log.addHandler(_h)
     flow_log.propagate = False  # avoid double output with uvicorn root handler
@@ -75,6 +78,53 @@ def _configure_logging() -> None:
         for handler in app_qu_trace_log.handlers
     ):
         app_qu_trace_log.addHandler(qu_file_handler)
+
+    # ── ota.trace  — JSON trace file (một dòng JSON đầy đủ mỗi request) ─────
+    trace_log_path = os.getenv(
+        "OTA_TRACE_LOG_FILE",
+        os.path.join(log_dir, "ota_trace.jsonl"),
+    )
+    _json_fmt = logging.Formatter(fmt="%(message)s")   # chỉ message, không prefix
+    trace_log = logging.getLogger("ota.trace")
+    trace_log.setLevel(logging.INFO)
+    _has_trace_handler = any(
+        isinstance(h, RotatingFileHandler)
+        and getattr(h, "baseFilename", None) == os.path.abspath(trace_log_path)
+        for h in trace_log.handlers
+    )
+    if not _has_trace_handler:
+        _trace_fh = RotatingFileHandler(
+            trace_log_path,
+            maxBytes=20 * 1024 * 1024,   # 20 MB mỗi file
+            backupCount=5,
+            encoding="utf-8",
+        )
+        _trace_fh.setFormatter(_json_fmt)
+        trace_log.addHandler(_trace_fh)
+    trace_log.propagate = False   # không bị uvicorn stdout lặp
+
+    # ── ota.trace.rec — recommendation detail (text, không JSON) ────────────
+    rec_trace_path = os.getenv(
+        "OTA_REC_TRACE_LOG_FILE",
+        os.path.join(log_dir, "ota_rec_trace.log"),
+    )
+    rec_trace_log = logging.getLogger("ota.trace.rec")
+    rec_trace_log.setLevel(logging.INFO)
+    _has_rec_handler = any(
+        isinstance(h, RotatingFileHandler)
+        and getattr(h, "baseFilename", None) == os.path.abspath(rec_trace_path)
+        for h in rec_trace_log.handlers
+    )
+    if not _has_rec_handler:
+        _rec_fh = RotatingFileHandler(
+            rec_trace_path,
+            maxBytes=10 * 1024 * 1024,
+            backupCount=3,
+            encoding="utf-8",
+        )
+        _rec_fh.setFormatter(_flow_fmt)
+        rec_trace_log.addHandler(_rec_fh)
+    rec_trace_log.propagate = False
 
     # App-wide namespaces inherit root handler (uvicorn stdout)
     for _ns in ("app", "ota", "api", "query_understanding"):

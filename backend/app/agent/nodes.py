@@ -11,6 +11,7 @@ from app.agent.latency import build_latency_summary
 from app.agent.qu_adapter import pipeline_result_to_state
 from app.agent.response_builder import build_response_with_llm
 from app.agent.state import AgentState
+from app.core.trace import current_trace
 from app.recommendation.engine import run_candidate_pipeline, run_rerank_from_merged
 from app.recommendation.models import PriceRange, Profile, RecommendInput, SessionContext
 
@@ -66,19 +67,18 @@ def _candidate_limit_per_source(state: AgentState) -> int:
 
 # ── Session node ─────────────────────────────────────────────────────────────
 
-def _load_chat_history(session_id: str) -> list[dict[str, Any]]:
-    """Load chat history từ MongoDB Sessions collection.
+def _load_chat_history(user_id: str) -> list[dict[str, Any]]:
+    """Load chat history từ MongoDB Summary collection.
 
     Format MongoDB: [{"user_query": "...", "llm_answer": "..."}]
     Normalize sang format QU pipeline: [{"role": "user", "content": "..."}, ...]
     """
-    if not session_id:
+    if not user_id:
         return []
     try:
         from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
-        from app.utils.util import transform_id  # noqa: PLC0415
-        sessions = get_collection("Sessions")
-        doc = sessions.find_one({"_id": transform_id(session_id)}, {"history": 1})
+        summaries = get_collection("Summary")
+        doc = summaries.find_one({"user_id": user_id}, {"history": 1})
         if not doc or not isinstance(doc.get("history"), list):
             return []
         normalized: list[dict[str, Any]] = []
@@ -221,7 +221,7 @@ def session_node(state: AgentState) -> dict[str, Any]:
 
     # Load từ MongoDB (ưu tiên DB, fallback về giá trị client gửi lên)
     history: list[dict[str, Any]] = (
-        _load_chat_history(session_id)
+        _load_chat_history(user_id)
         or state.get("chat_history")
         or []
     )
@@ -418,8 +418,8 @@ def clarify_node(state: AgentState) -> dict[str, Any]:
     }
 
 
-# ── Rewrite node ──────────────────────────────────────────────────────────────
 
+# ── Rewrite node ──────────────────────────────────────────────────────────────
 def rewrite_node(state: AgentState) -> dict[str, Any]:
     """Query rewrite placeholder — pass-through hiện tại, chờ RAG module."""
     return {"rewritten_query": state.get("raw_query", "")}
@@ -459,15 +459,26 @@ def recommend_node(state: AgentState) -> dict[str, Any]:
     recommend_input = _resolve_recommend_input(state)
     if recommend_input is None:
         logger.warning("[%s][recommend] recommend_input=None (no destination) → empty candidates", req_id)
-        return {"recommend_input": None, "merged_candidates": []}
+        return {"recommend_input": None, "merged_candidates": [], "_raw_source_stats": {}}
     try:
         dst = recommend_input.session_context.destination if hasattr(recommend_input, "session_context") else "?"
     except Exception:  # noqa: BLE001
         dst = "?"
     logger.debug("[%s][recommend] running candidate pipeline  dst=%s", req_id, dst)
-    merged = run_candidate_pipeline(recommend_input, trace=False)
-    logger.debug("[%s][recommend] candidates=%d", req_id, len(merged))
-    return {"recommend_input": recommend_input, "merged_candidates": merged}
+
+    # Bật trace logging khi có FlowTrace (logs chi tiết vào ota.trace.rec file)
+    has_flow_trace = current_trace() is not None
+    merged, raw_source_stats = run_candidate_pipeline(
+        recommend_input,
+        trace=has_flow_trace,
+        return_stats=True,
+    )
+    logger.debug("[%s][recommend] candidates=%d  raw_stats=%s", req_id, len(merged), raw_source_stats)
+    return {
+        "recommend_input": recommend_input,
+        "merged_candidates": merged,
+        "_raw_source_stats": raw_source_stats,  # dùng bởi tracer._ctx_recommend
+    }
 
 
 def _resolve_recommend_input(state: AgentState) -> RecommendInput | None:
@@ -524,7 +535,13 @@ def rerank_node(state: AgentState) -> dict[str, Any]:
         options=state.get("rerank_options"),
     )
     ranked_hotels = rerank_result.get("ranked_hotels") or []
-    logger.debug("[%s][rerank] ranked=%d", req_id, len(ranked_hotels))
+    # Expose debug ke tracer — return_debug=True đã được engine.py set mặc định
+    debug = rerank_result.get("debug") or {}
+    rerank_result["llm_used"] = bool(debug.get("llm_used"))
+    logger.debug("[%s][rerank] ranked=%d  filtered=%s  llm=%s",
+                 req_id, len(ranked_hotels),
+                 debug.get("filtered_count", "?"),
+                 debug.get("llm_used", False))
     ranked_recommendations = [
         {
             "hotel_id": item.get("hotel_id") or item.get("item_id"),
@@ -661,13 +678,15 @@ def analytics_node(state: AgentState) -> dict[str, Any]:
     )
 
     if session_id:
+        user_id = state.get("user_id") or ""
         _persist_profile_state_directly(
             session_id=session_id,
-            user_id=state.get("user_id") or "",
+            user_id=user_id,
             user_profile=state.get("updated_user_profile") or state.get("user_profile") or {},
         )
         _emit_analytics(
             session_id=session_id,
+            user_id=user_id,
             query=state.get("raw_query") or "",
             final_response=state.get("final_response") or {},
             latency_summary=latency_summary,
@@ -740,6 +759,7 @@ def _persist_profile_state_directly(
 def _emit_analytics(
     *,
     session_id: str,
+    user_id: str,
     query: str,
     final_response: dict[str, Any],
     latency_summary: dict[str, Any],
@@ -750,7 +770,7 @@ def _emit_analytics(
         answer = final_response.get("answer") or ""
         if query and answer:
             _persist_chat_history_directly(
-                session_id=session_id,
+                user_id=user_id,
                 question=query,
                 answer=answer,
             )
@@ -763,34 +783,31 @@ def _emit_analytics(
 
 def _persist_chat_history_directly(
     *,
-    session_id: str,
+    user_id: str,
     question: str,
     answer: str,
 ) -> None:
+    if not user_id:
+        return
     try:
         from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
-        from app.utils.util import transform_id  # noqa: PLC0415
 
-        sessions = get_collection("Sessions")
-        sessions.update_one(
-            {"_id": transform_id(session_id)},
+        summaries = get_collection("Summary")
+        summaries.update_one(
+            {"user_id": user_id},
             {
                 "$push": {
                     "history": {
-                        "user_query": question,
-                        "llm_answer": answer,
+                        "$each": [
+                            {
+                                "user_query": question,
+                                "llm_answer": answer,
+                            }
+                        ],
+                        "$slice": -10,
                     }
                 },
-                "$setOnInsert": {
-                    "num_like": 0,
-                    "num_dislike": 0,
-                    "final_reaction": None,
-                    "latency": [],
-                    "ttft": [],
-                    "booking": False,
-                    "evaluated": False,
-                    "end": None,
-                },
+                "$setOnInsert": {"user_id": user_id},
             },
             upsert=True,
         )

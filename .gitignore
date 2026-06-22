@@ -204,6 +204,7 @@ cython_debug/
 tempCodeRunnerFile.py
 
 # Runtime rerank logs
+backend/app/recommendation/rerank/logs/
 **/logs/*.jsonl
 
 # Ruff stuff:
