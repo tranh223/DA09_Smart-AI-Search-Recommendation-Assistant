@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import logging
+import os
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from app.agent.latency import build_latency_summary
@@ -19,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_CANDIDATE_LIMIT_PER_SOURCE = 10
 MAX_CANDIDATE_LIMIT_PER_SOURCE = 50
+DEFAULT_TAGREMOVED_RECONCILE_INTERVAL_HOURS = 24
 
 
 # ── QueryUnderstandingPipeline singleton ─────────────────────────────────────
@@ -177,6 +179,219 @@ def _load_long_term_profile(user_id: str) -> dict[str, Any]:
         return {}
 
 
+def _load_tagremoved_profile(user_id: str) -> dict[str, Any]:
+    if not user_id:
+        return {}
+    try:
+        from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
+        from app.utils.util import transform_id  # noqa: PLC0415
+
+        tagremoved = get_collection("TagRemoved")
+        doc = tagremoved.find_one({"_id": transform_id(user_id)}, {"tagremoved_profile": 1})
+        if doc is None:
+            doc = tagremoved.find_one({"user_id": user_id}, {"tagremoved_profile": 1})
+        payload = doc.get("tagremoved_profile") if doc else None
+        return payload if isinstance(payload, dict) else {}
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[session_node] MongoDB tagremoved_profile load failed: %s", exc)
+        return {}
+
+
+def _parse_datetime(value: Any) -> datetime | None:
+    if isinstance(value, datetime):
+        return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value))
+        return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+    except ValueError:
+        return None
+
+
+def _tagremoved_reconcile_interval_hours() -> int:
+    raw = os.getenv(
+        "TAGREMOVED_RECONCILE_INTERVAL_HOURS",
+        str(DEFAULT_TAGREMOVED_RECONCILE_INTERVAL_HOURS),
+    )
+    try:
+        hours = int(raw)
+    except (TypeError, ValueError):
+        hours = DEFAULT_TAGREMOVED_RECONCILE_INTERVAL_HOURS
+    return max(hours, 1)
+
+
+def _latest_interaction(first: str, second: str) -> str:
+    return max(first, second)
+
+
+def _merge_count_maps(
+    base_map: dict[str, Any],
+    incoming_map: dict[str, Any],
+) -> dict[str, Any]:
+    merged: dict[str, Any] = {}
+    for key, value in (base_map or {}).items():
+        if isinstance(value, dict) and "count" in value and "last_interaction" in value:
+            merged[str(key)] = {
+                "count": int(value.get("count", 0)),
+                "last_interaction": str(value.get("last_interaction", "")),
+            }
+    for key, value in (incoming_map or {}).items():
+        if not (isinstance(value, dict) and "count" in value and "last_interaction" in value):
+            continue
+        normalized_key = str(key)
+        current = merged.get(normalized_key)
+        if current is None:
+            merged[normalized_key] = {
+                "count": int(value.get("count", 0)),
+                "last_interaction": str(value.get("last_interaction", "")),
+            }
+            continue
+        merged[normalized_key] = {
+            "count": int(current.get("count", 0)) + int(value.get("count", 0)),
+            "last_interaction": _latest_interaction(
+                str(current.get("last_interaction", "")),
+                str(value.get("last_interaction", "")),
+            ),
+        }
+    return merged
+
+
+def _merge_long_term_profile_dicts(
+    base_profile: dict[str, Any],
+    incoming_profile: dict[str, Any],
+) -> dict[str, Any]:
+    merged = dict(base_profile or {})
+    score_fields = [
+        "traveler_type",
+        "long_term_trip_types",
+        "long_term_budget_levels",
+        "long_term_preference_habits",
+        "long_term_hotel_types",
+        "long_term_room_views",
+        "long_term_amenities",
+    ]
+    for field in score_fields:
+        merged[field] = _merge_count_maps(
+            base_profile.get(field, {}) if isinstance(base_profile, dict) else {},
+            incoming_profile.get(field, {}) if isinstance(incoming_profile, dict) else {},
+        )
+
+    base_neg = base_profile.get("long_term_negative_preferences", {}) if isinstance(base_profile, dict) else {}
+    incoming_neg = (
+        incoming_profile.get("long_term_negative_preferences", {})
+        if isinstance(incoming_profile, dict)
+        else {}
+    )
+    merged["long_term_negative_preferences"] = {
+        field: _merge_count_maps(
+            base_neg.get(field, {}) if isinstance(base_neg, dict) else {},
+            incoming_neg.get(field, {}) if isinstance(incoming_neg, dict) else {},
+        )
+        for field in (
+            "avoid_hotel_types",
+            "avoid_amenities",
+            "avoid_preference_habits",
+            "avoid_nearby_places",
+            "avoid_locations",
+        )
+    }
+
+    merged["long_term_price_range"] = dict(
+        (base_profile.get("long_term_price_range", {}) if isinstance(base_profile, dict) else {}) or {}
+    )
+    incoming_price = incoming_profile.get("long_term_price_range", {}) if isinstance(incoming_profile, dict) else {}
+    if isinstance(incoming_price, dict):
+        for key in ("min", "max", "currency"):
+            if incoming_price.get(key) is not None:
+                merged["long_term_price_range"][key] = incoming_price.get(key)
+
+    for scalar_field in ("nationality", "age_group", "current_workplace", "is_enough"):
+        incoming_value = incoming_profile.get(scalar_field) if isinstance(incoming_profile, dict) else None
+        if incoming_value is not None:
+            merged[scalar_field] = incoming_value
+        elif scalar_field not in merged and isinstance(base_profile, dict):
+            merged[scalar_field] = base_profile.get(scalar_field)
+    base_clicks = base_profile.get("recommendation_clicks") if isinstance(base_profile, dict) else None
+    incoming_clicks = incoming_profile.get("recommendation_clicks") if isinstance(incoming_profile, dict) else None
+    if isinstance(incoming_clicks, dict) and incoming_clicks.get("hotel"):
+        merged["recommendation_clicks"] = incoming_clicks
+    elif base_clicks is not None:
+        merged["recommendation_clicks"] = base_clicks
+    return merged
+
+
+def _reconcile_tagremoved_profile_if_due(user_id: str) -> tuple[dict[str, Any], dict[str, Any]]:
+    if not user_id:
+        return {}, {}
+    try:
+        from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
+        from app.utils.util import transform_id  # noqa: PLC0415
+
+        users = get_collection("Users")
+        tagremoved = get_collection("TagRemoved")
+        user_doc = users.find_one({"_id": transform_id(user_id)}, {"long_term_profile": 1})
+        if user_doc is None:
+            user_doc = users.find_one({"user_id": user_id}, {"long_term_profile": 1})
+        tagremoved_doc = tagremoved.find_one({"_id": transform_id(user_id)})
+        if tagremoved_doc is None:
+            tagremoved_doc = tagremoved.find_one({"user_id": user_id})
+
+        long_term_profile = (
+            user_doc.get("long_term_profile") if isinstance(user_doc, dict) else {}
+        ) or {}
+        removed_profile = (
+            tagremoved_doc.get("tagremoved_profile") if isinstance(tagremoved_doc, dict) else {}
+        ) or {}
+        if not removed_profile:
+            return long_term_profile if isinstance(long_term_profile, dict) else {}, {}
+
+        last_reconciled_at = _parse_datetime(
+            tagremoved_doc.get("last_reconciled_at") if isinstance(tagremoved_doc, dict) else None
+        )
+        interval_hours = _tagremoved_reconcile_interval_hours()
+        now = datetime.now(timezone.utc)
+        if last_reconciled_at and now < (last_reconciled_at + timedelta(hours=interval_hours)):
+            return (
+                long_term_profile if isinstance(long_term_profile, dict) else {},
+                removed_profile if isinstance(removed_profile, dict) else {},
+            )
+
+        merged_profile = _merge_long_term_profile_dicts(
+            long_term_profile if isinstance(long_term_profile, dict) else {},
+            removed_profile if isinstance(removed_profile, dict) else {},
+        )
+        users.update_one(
+            {"_id": transform_id(user_id)},
+            {
+                "$set": {
+                    "user_id": user_id,
+                    "long_term_profile": merged_profile,
+                    "updated_at": now,
+                },
+                "$setOnInsert": {"created_at": now},
+            },
+            upsert=True,
+        )
+        tagremoved.update_one(
+            {"_id": transform_id(user_id)},
+            {
+                "$set": {
+                    "user_id": user_id,
+                    "tagremoved_profile": {},
+                    "updated_at": now,
+                    "last_reconciled_at": now,
+                },
+                "$setOnInsert": {"created_at": now},
+            },
+            upsert=True,
+        )
+        return merged_profile, {}
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[session_node] MongoDB tagremoved reconcile failed: %s", exc)
+        return _load_long_term_profile(user_id), _load_tagremoved_profile(user_id)
+
+
 def _build_server_user_profile(state: AgentState) -> dict[str, Any]:
     user_id = state.get("user_id") or "anonymous_user"
     session_id = state.get("session_id") or ""
@@ -189,17 +404,23 @@ def _build_server_user_profile(state: AgentState) -> dict[str, Any]:
         fallback_session_context if isinstance(fallback_session_context, dict) else {},
     )
 
-    server_long_term = _load_long_term_profile(user_id)
+    server_long_term, server_tagremoved = _reconcile_tagremoved_profile_if_due(user_id)
     fallback_long_term = fallback.get("long_term_profile") if isinstance(fallback, dict) else {}
     long_term_profile = _merge_server_over_fallback(
         server_long_term,
         fallback_long_term if isinstance(fallback_long_term, dict) else {},
+    )
+    fallback_tagremoved = fallback.get("tagremoved_profile") if isinstance(fallback, dict) else {}
+    tagremoved_profile = _merge_server_over_fallback(
+        server_tagremoved,
+        fallback_tagremoved if isinstance(fallback_tagremoved, dict) else {},
     )
 
     return {
         "user_id": user_id,
         "name": fallback.get("name") if isinstance(fallback, dict) else None,
         "long_term_profile": long_term_profile,
+        "tagremoved_profile": tagremoved_profile,
         "session_context": session_context,
     }
 
@@ -416,7 +637,6 @@ def clarify_node(state: AgentState) -> dict[str, Any]:
             "latency": latency,
         },
     }
-
 
 
 # ── Rewrite node ──────────────────────────────────────────────────────────────
@@ -710,6 +930,7 @@ def _persist_profile_state_directly(
         now = datetime.now(timezone.utc)
         session_context = user_profile.get("session_context")
         long_term_profile = user_profile.get("long_term_profile")
+        tagremoved_profile = user_profile.get("tagremoved_profile")
 
         session_set: dict[str, Any] = {
             "user_id": user_id or user_profile.get("user_id"),
@@ -746,6 +967,20 @@ def _persist_profile_state_directly(
                     "$set": {
                         "user_id": user_id,
                         "long_term_profile": long_term_profile,
+                        "updated_at": now,
+                    },
+                    "$setOnInsert": {"created_at": now},
+                },
+                upsert=True,
+            )
+        if user_id and isinstance(tagremoved_profile, dict):
+            tagremoved = get_collection("TagRemoved")
+            tagremoved.update_one(
+                {"_id": transform_id(user_id)},
+                {
+                    "$set": {
+                        "user_id": user_id,
+                        "tagremoved_profile": tagremoved_profile,
                         "updated_at": now,
                     },
                     "$setOnInsert": {"created_at": now},

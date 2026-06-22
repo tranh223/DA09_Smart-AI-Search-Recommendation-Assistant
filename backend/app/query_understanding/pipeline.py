@@ -58,6 +58,9 @@ JSON_TRACE_FILES = {
     "query_classification": Path(
         os.getenv("QU_QUERY_CLASSIFICATION_LOG_FILE", str(_QU_TRACE_DIR / "qu_query_classification.json"))
     ),
+    "profile_retention": Path(
+        os.getenv("QU_PROFILE_RETENTION_LOG_FILE", str(_QU_TRACE_DIR / "qu_profile_retention.json"))
+    ),
 }
 _JSON_TRACE_LOCK = threading.Lock()
 
@@ -133,6 +136,7 @@ class QueryUnderstandingPipeline:
                 "user_id": user_profile.user_id,
                 "query": query,
                 "long_term_profile": asdict(user_profile.long_term_profile),
+                "tagremoved_profile": asdict(user_profile.tagremoved_profile),
                 "session_context": asdict(user_profile.session_context),
             },
         )
@@ -235,10 +239,6 @@ class QueryUnderstandingPipeline:
             timing["post_extract_plan_readiness_ms"] = _elapsed_ms(post_extract_plan_readiness_start)
             timing["post_extract_plan_readiness_reused_requires_recommendation"] = True
             plan_readiness = post_extract_plan_readiness
-            if precheck_active_profile is not None:
-                precheck_active_profile_rebuild_start = time.perf_counter()
-                precheck_active_profile = self._build_active_profile(user_profile)
-                timing["precheck_active_profile_rebuild_ms"] = _elapsed_ms(precheck_active_profile_rebuild_start)
 
         if not plan_readiness.can_build_plan:
             timing["total_pipeline_ms"] = _elapsed_ms(pipeline_start)
@@ -491,8 +491,25 @@ class QueryUnderstandingPipeline:
             },
         )
         active_profile_start = time.perf_counter()
-        active_profile = self._build_active_profile(user_profile)
+        active_profile = self._build_active_profile(user_profile, query=query)
         active_profile_merge_ms = _elapsed_ms(active_profile_start)
+        _log_qu_json(
+            "profile_retention",
+            "profile_retention_resolved",
+            {
+                "user_id": user_profile.user_id,
+                "query": query,
+                "long_term_profile": asdict(user_profile.long_term_profile),
+                "tagremoved_profile": asdict(user_profile.tagremoved_profile),
+                "resolver_trace": dict(
+                    getattr(
+                        getattr(self.current_profile_merger, "retention_resolver", None),
+                        "last_trace",
+                        {},
+                    )
+                ),
+            },
+        )
         _log_qu_json(
             "active_user_profile",
             "active_user_profile_merged",
@@ -500,6 +517,8 @@ class QueryUnderstandingPipeline:
                 "user_id": user_profile.user_id,
                 "query": query,
                 "active_profile": asdict(active_profile),
+                "long_term_profile": asdict(user_profile.long_term_profile),
+                "tagremoved_profile": asdict(user_profile.tagremoved_profile),
                 "updated_session_context": asdict(user_profile.session_context),
                 "applied_updates": dict(session_update.applied_updates),
             },
@@ -574,8 +593,10 @@ class QueryUnderstandingPipeline:
             runtime_tag_expansion=runtime_tag_expansion,
         )
 
-    def _build_active_profile(self, user_profile: UserProfile) -> ActiveProfile:
+    def _build_active_profile(self, user_profile: UserProfile, *, query: str = "") -> ActiveProfile:
         merger = getattr(self, "current_profile_merger", None) or CurrentProfileMerger()
+        if query:
+            return merger.merge_into_user_profile(user_profile, query=query)
         return merger.merge(user_profile)
 
     def _log_current_active_profile_snapshot(
@@ -598,6 +619,7 @@ class QueryUnderstandingPipeline:
                     "stage": stage,
                     "active_profile": asdict(snapshot_active_profile),
                     "long_term_profile": asdict(user_profile.long_term_profile),
+                    "tagremoved_profile": asdict(user_profile.tagremoved_profile),
                     "session_context": asdict(user_profile.session_context),
                     "applied_updates": applied_updates or {},
                 },
@@ -662,6 +684,7 @@ class QueryUnderstandingPipeline:
             return payload
 
         long_term_raw = payload.get("long_term_profile", {})
+        tagremoved_raw = payload.get("tagremoved_profile", {})
         session_raw = payload.get("session_context", {})
         return UserProfile(
             user_id=str(payload.get("user_id", "")),
@@ -682,6 +705,26 @@ class QueryUnderstandingPipeline:
                 recommendation_clicks=self._coerce_recommendation_clicks(long_term_raw.get("recommendation_clicks")),
                 long_term_negative_preferences=self._coerce_negative_preferences(
                     long_term_raw.get("long_term_negative_preferences", {})
+                ),
+            ),
+            tagremoved_profile=LongTermProfile(
+                nationality=tagremoved_raw.get("nationality"),
+                age_group=tagremoved_raw.get("age_group"),
+                current_workplace=tagremoved_raw.get("current_workplace"),
+                is_enough=tagremoved_raw.get("is_enough"),
+                traveler_type=self._coerce_score_map(tagremoved_raw.get("traveler_type")),
+                long_term_trip_types=self._coerce_score_map(tagremoved_raw.get("long_term_trip_types")),
+                long_term_budget_levels=self._coerce_score_map(tagremoved_raw.get("long_term_budget_levels")),
+                long_term_price_range=self._coerce_price_range(tagremoved_raw.get("long_term_price_range", {})),
+                long_term_preference_habits=self._coerce_score_map(
+                    tagremoved_raw.get("long_term_preference_habits")
+                ),
+                long_term_hotel_types=self._coerce_score_map(tagremoved_raw.get("long_term_hotel_types")),
+                long_term_room_views=self._coerce_score_map(tagremoved_raw.get("long_term_room_views")),
+                long_term_amenities=self._coerce_score_map(tagremoved_raw.get("long_term_amenities")),
+                recommendation_clicks=self._coerce_recommendation_clicks(tagremoved_raw.get("recommendation_clicks")),
+                long_term_negative_preferences=self._coerce_negative_preferences(
+                    tagremoved_raw.get("long_term_negative_preferences", {})
                 ),
             ),
             session_context=SessionContext(
