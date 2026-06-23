@@ -726,7 +726,7 @@ def rag_node(state: AgentState) -> dict[str, Any]:
     Chỉ kích hoạt với intent liên quan đến Q&A / thông tin / đặc điểm khách sạn:
       information, special_feature, hotel_similar
 
-    Intent hotel_search / personalization / trending bỏ qua RAG để giảm latency
+    Intent hotel_search / personalization bỏ qua RAG để giảm latency
     (RAG chạy song song với recommend+rerank nên không block).
 
     Fallback: trả empty nếu RAG chatbot không khởi tạo được.

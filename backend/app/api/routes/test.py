@@ -174,8 +174,8 @@ async def test_query_understanding(req: QURequest):
     "/recommend",
     summary="Test: Candidate Generation",
     description=(
-        "Calls Candidate Generation (embedding + trending + personalization) directly. "
-        "Bypasses QU Pipeline. Tests Qdrant, MongoDB, Neo4j connectivity."
+        "Calls Candidate Generation (embedding + personalization) directly. "
+        "Bypasses QU Pipeline. Tests Qdrant and Neo4j connectivity."
     ),
 )
 async def test_recommend(req: RecommendRequest):

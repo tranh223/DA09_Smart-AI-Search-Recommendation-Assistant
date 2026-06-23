@@ -21,7 +21,6 @@ CONTEXT
 AVAILABLE SEARCH TASKS
 - INFORMATION: factual hotel information, policy, booking, cancellation, refund, check-in/check-out, room/service details
 - HOTEL_SIMILAR: user wants similar hotels to a named hotel or comparison-like alternatives
-- TRENDING: user wants hot, popular, trending, widely noticed, top-ranked, or destination-wide prominent hotels
 - HOTEL_SEARCH: user wants hotel discovery, listing, retrieval, or candidate generation
 - PERSONALIZATION: user wants hotels suitable for them, tailored to their budget, trip context, or preferences
 - SPECIAL_FEATURE: user wants highlights, descriptions, standout features, vibe, or notable services
@@ -33,16 +32,14 @@ DECISION RULES
 - Add HOTEL_SEARCH when the current query is asking to find, list, suggest, or retrieve hotel options.
 - If the current query is a recommendation request and HOTEL_SEARCH is required, then PERSONALIZATION must also be included.
 - Treat recommendation-style requests such as "phù hợp", "gợi ý cho mình", "nên ở đâu", "khách sạn nào ổn", or equivalent user-specific suitability requests as needing PERSONALIZATION together with HOTEL_SEARCH.
-- Do not add PERSONALIZATION just because the user asks for a broad ranked list, top-N list, destination-wide listing, or large candidate set.
+- Do not add PERSONALIZATION just because the user asks for a broad ranked list, top-N list, destination-wide listing, popular hotels, or large candidate set.
 - Requests such as "top 10", "top 20", "top 100", "danh sách khách sạn", "các khách sạn nổi bật", or similar destination-wide ranking/listing queries are not personalized by default.
 - PERSONALIZATION requires explicit user-specific intent in the current query, such as suitability for the user, budget fit, travel party fit, stated preferences, or wording like "phù hợp với mình", "cho mình", "cho gia đình", "theo ngân sách".
 - Add INFORMATION only when the current query itself is asking for factual hotel information or hotel policy details.
 - Do not add INFORMATION only because earlier turns or earlier assistant replies mentioned check-in, check-out, booking, or policy.
 - If the current query is a pure constraint update inside an existing recommendation flow, do not add INFORMATION unless the current query explicitly asks for factual hotel information.
-- If the current query asks for trending or popular hotels without user-specific suitability, TRENDING alone is allowed.
-- If the current query asks for trending or popular hotels and also includes user-specific suitability, preferences, budget, trip context, or personalization intent, include both TRENDING and PERSONALIZATION.
-- If the current query asks for a destination-wide top list or broad popularity ranking, prefer TRENDING and do not add HOTEL_SEARCH unless the query explicitly asks to generate options tailored to constraints.
-- When both TRENDING and PERSONALIZATION are required, they are parallel search tasks; one does not depend on the other.
+- If the current query asks for popular, nổi bật, top-N, or destination-wide hotel lists, use HOTEL_SEARCH.
+- If the current query asks for popular/top hotels and also includes user-specific suitability, preferences, budget, trip context, or personalization intent, include both HOTEL_SEARCH and PERSONALIZATION.
 - When both HOTEL_SEARCH and PERSONALIZATION are required, they are parallel search tasks; one does not depend on the other.
 - SPECIAL_FEATURE can co-exist with INFORMATION when the current query asks both descriptive and factual hotel details.
 - Prefer the smallest correct set of tasks.
@@ -50,12 +47,12 @@ DECISION RULES
 TASK COMBINATION RULES
 - Recommendation request for hotel options:
   return at least HOTEL_SEARCH and PERSONALIZATION
-- Trending request without personalization:
-  return TRENDING
+- Popular/top-list request without personalization:
+  return HOTEL_SEARCH
 - Broad top-N destination hotel ranking/list:
-  return TRENDING
-- Trending request with personalization:
-  return TRENDING and PERSONALIZATION
+  return HOTEL_SEARCH
+- Popular/top-list request with personalization:
+  return HOTEL_SEARCH and PERSONALIZATION
 - Pure factual hotel QA:
   return INFORMATION only unless the query explicitly also asks to search or recommend options
 - Pure follow-up constraint update in an ongoing recommendation flow:

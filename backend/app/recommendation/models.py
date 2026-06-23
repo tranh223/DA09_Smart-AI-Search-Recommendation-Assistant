@@ -91,7 +91,7 @@ class RecommendInput(BaseModel):
 class CandidateHotel(BaseModel):
     hotel_id: int
     hotel_name: str | None = None
-    source: str                             # "embedding_search" | "trending" | "personalization"
+    source: str                             # "embedding_search" | "personalization"
     score: float = 0.0
     matched_paths: list[str] = Field(default_factory=list)
     reason: str = ""

@@ -9,12 +9,10 @@ Nguyên tắc:
 
 Trọng số nguồn mặc định (có thể tune):
   personalization   : 0.50
-  embedding_search  : 0.35
-  trending          : 0.15
+  embedding_search  : 0.50
 
 Bonus đa nguồn:
   2 nguồn → +0.10
-  3 nguồn → +0.20
 """
 
 from __future__ import annotations
@@ -30,13 +28,11 @@ logger = logging.getLogger(__name__)
 # ── Weights ────────────────────────────────────────────────────────────────────
 SOURCE_WEIGHTS: dict[str, float] = {
     "personalization": 0.50,
-    "embedding_search": 0.35,
-    "trending": 0.15,
+    "embedding_search": 0.50,
 }
 
 MULTI_SOURCE_BONUS: dict[int, float] = {
     2: 0.10,
-    3: 0.20,
 }
 
 

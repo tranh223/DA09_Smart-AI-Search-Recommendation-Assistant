@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 # ── Intent routing ────────────────────────────────────────────────────────────
 # Chỉ chạy RAG khi user hỏi thông tin / chính sách / đặc điểm đặc biệt.
-# hotel_search / personalization / trending không cần RAG (chỉ cần recommendation).
+# hotel_search / personalization không cần RAG (chỉ cần recommendation).
 _RAG_INTENTS = frozenset({"information", "special_feature", "hotel_similar"})
 
 # ── Lazy singleton ────────────────────────────────────────────────────────────

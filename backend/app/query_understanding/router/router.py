@@ -82,18 +82,6 @@ class Router:
                 rec_step += 1
                 continue
 
-            if task == SearchTask.TRENDING:
-                recommendation_plan.append(
-                    ExecutionStep(
-                        step=rec_step,
-                        intent_type=task,
-                        source=SearchSource.UNIFIED_GRAPH,
-                        parameters=recommendation_parameters,
-                    )
-                )
-                rec_step += 1
-                continue
-
             if task == SearchTask.PERSONALIZATION:
                 recommendation_plan.append(
                     ExecutionStep(
