@@ -133,7 +133,6 @@ def _to_session_context(sc_dict: dict[str, Any]) -> SessionContext:
 _PRIORITY: list[SearchTask] = [
     SearchTask.PERSONALIZATION,
     SearchTask.HOTEL_SEARCH,
-    SearchTask.TRENDING,
     SearchTask.HOTEL_SIMILAR,
     SearchTask.INFORMATION,
     SearchTask.SPECIAL_FEATURE,
@@ -142,7 +141,6 @@ _PRIORITY: list[SearchTask] = [
 _TASK_TO_INTENT: dict[str, str] = {
     SearchTask.PERSONALIZATION: "personalization",
     SearchTask.HOTEL_SEARCH: "hotel_search",
-    SearchTask.TRENDING: "trending",
     SearchTask.HOTEL_SIMILAR: "hotel_similar",
     SearchTask.INFORMATION: "information",
     SearchTask.SPECIAL_FEATURE: "special_feature",
@@ -169,7 +167,7 @@ _FIELD_QUESTIONS: dict[str, str] = {
     "destination": "Anh/chị muốn đặt phòng tại thành phố hoặc điểm đến nào?",
     "check_in": "Anh/chị dự định nhận phòng vào ngày nào?",
     "check_out": "Anh/chị dự định trả phòng vào ngày nào?",
-    "budget_level": "Mức ngân sách của anh/chị cho chuyến đi này là bao nhiêu (thấp / trung bình / cao)?",
+    "budget_level": "Mức ngân sách của anh/chị cho chuyến đi này là bao nhiêu?",
 }
 
 _GUARDRAIL_MESSAGES: dict[str, str] = {

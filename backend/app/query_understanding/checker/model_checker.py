@@ -22,7 +22,7 @@ RECOMMENDATION_CHECK_INSTRUCTIONS = """
 Decide whether a hotel travel query needs recommendation flow or only RAG flow.
 
 Return requires_recommendation = true when the answer needs recommendation/search/ranking behavior,
-including hotel search, hotel suggestion, trending hotels, or personalization.
+including hotel search, hotel suggestion, popular hotel ranking, or personalization.
 
 Return requires_recommendation = false when the answer is only factual knowledge lookup,
 including policy, special feature explanation, or hotel similar information that does not require
