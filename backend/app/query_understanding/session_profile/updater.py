@@ -287,6 +287,10 @@ def normalize_budget_by_scope(
     price_min: float | None,
     price_max: float | None,
 ) -> tuple[float | None, float | None]:
+    # OTA-style budget windowing:
+    # - "duoi X": only price_max is extracted, then expand one-sided downward.
+    # - "tren X": only price_min is extracted, then expand one-sided upward.
+    # - "khoang X": both min/max equal X, then expand symmetrically around X.
     if price_min is None and price_max is None:
         return price_min, price_max
 
@@ -324,6 +328,7 @@ def _expand_approximate_budget(value: float) -> tuple[float | None, float | None
 
 
 def _budget_window_ratio(value: float) -> float:
+    # Bucketed OTA behavior instead of a continuous formula.
     if value < 1_500_000:
         return 0.50
     if value < 3_000_000:

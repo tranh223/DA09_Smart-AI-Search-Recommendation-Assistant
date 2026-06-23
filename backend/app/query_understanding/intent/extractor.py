@@ -132,29 +132,29 @@ Given the current user query and the current_date, extract:
 CONTEXT
 - This component only extracts information.
 - Search planning, routing, retrieval, ranking, and recommendation execution are handled elsewhere.
-- Intent extraction receives the current user query plus up to 10 recent conversation turns.
-- Use conversation_history only to resolve follow-up references, ellipsis, corrections, and carried-over facts.
+- Intent extraction receives the current user query, the active session_context, and up to 10 recent conversation turns.
+- Use session_context as the source of truth for structured facts already collected in this session.
+- Use conversation_history only to resolve follow-up references, ellipsis, corrections, and carried-over facts not present in session_context.
 - The current user query has highest priority. Do not invent facts from history unless the current query clearly depends on them.
 - Assistant answers in history are context only; do not treat assistant suggestions as user preferences unless the user accepted or repeated them.
-- Follow-up context may also be carried by session_context outside this extractor.
 
 STRICT OUTPUT POLICY
 - Do not output normalized hotel tags, normalized amenities, or normalized hotel types.
 - Do not decide search intent, planner task, router branch, retrieval source, or execution plan.
-- Only return values directly supported by the current query, except structured trip facts carried over from conversation_history for a clear follow-up.
-- When the current query is a follow-up that adds budget, preferences, traveler type, or constraints, preserve prior structured trip facts from conversation_history such as destination, check_in, check_out, number_of_guests, and nearby_place unless the current query contradicts them.
+- Only return values directly supported by the current query, except structured trip facts carried over from session_context or conversation_history for a clear follow-up.
+- When the current query is a follow-up that adds budget, preferences, traveler type, dates, or constraints, preserve prior structured trip facts from session_context first, then conversation_history, such as destination, check_in, check_out, number_of_guests, and nearby_place unless the current query contradicts them.
 - If uncertain, omit the field instead of guessing.
 - Use sparse output inside entities and constraints: include only fields that have non-null values.
 - Still return the top-level groups `entities`, `constraints`, and `semantic_preferences`.
 
 STRUCTURED FACT RULES
 - Extract destination when the city, area, or place is explicit.
-- If destination was explicit in conversation_history and the current query is a follow-up, carry it over.
+- If destination was explicit in session_context or conversation_history and the current query is a follow-up, carry it over.
 - Extract hotel_name only when a specific property is referenced.
 - Extract nearby_place only when the location anchor is explicit and concrete enough to use directly.
 - Extract number_of_guests when explicit.
 - Extract check_in and check_out in YYYY-MM-DD format only.
-- If check_in/check_out were explicit in conversation_history and the current query is a follow-up, carry them over.
+- If check_in/check_out were explicit in session_context or conversation_history and the current query is a follow-up, carry them over.
 - Extract budget_min and budget_max as VND numbers when money is clearly mentioned.
 - For `dưới X`, `không quá X`, `tối đa X`, extract only budget_max=`X`.
 - For `trên X`, `từ X trở lên`, `ít nhất X`, extract only budget_min=`X`.
@@ -295,9 +295,11 @@ class LLMIntentExtractor:
         query: str,
         user_id: str | None = None,
         conversation_history: list[dict[str, str]] | None = None,
+        session_context: dict[str, object] | None = None,
     ) -> IntentResult:
         current_date = date.today().isoformat()
         normalized_history = self._normalize_history(conversation_history)
+        normalized_session_context = self._normalize_session_context(session_context)
         prompt_cache = self.client.build_prompt_cache_settings(
             component_name="qu_intent",
             model=self.model,
@@ -313,6 +315,7 @@ class LLMIntentExtractor:
                 current_date=current_date,
                 query=query,
                 conversation_history=normalized_history,
+                session_context=normalized_session_context,
             ),
             schema_name="intent_result",
             schema=INTENT_SCHEMA,
@@ -326,6 +329,7 @@ class LLMIntentExtractor:
             "path": "llm",
             "model": self.model,
             "conversation_history": normalized_history,
+            "session_context": normalized_session_context,
             "prompt_cache": prompt_cache,
             "response_meta": dict(self.client.last_response_meta),
             "payload": payload,
@@ -483,13 +487,36 @@ class LLMIntentExtractor:
         current_date: str,
         query: str,
         conversation_history: list[dict[str, str]],
+        session_context: dict[str, object],
     ) -> str:
         payload = {
             "current_date": current_date,
+            "session_context": session_context,
             "conversation_history": conversation_history,
             "query": query,
         }
         return json.dumps(payload, ensure_ascii=False)
+
+    @staticmethod
+    def _normalize_session_context(session_context: dict[str, object] | None) -> dict[str, object]:
+        if not isinstance(session_context, dict):
+            return {}
+        keys = (
+            "destination",
+            "check_in",
+            "check_out",
+            "nearby_place",
+            "number_of_guests",
+            "has_pet",
+            "has_children",
+            "session_price_range",
+            "note_amenities",
+        )
+        return {
+            key: value
+            for key in keys
+            if (value := session_context.get(key)) not in (None, "", {}, [])
+        }
 
     @staticmethod
     def _normalize_history(conversation_history: list[dict[str, str]] | None) -> list[dict[str, str]]:

@@ -11,7 +11,6 @@ requests>=2.31,<3.0
 pymongo>=4.6,<5.0
 neo4j>=5.20,<6.0
 kafka-python>=2.0,<3.0
-qdrant-client>=1.9,<2.0
 sqlalchemy>=2.0,<3.0
 psycopg2-binary>=2.9,<3.0
 
@@ -31,9 +30,11 @@ faiss-cpu>=1.8,<2.0
 rank-bm25>=0.2.2,<1.0
 rapidfuzz>=3.9,<4.0
 sentence-transformers>=3.0,<6.0
-FlagEmbedding>=1.2,<2.0
 torch>=2.2,<3.0
 
+# Authentication
+bcrypt>=4.0,<6.0
+python-jose[cryptography]>=3.3,<4.0
 
 # Evaluation
 datasets>=2.20,<5.0

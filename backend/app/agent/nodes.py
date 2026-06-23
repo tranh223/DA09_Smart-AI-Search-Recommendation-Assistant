@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import threading
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -69,32 +70,50 @@ def _candidate_limit_per_source(state: AgentState) -> int:
 
 # ── Session node ─────────────────────────────────────────────────────────────
 
-def _load_chat_history(user_id: str) -> list[dict[str, Any]]:
-    """Load chat history từ MongoDB Summary collection.
+def _normalize_chat_history_items(items: list[Any]) -> list[dict[str, Any]]:
+    normalized: list[dict[str, Any]] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        if "role" in item and "content" in item:
+            normalized.append(item)
+        else:
+            if item.get("user_query"):
+                normalized.append({"role": "user", "content": item["user_query"]})
+            if item.get("llm_answer"):
+                normalized.append({"role": "assistant", "content": item["llm_answer"]})
+    return normalized
+
+
+def _load_chat_history(
+    session_id: str,
+    user_id: str,
+    *,
+    allow_summary_fallback: bool = True,
+) -> list[dict[str, Any]]:
+    """Load chat history from the current session, then fallback to user summary.
 
     Format MongoDB: [{"user_query": "...", "llm_answer": "..."}]
     Normalize sang format QU pipeline: [{"role": "user", "content": "..."}, ...]
     """
-    if not user_id:
+    if not session_id and not user_id:
         return []
     try:
         from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
-        summaries = get_collection("Summary")
-        doc = summaries.find_one({"user_id": user_id}, {"history": 1})
-        if not doc or not isinstance(doc.get("history"), list):
-            return []
-        normalized: list[dict[str, Any]] = []
-        for item in doc["history"]:
-            if not isinstance(item, dict):
-                continue
-            if "role" in item and "content" in item:
-                normalized.append(item)
-            else:
-                if item.get("user_query"):
-                    normalized.append({"role": "user", "content": item["user_query"]})
-                if item.get("llm_answer"):
-                    normalized.append({"role": "assistant", "content": item["llm_answer"]})
-        return normalized
+        from app.utils.util import transform_id  # noqa: PLC0415
+
+        if session_id:
+            sessions = get_collection("Sessions")
+            doc = sessions.find_one({"_id": transform_id(session_id)}, {"history": 1})
+            if doc and isinstance(doc.get("history"), list) and doc["history"]:
+                return _normalize_chat_history_items(doc["history"])
+
+        if user_id and allow_summary_fallback:
+            summaries = get_collection("Summary")
+            doc = summaries.find_one({"user_id": user_id}, {"history": 1})
+            if doc and isinstance(doc.get("history"), list):
+                return _normalize_chat_history_items(doc["history"])
+        return []
     except Exception as exc:  # noqa: BLE001
         logger.warning("[session_node] MongoDB history load failed: %s", exc)
         return []
@@ -106,9 +125,12 @@ def _load_conversation_summary(user_id: str) -> str:
         return ""
     try:
         from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
-        from app.utils.util import transform_id  # noqa: PLC0415
         summaries = get_collection("Summary")
-        doc = summaries.find_one({"user_id": transform_id(user_id)}, {"content": 1})
+        doc = summaries.find_one({"user_id": user_id}, {"content": 1})
+        if doc is None:
+            from app.utils.util import transform_id  # noqa: PLC0415
+
+            doc = summaries.find_one({"_id": transform_id(user_id)}, {"content": 1})
         return doc.get("content") or "" if doc else ""
     except Exception as exc:  # noqa: BLE001
         logger.warning("[session_node] MongoDB summary load failed: %s", exc)
@@ -125,6 +147,21 @@ def _has_meaningful_value(value: Any) -> bool:
     return True
 
 
+def _is_chitchat_query(query: str) -> bool:
+    normalized = " ".join(str(query or "").strip().lower().split())
+    if not normalized:
+        return False
+    chitchat_patterns = (
+        r"^(hi|hello|hey|xin chào|chào|chao)(\s|$)",
+        r"(bạn|ban)\s+có\s+thể\s+giúp\s+gì",
+        r"(ban|bạn)\s+co\s+the\s+giup\s+gi",
+        r"(giúp|giup)\s+(gì|gi)",
+        r"(có|co)\s+thể\s+làm\s+gì",
+        r"(co|có)\s+the\s+lam\s+gi",
+    )
+    return any(re.search(pattern, normalized, re.IGNORECASE) for pattern in chitchat_patterns)
+
+
 def _merge_server_over_fallback(
     server_value: dict[str, Any],
     fallback_value: dict[str, Any],
@@ -136,6 +173,49 @@ def _merge_server_over_fallback(
         elif _has_meaningful_value(value):
             merged[key] = value
     return merged
+
+
+def _load_user_scoped_doc(
+    collection_name: str,
+    user_id: str,
+    projection: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
+    if not user_id:
+        return None
+    from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
+    from app.utils.util import transform_id  # noqa: PLC0415
+
+    collection = get_collection(collection_name)
+    doc = collection.find_one({"user_id": user_id}, projection)
+    if doc is not None:
+        return doc
+    return collection.find_one({"_id": transform_id(user_id)}, projection)
+
+
+def _normalize_user_scoped_doc_key(collection_name: str, user_id: str) -> None:
+    if not user_id:
+        return
+    try:
+        from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
+        from app.utils.util import transform_id  # noqa: PLC0415
+
+        collection = get_collection(collection_name)
+        if collection.find_one({"user_id": user_id}, {"_id": 1}) is not None:
+            return
+        legacy_doc = collection.find_one({"_id": transform_id(user_id)}, {"_id": 1, "user_id": 1})
+        if legacy_doc is None or legacy_doc.get("user_id") == user_id:
+            return
+        collection.update_one(
+            {"_id": legacy_doc["_id"]},
+            {"$set": {"user_id": user_id}},
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "[session_node] MongoDB %s key normalization failed for user=%s: %s",
+            collection_name,
+            user_id,
+            exc,
+        )
 
 
 def _load_session_context(session_id: str) -> dict[str, Any]:
@@ -161,14 +241,8 @@ def _load_long_term_profile(user_id: str) -> dict[str, Any]:
     if not user_id:
         return {}
     try:
-        from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
-        from app.utils.util import transform_id  # noqa: PLC0415
-
-        users = get_collection("Users")
         projection = {"long_term_profile": 1, "profile": 1, "name": 1}
-        doc = users.find_one({"_id": transform_id(user_id)}, projection)
-        if doc is None:
-            doc = users.find_one({"user_id": user_id}, projection)
+        doc = _load_user_scoped_doc("Users", user_id, projection)
         if not doc:
             return {}
         profile = doc.get("profile") if isinstance(doc.get("profile"), dict) else {}
@@ -183,13 +257,7 @@ def _load_tagremoved_profile(user_id: str) -> dict[str, Any]:
     if not user_id:
         return {}
     try:
-        from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
-        from app.utils.util import transform_id  # noqa: PLC0415
-
-        tagremoved = get_collection("TagRemoved")
-        doc = tagremoved.find_one({"_id": transform_id(user_id)}, {"tagremoved_profile": 1})
-        if doc is None:
-            doc = tagremoved.find_one({"user_id": user_id}, {"tagremoved_profile": 1})
+        doc = _load_user_scoped_doc("TagRemoved", user_id, {"tagremoved_profile": 1})
         payload = doc.get("tagremoved_profile") if doc else None
         return payload if isinstance(payload, dict) else {}
     except Exception as exc:  # noqa: BLE001
@@ -326,16 +394,13 @@ def _reconcile_tagremoved_profile_if_due(user_id: str) -> tuple[dict[str, Any], 
         return {}, {}
     try:
         from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
-        from app.utils.util import transform_id  # noqa: PLC0415
 
         users = get_collection("Users")
         tagremoved = get_collection("TagRemoved")
-        user_doc = users.find_one({"_id": transform_id(user_id)}, {"long_term_profile": 1})
-        if user_doc is None:
-            user_doc = users.find_one({"user_id": user_id}, {"long_term_profile": 1})
-        tagremoved_doc = tagremoved.find_one({"_id": transform_id(user_id)})
-        if tagremoved_doc is None:
-            tagremoved_doc = tagremoved.find_one({"user_id": user_id})
+        _normalize_user_scoped_doc_key("Users", user_id)
+        _normalize_user_scoped_doc_key("TagRemoved", user_id)
+        user_doc = _load_user_scoped_doc("Users", user_id, {"long_term_profile": 1})
+        tagremoved_doc = _load_user_scoped_doc("TagRemoved", user_id)
 
         long_term_profile = (
             user_doc.get("long_term_profile") if isinstance(user_doc, dict) else {}
@@ -362,7 +427,7 @@ def _reconcile_tagremoved_profile_if_due(user_id: str) -> tuple[dict[str, Any], 
             removed_profile if isinstance(removed_profile, dict) else {},
         )
         users.update_one(
-            {"_id": transform_id(user_id)},
+            {"user_id": user_id},
             {
                 "$set": {
                     "user_id": user_id,
@@ -374,7 +439,7 @@ def _reconcile_tagremoved_profile_if_due(user_id: str) -> tuple[dict[str, Any], 
             upsert=True,
         )
         tagremoved.update_one(
-            {"_id": transform_id(user_id)},
+            {"user_id": user_id},
             {
                 "$set": {
                     "user_id": user_id,
@@ -439,11 +504,21 @@ def session_node(state: AgentState) -> dict[str, Any]:
     req_id = state.get("request_id") or state.get("session_id") or "-"
     user_id = state.get("user_id") or ""
     session_id = state.get("session_id") or ""
+    query = state.get("raw_query") or ""
+
+    user_profile = _build_server_user_profile(state)
+    session_context = user_profile.get("session_context") or {}
+    has_session_context = _has_meaningful_value(session_context)
+    allow_summary_fallback = not (_is_chitchat_query(query) and not has_session_context)
 
     # Load từ MongoDB (ưu tiên DB, fallback về giá trị client gửi lên)
     history: list[dict[str, Any]] = (
-        _load_chat_history(user_id)
-        or state.get("chat_history")
+        _load_chat_history(
+            session_id=session_id,
+            user_id=user_id,
+            allow_summary_fallback=allow_summary_fallback,
+        )
+        or (state.get("chat_history") if allow_summary_fallback else [])
         or []
     )
     summary: str = (
@@ -451,8 +526,6 @@ def session_node(state: AgentState) -> dict[str, Any]:
         or state.get("conversation_summary")
         or ""
     )
-    user_profile = _build_server_user_profile(state)
-    session_context = user_profile.get("session_context") or {}
     logger.debug(
         "[%s][session] loaded history=%d turns  summary=%s  dst=%s  check_in=%s  check_out=%s",
         req_id,
@@ -960,9 +1033,10 @@ def _persist_profile_state_directly(
         )
 
         if user_id and isinstance(long_term_profile, dict):
+            _normalize_user_scoped_doc_key("Users", user_id)
             users = get_collection("Users")
             users.update_one(
-                {"_id": transform_id(user_id)},
+                {"user_id": user_id},
                 {
                     "$set": {
                         "user_id": user_id,
@@ -974,9 +1048,10 @@ def _persist_profile_state_directly(
                 upsert=True,
             )
         if user_id and isinstance(tagremoved_profile, dict):
+            _normalize_user_scoped_doc_key("TagRemoved", user_id)
             tagremoved = get_collection("TagRemoved")
             tagremoved.update_one(
-                {"_id": transform_id(user_id)},
+                {"user_id": user_id},
                 {
                     "$set": {
                         "user_id": user_id,
@@ -1005,6 +1080,7 @@ def _emit_analytics(
         answer = final_response.get("answer") or ""
         if query and answer:
             _persist_chat_history_directly(
+                session_id=session_id,
                 user_id=user_id,
                 question=query,
                 answer=answer,
@@ -1018,33 +1094,90 @@ def _emit_analytics(
 
 def _persist_chat_history_directly(
     *,
+    session_id: str,
     user_id: str,
     question: str,
     answer: str,
 ) -> None:
-    if not user_id:
+    if not session_id and not user_id:
         return
     try:
         from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
+        from app.utils.util import transform_id  # noqa: PLC0415
 
-        summaries = get_collection("Summary")
-        history_item = {"user_query": question, "llm_answer": answer}
+        now = datetime.now(timezone.utc)
+        history_item = {
+            "user_query": question,
+            "llm_answer": answer,
+        }
 
-        # Atomic push: only push when last element is different (prevents consecutive duplicates)
-        summaries.update_one(
-            {
-                "$and": [
+        if session_id:
+            sessions = get_collection("Sessions")
+            sessions.update_one(
+                {"_id": transform_id(session_id)},
+                {
+                    "$push": {
+                        "history": {
+                            "$each": [history_item],
+                            "$slice": -10,
+                        }
+                    },
+                    "$set": {
+                        "user_id": user_id,
+                        "updated_at": now,
+                    },
+                    "$setOnInsert": {
+                        "num_like": 0,
+                        "num_dislike": 0,
+                        "final_reaction": None,
+                        "latency": [],
+                        "ttft": [],
+                        "booking": False,
+                        "evaluated": False,
+                        "end": None,
+                    },
+                },
+                upsert=True,
+            )
+
+        if user_id:
+            summaries = get_collection("Summary")
+            _normalize_user_scoped_doc_key("Summary", user_id)
+            summary_doc = summaries.find_one(
+                {"user_id": user_id},
+                {"history": {"$slice": -1}},
+            )
+            if summary_doc is None:
+                summary_doc = summaries.find_one(
+                    {"_id": transform_id(user_id)},
+                    {"history": {"$slice": -1}},
+                )
+
+            last_history_item = None
+            if isinstance(summary_doc, dict):
+                history_tail = summary_doc.get("history")
+                if isinstance(history_tail, list) and history_tail:
+                    candidate = history_tail[-1]
+                    if isinstance(candidate, dict):
+                        last_history_item = candidate
+
+            if last_history_item != history_item:
+                summaries.update_one(
                     {"user_id": user_id},
                     {
-                        "$expr": {"$ne": [{"$arrayElemAt": ["$history", -1]}, history_item]}
+                        "$push": {
+                            "history": {
+                                "$each": [history_item],
+                                "$slice": -10,
+                            }
+                        },
+                        "$set": {
+                            "user_id": user_id,
+                            "updated_at": now,
+                        },
+                        "$setOnInsert": {"created_at": now},
                     },
-                ]
-            },
-            {
-                "$push": {"history": {"$each": [history_item], "$slice": -10}},
-                "$setOnInsert": {"user_id": user_id},
-            },
-            upsert=True,
-        )
+                    upsert=True,
+                )
     except Exception as exc:  # noqa: BLE001
         logger.warning("[analytics_node] direct Mongo history persist failed: %s", exc)
