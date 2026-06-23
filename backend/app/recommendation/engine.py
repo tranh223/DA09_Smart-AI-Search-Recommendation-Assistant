@@ -6,14 +6,13 @@ Sơ đồ:
        │
        ▼
   Orchestrator (quyết định nguồn)
-  ┌────┬──────────────┬─────────────────────┐
-  │    │              │                     │
-  ▼    ▼              ▼                     ▼
-EMBED TOP           PERSONALIZATION
-SEARCH TRENDING      (Neo4j unified template)
-(Qdrant)  (MongoDB)
-  │    │              │
-  └────┴──────────────┘
+  ┌──────────────┬──────────────────────────┐
+  │              │                          │
+  ▼              ▼                          ▼
+EMBED SEARCH   PERSONALIZATION
+(Qdrant)       (Neo4j unified template)
+  │              │
+  └──────────────┘
               │
               ▼
           REC_MERGE

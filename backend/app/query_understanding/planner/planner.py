@@ -19,7 +19,6 @@ SEARCH_PLAN_SCHEMA = {
                 "enum": [
                     SearchTask.INFORMATION.value,
                     SearchTask.HOTEL_SIMILAR.value,
-                    SearchTask.TRENDING.value,
                     SearchTask.HOTEL_SEARCH.value,
                     SearchTask.PERSONALIZATION.value,
                     SearchTask.SPECIAL_FEATURE.value,

@@ -6,7 +6,6 @@ list[CandidateHotel] từ tất cả nguồn (chưa merge, chưa rank).
 Quy tắc bật nguồn:
   EMBEDDING_SEARCH — luôn bật nếu có city (semantic retrieval qua Qdrant)
   PERSONALIZATION  — bật nếu user_id không phải guest/anonymous
-  TRENDING         — luôn bật nếu có city (fallback / bổ sung cold-start)
 """
 
 from __future__ import annotations
@@ -17,9 +16,6 @@ from app.recommendation.models import RecommendInput, CandidateHotel
 from app.recommendation.trace import RecommendTrace
 from app.recommendation.candidate_generation.hotel_search.embedding_search import (
     get_embedding_search_candidates,
-)
-from app.recommendation.candidate_generation.trending.trending import (
-    get_trending_candidates,
 )
 from app.recommendation.candidate_generation.personalization.personalization import (
     get_personalization_candidates,
@@ -38,11 +34,9 @@ def _is_anonymous(user_id: str) -> bool:
 def _decide_sources(inp: RecommendInput) -> dict[str, bool]:
     city = inp.session_context.destination
     use_embedding = bool(city)
-    use_trending = bool(city)
     use_personal = bool(city) and not _is_anonymous(inp.user_id)
     return {
         "embedding_search": use_embedding,
-        "trending": use_trending,
         "personalization": use_personal,
     }
 
@@ -85,16 +79,8 @@ def generate_candidates(
             trace.candidates("embedding_search", results)
             all_candidates.extend(results)
 
-        if sources["trending"]:
-            trace.section("④ TOP TRENDING (MongoDB Booking)")
-            results = get_trending_candidates(
-                inp.session_context.destination, inp.limit_per_source, trace=trace
-            )
-            trace.candidates("trending", results)
-            all_candidates.extend(results)
-
         if sources["personalization"]:
-            trace.section("⑤ PERSONALIZATION (Neo4j unified Cypher)")
+            trace.section("④ PERSONALIZATION (Neo4j unified Cypher)")
             results = get_personalization_candidates(inp, trace=trace)
             trace.candidates("personalization", results)
             all_candidates.extend(results)
@@ -109,10 +95,6 @@ def generate_candidates(
     tasks: dict[str, callable] = {}
     if sources["embedding_search"]:
         tasks["embedding_search"] = lambda: get_embedding_search_candidates(inp)
-    if sources["trending"]:
-        tasks["trending"] = lambda: get_trending_candidates(
-            inp.session_context.destination, inp.limit_per_source
-        )
     if sources["personalization"]:
         tasks["personalization"] = lambda: get_personalization_candidates(inp)
 
