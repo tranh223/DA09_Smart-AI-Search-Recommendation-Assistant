@@ -1,4 +1,13 @@
-"""Resolve imperfect hotel names to canonical hotel IDs from a small candidate set."""
+"""Resolve hotel names to canonical hotel IDs.
+
+Updated behavior (per task):
+- Primary retrieval uses **vector search in Qdrant** over the hotels collection.
+- Optional lightweight normalization + fuzzy reranking can be applied on the returned
+  candidate set.
+
+This module keeps the original public API (`hotel_entity_resolver.resolve(...)`)
+so upstream code doesn't need to change.
+"""
 
 from __future__ import annotations
 
@@ -9,6 +18,9 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 from rapidfuzz import fuzz
+
+from app.db.vector_store.qdrant_store import get_qdrant_store
+from app.recommendation.embedding.bge_embedder import get_embedder
 
 
 LOW_VALUE_TOKENS = {
@@ -84,7 +96,7 @@ class HotelResolution(BaseModel):
 
 
 class HotelEntityResolver:
-    """Resolve names using exact alias lookup followed by fuzzy reranking."""
+    """Resolve hotel names using vector search + fuzzy reranking."""
 
     def __init__(
         self,
@@ -92,11 +104,15 @@ class HotelEntityResolver:
         auto_resolve_threshold: float = 75.0,
         ambiguity_margin: float = 2.0,
         max_ranked_candidates: int = 5,
+        vector_limit: int = 12,
     ) -> None:
         self.auto_resolve_threshold = auto_resolve_threshold
         self.ambiguity_margin = ambiguity_margin
         self.max_ranked_candidates = max_ranked_candidates
-        self._alias_cache: dict[tuple[str, str], tuple[int, str]] = {}
+        self.vector_limit = vector_limit
+
+        # Cache embeddings for repeated names in a single process.
+        self._resolved_cache: dict[tuple[str, str | None], tuple[int, str]] = {}
 
     def resolve(
         self,
@@ -105,11 +121,17 @@ class HotelEntityResolver:
         *,
         city: str | None = None,
     ) -> HotelResolution:
+        """Resolve an input hotel name to a canonical hotel.
+
+        `candidates` is kept for backwards compatibility with older call sites, but
+        it is no longer required for correctness: Qdrant becomes the primary source.
+        """
+
         normalized_name = normalize_hotel_text(hotel_name)
         normalized_city = normalize_hotel_text(city)
-        cache_key = (normalized_name, normalized_city)
 
-        cached = self._alias_cache.get(cache_key)
+        cache_key = (normalized_name, normalized_city or None)
+        cached = self._resolved_cache.get(cache_key)
         if cached:
             return HotelResolution(
                 status="resolved",
@@ -121,25 +143,70 @@ class HotelEntityResolver:
                 confidence=1.0,
             )
 
-        coerced = [
-            candidate
-            if isinstance(candidate, HotelCandidate)
-            else HotelCandidate.model_validate(candidate)
-            for candidate in candidates
-        ]
+        # 1) Vector retrieval from Qdrant
+        embedder = get_embedder()
+        qdrant = get_qdrant_store()
+
+        query_vector = embedder.encode_one(hotel_name, is_query=True)
+
+        qdrant_hits = qdrant.search_hotels(
+            query_vector,
+            city=city,
+            limit=self.vector_limit,
+            score_threshold=None,
+        )
+
+        vec_candidates: list[HotelCandidate] = []
+        for hit in qdrant_hits or []:
+            hotel_id = hit.get("hotel_id")
+            hotel_name_out = hit.get("hotel_name")
+            hit_city = hit.get("city_name")
+            if hotel_id is None or hotel_name_out is None:
+                continue
+            vec_candidates.append(
+                HotelCandidate(
+                    hotel_id=int(hotel_id),
+                    hotel_name=str(hotel_name_out),
+                    city=str(hit_city) if hit_city else None,
+                    raw=hit.get("payload") or hit,
+                )
+            )
+
+        # 2) Fallback: if Qdrant returns nothing, use provided candidates.
+        if not vec_candidates:
+            coerced: list[HotelCandidate] = []
+            for candidate in candidates:
+                coerced.append(
+                    candidate
+                    if isinstance(candidate, HotelCandidate)
+                    else HotelCandidate.model_validate(candidate)
+                )
+            vec_candidates = coerced
+
+        if not vec_candidates:
+            return HotelResolution(
+                status="not_found",
+                input_name=hotel_name,
+                input_city=city,
+                candidates=[],
+            )
+
+        # 3) Fuzzy reranking among vector candidates
         scored = sorted(
             (
                 {
-                    "hotel_id": candidate.hotel_id,
-                    "hotel_name": candidate.hotel_name,
-                    "city": candidate.city,
-                    "score": self._score(hotel_name, candidate, city),
+                    "hotel_id": c.hotel_id,
+                    "hotel_name": c.hotel_name,
+                    "city": c.city,
+                    "score": self._score(hotel_name, c, city),
+                    "raw": c.raw,
                 }
-                for candidate in coerced
+                for c in vec_candidates
             ),
             key=lambda item: item["score"],
             reverse=True,
         )
+
         ranked = scored[: self.max_ranked_candidates]
         if not ranked:
             return HotelResolution(
@@ -151,6 +218,7 @@ class HotelEntityResolver:
         best = ranked[0]
         runner_up_score = ranked[1]["score"] if len(ranked) > 1 else 0.0
         margin = best["score"] - runner_up_score
+
         if best["score"] < self.auto_resolve_threshold:
             status = "not_found"
         elif len(ranked) > 1 and margin < self.ambiguity_margin:
@@ -166,10 +234,21 @@ class HotelEntityResolver:
             canonical_name=best["hotel_name"] if status == "resolved" else None,
             matched_alias=hotel_name if status == "resolved" else None,
             confidence=round(best["score"] / 100.0, 4),
-            candidates=ranked,
+            candidates=[
+                {
+                    "hotel_id": item["hotel_id"],
+                    "hotel_name": item["hotel_name"],
+                    "city": item["city"],
+                    "score": item["score"],
+                    "raw": item.get("raw") or {},
+                }
+                for item in ranked
+            ],
         )
+
         if status == "resolved":
-            self._alias_cache[cache_key] = (best["hotel_id"], best["hotel_name"])
+            self._resolved_cache[cache_key] = (best["hotel_id"], best["hotel_name"])
+
         return resolution
 
     @staticmethod
@@ -180,6 +259,7 @@ class HotelEntityResolver:
     ) -> float:
         normalized_input = normalize_hotel_text(input_name)
         input_tokens = _important_tokens(input_name)
+
         destination_match = (
             1.0
             if input_city
@@ -197,6 +277,7 @@ class HotelEntityResolver:
                 if input_tokens
                 else 0.0
             )
+
             score = (
                 0.35 * fuzz.WRatio(normalized_input, normalized_candidate)
                 + 0.25 * fuzz.token_set_ratio(normalized_input, normalized_candidate)
@@ -204,15 +285,19 @@ class HotelEntityResolver:
                 + 15.0 * coverage
                 + 5.0 * destination_match
             )
+
             compact_input = normalized_input.replace(" ", "")
             compact_candidate = normalized_candidate.replace(" ", "")
+
             if input_tokens and input_tokens == candidate_tokens:
                 score = max(score, 98.0 + 2.0 * destination_match)
             elif compact_input and compact_input in compact_candidate:
                 score = max(score, 92.0 + 5.0 * destination_match)
+
             best_score = max(best_score, score)
 
-        return min(best_score, 100.0)
+        return float(min(best_score, 100.0))
 
 
 hotel_entity_resolver = HotelEntityResolver()
+
