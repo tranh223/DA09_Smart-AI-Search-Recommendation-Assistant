@@ -15,7 +15,7 @@ from __future__ import annotations
 import logging
 import os
 import threading
-from typing import Any
+from typing import Any, Generator
 
 logger = logging.getLogger(__name__)
 
@@ -376,3 +376,49 @@ def build_response_with_llm(
             exc,
         )
         return _fallback_response(ranked_recommendations)
+
+
+def build_response_stream_with_llm(
+    *,
+    query: str,
+    intent: str,
+    destination: str,
+    rag_answer: str,
+    ranked_recommendations: list[dict[str, Any]],
+) -> Generator[str, None, None]:
+    """Yield từng text token Markdown của answer qua OpenAI streaming.
+
+    Dùng cho /chat/stream endpoint — chỉ stream phần answer (plain Markdown text).
+    hotel_reasons và next_suggestions phải lấy từ kết quả graph.ainvoke() riêng.
+
+    Fallback: nếu LLM không khả dụng hoặc stream lỗi, yield toàn bộ
+    fallback answer trong một lần để không block caller.
+    """
+    client = _get_llm_client()
+    if client is None:
+        fallback = _fallback_response(ranked_recommendations)
+        yield fallback["synthesized_answer"]
+        return
+
+    prompt = _build_prompt(
+        query=query,
+        intent=intent,
+        destination=destination,
+        rag_answer=rag_answer,
+        hotels=ranked_recommendations,
+    )
+
+    try:
+        yield from client.stream_text(
+            model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
+            instructions=_SYSTEM_INSTRUCTIONS,
+            input_text=prompt,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "[response_builder] stream_text failed — fallback. error=%s: %s",
+            type(exc).__name__,
+            exc,
+        )
+        fallback = _fallback_response(ranked_recommendations)
+        yield fallback["synthesized_answer"]

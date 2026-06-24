@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { t } from '../../styles/theme';
-import { sendChatMessage, type BackendChatData } from '../../services/backendApi';
+import { sendChatMessageStream, type BackendChatData } from '../../services/backendApi';
 import { type Hotel, type HotelListParams, type RecoQuery, extractImages } from '../../services/hotels';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -302,37 +302,95 @@ export function ChatBot({ isOpen, onOpen, onClose, onRecommend, onClearRecommend
 
   const sendBackendQuery = async (txt: string) => {
     setIsTyping(true);
+
+    // ID cố định cho bot message — dùng để cập nhật text in-place khi stream
+    const botMsgId = `${Date.now()}-bot-stream`;
+    let msgCreated = false;
+
     try {
-      const data = await sendChatMessage({
-        session_id: sessionId.current,
-        query: txt,
-        rerank_options: { top_k: 5 },
-      }, token);
+      await sendChatMessageStream(
+        {
+          session_id: sessionId.current,
+          query: txt,
+          rerank_options: { top_k: 5 },
+        },
+        token,
+        {
+          // Không cần hiển thị status ra UI — TypingDots đang chạy
+          onDelta(text) {
+            if (!msgCreated) {
+              // Tạo bot message lần đầu khi nhận token đầu tiên
+              msgCreated = true;
+              setIsTyping(false);
+              setMessages(prev => [
+                ...prev,
+                { id: botMsgId, kind: 'bot' as const, text },
+              ]);
+            } else {
+              // Append token vào message đang hiển thị
+              setMessages(prev =>
+                prev.map(m =>
+                  m.id === botMsgId && m.kind === 'bot'
+                    ? { ...m, text: m.text + text }
+                    : m,
+                ),
+              );
+            }
+          },
+          onMetadata(data) {
+            // Gắn suggestion chips sau khi answer hoàn tất
+            const chips = suggestionChips(data);
+            if (chips) {
+              setMessages(prev =>
+                prev.map(m =>
+                  m.id === botMsgId && m.kind === 'bot' ? { ...m, chips } : m,
+                ),
+              );
+            }
+            // Cập nhật danh sách khách sạn bên trái
+            const hotels = hotelsFromBackend(data);
+            if (hotels.length > 0) {
+              onRecommend({ label: `VinBot · ${txt}`, params: {}, hotels });
+            }
+            setStep(3);
+          },
+          onDone() {
+            setIsTyping(false);
+            // Fallback nếu không nhận được delta nào (ví dụ pipeline trống)
+            if (!msgCreated) {
+              addBotMsg({
+                kind: 'bot',
+                text: 'Mình chưa tìm thấy câu trả lời phù hợp. Bạn có thể nói rõ hơn về điểm đến, ngày đi hoặc ngân sách không?',
+              });
+            }
+          },
+          onError(err) {
+            setIsTyping(false);
+            if (!msgCreated) {
+              addBotMsg({
+                kind: 'bot',
+                text: err.message.startsWith('HTTP')
+                  ? `Lỗi kết nối backend (${err.message}). Vui lòng thử lại.`
+                  : `Mình chưa kết nối được backend: ${err.message}`,
+                chips: ['Biển', 'Núi', 'Phố cổ', 'Vui chơi'],
+              });
+              setStep(1);
+            }
+          },
+        },
+      );
+    } catch (err) {
       setIsTyping(false);
-      addBotMsg({
-        kind: 'bot',
-        text: formatBackendReply(data),
-        chips: suggestionChips(data),
-      });
-      const recommendedHotels = hotelsFromBackend(data);
-      if (recommendedHotels.length > 0) {
-        onRecommend({
-          label: `VinBot · ${txt}`,
-          params: {},
-          hotels: recommendedHotels,
+      if (!msgCreated) {
+        addBotMsg({
+          kind: 'bot',
+          text: err instanceof Error
+            ? `Mình chưa kết nối được backend: ${err.message}`
+            : 'Mình chưa kết nối được backend. Vui lòng thử lại sau.',
+          chips: ['Biển', 'Núi', 'Phố cổ', 'Vui chơi'],
         });
+        setStep(1);
       }
-      setStep(3);
-    } catch (error) {
-      setIsTyping(false);
-      addBotMsg({
-        kind: 'bot',
-        text: error instanceof Error
-          ? `Mình chưa kết nối được backend: ${error.message}`
-          : 'Mình chưa kết nối được backend. Vui lòng thử lại sau.',
-        chips: ['Biển', 'Núi', 'Phố cổ', 'Vui chơi'],
-      });
-      setStep(1);
     }
   };
 
