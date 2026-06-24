@@ -11,7 +11,7 @@ from typing import Any
 
 from app.agent.latency import build_latency_summary
 from app.agent.qu_adapter import pipeline_result_to_state
-from app.agent.response_builder import build_response_with_llm
+from app.agent.response_builder import build_guardrail_response_with_llm, build_response_with_llm
 from app.agent.state import AgentState
 from app.core.trace import current_trace
 from app.recommendation.engine import run_candidate_pipeline, run_rerank_from_merged
@@ -577,6 +577,7 @@ def intent_node(state: AgentState) -> dict[str, Any]:
         user_profile_raw = {**user_profile_raw, "user_id": user_id}
 
     chat_history: list[dict[str, str]] = state.get("chat_history") or []
+    conversation_summary: str = state.get("conversation_summary") or ""
     limit = _candidate_limit_per_source(state)
 
     req_id = state.get("request_id") or state.get("session_id") or "-"
@@ -590,6 +591,7 @@ def intent_node(state: AgentState) -> dict[str, Any]:
             query=query,
             user_profile_input=user_profile_raw,
             conversation_history=chat_history,
+            conversation_summary=conversation_summary,
         )
         mapped = pipeline_result_to_state(result, query=query, limit_per_source=limit)
         logger.debug(
@@ -690,6 +692,39 @@ def clarify_node(state: AgentState) -> dict[str, Any]:
     missing = state.get("clarification_missing_fields") or []
     intent = state.get("intent") or "clarification_needed"
     latency = build_latency_summary(state)
+    guardrail = ((state.get("qu_trace") or {}).get("guardrail") or {})
+
+    if guardrail and guardrail.get("allow") is False:
+        guardrail_response = build_guardrail_response_with_llm(
+            query=state.get("raw_query") or "",
+            category=str(guardrail.get("category") or ""),
+            reason=str(guardrail.get("reason") or ""),
+            conversation_summary=state.get("conversation_summary") or "",
+            chat_history=state.get("chat_history") or [],
+        )
+        answer = guardrail_response.get("answer") or question
+        next_suggestions = guardrail_response.get("next_suggestions") or []
+        logger.debug(
+            "[%s][clarify] guardrail_blocked category=%s answer=%.60s",
+            req_id,
+            guardrail.get("category"),
+            answer,
+        )
+        return {
+            "clarification_question": "",
+            "final_response": {
+                "answer": answer,
+                "intent": intent,
+                "recommendations": [],
+                "sources": [],
+                "next_suggestions": next_suggestions,
+                "needs_clarification": False,
+                "clarification_question": "",
+                "missing_fields": [],
+                "explanation": str(guardrail.get("reason") or ""),
+                "latency": latency,
+            },
+        }
 
     logger.debug(
         "[%s][clarify] missing_fields=%s  question=%.60s",

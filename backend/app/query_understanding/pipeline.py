@@ -115,6 +115,7 @@ class QueryUnderstandingPipeline:
         query: str,
         user_profile_input: UserProfile | dict[str, Any],
         conversation_history: list[dict[str, str]] | None = None,
+        conversation_summary: str | None = None,
     ) -> PipelineResult:
         pipeline_start = time.perf_counter()
         timing: dict[str, Any] = {}
@@ -151,7 +152,7 @@ class QueryUnderstandingPipeline:
             query,
             user_id=user_profile.user_id,
             recent_user_queries=recent_user_queries,
-            session_context=asdict(user_profile.session_context),
+            conversation_summary=conversation_summary,
         )
         timing["guardrail_ms"] = _elapsed_ms(guardrail_start)
         _log_qu_json(
