@@ -193,6 +193,24 @@ class OTAGuardrailClassifier:
             }
             return contextual_allow
 
+        ota_allow = self._rule_based_ota_allow(query)
+        if ota_allow is not None:
+            self.last_trace = {
+                "path": "rule_based_ota_allow",
+                "recent_user_queries": self._normalize_recent_user_queries(recent_user_queries),
+                "conversation_summary": self._normalize_conversation_summary(conversation_summary),
+                "prompt_cache": {
+                    "enabled": False,
+                    "reason": "rule_based_ota_allow",
+                },
+                "result": {
+                    "allow": ota_allow.allow,
+                    "category": ota_allow.category,
+                    "reason": ota_allow.reason,
+                },
+            }
+            return ota_allow
+
         prompt_cache = self.client.build_prompt_cache_settings(
             component_name="qu_guardrail",
             model=self.model,
@@ -224,10 +242,11 @@ class OTAGuardrailClassifier:
             },
             "payload": payload,
         }
+        result = self._normalize_llm_payload(payload)
         return GuardrailResult(
-            allow=bool(payload["allow"]),
-            category=str(payload["category"]),
-            reason=str(payload["reason"]),
+            allow=result.allow,
+            category=result.category,
+            reason=result.reason,
         )
 
     @staticmethod
@@ -313,6 +332,43 @@ class OTAGuardrailClassifier:
                 reason="Short follow-up completes an active hotel search from conversation summary.",
             )
         return None
+
+    def _rule_based_ota_allow(self, query: str) -> GuardrailResult | None:
+        normalized = self._normalize_for_pattern_match(query)
+        if self._matches_any(normalized, self.OTA_HINT_PATTERNS):
+            return GuardrailResult(
+                allow=True,
+                category="SAFE",
+                reason="Current query is clearly related to hotel or accommodation workflow.",
+            )
+        return None
+
+    @staticmethod
+    def _normalize_for_pattern_match(text: str) -> str:
+        import unicodedata
+
+        normalized = unicodedata.normalize("NFD", str(text or "").lower())
+        without_accents = "".join(char for char in normalized if unicodedata.category(char) != "Mn")
+        return " ".join(without_accents.split())
+
+    @staticmethod
+    def _normalize_llm_payload(payload: dict[str, object]) -> GuardrailResult:
+        category = str(payload.get("category") or "OUT_OF_SCOPE")
+        allow = bool(payload.get("allow"))
+        reason = str(payload.get("reason") or "")
+        if category == "SAFE" and not allow:
+            return GuardrailResult(
+                allow=True,
+                category="SAFE",
+                reason=f"Normalized contradictory guardrail output: {reason}",
+            )
+        if category != "SAFE" and allow:
+            return GuardrailResult(
+                allow=False,
+                category=category,
+                reason=f"Normalized contradictory guardrail output: {reason}",
+            )
+        return GuardrailResult(allow=allow, category=category, reason=reason)
 
     @classmethod
     def _has_active_hotel_context(cls, conversation_summary: str | None) -> bool:

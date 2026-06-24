@@ -50,6 +50,10 @@ def _build_query_text(slots: dict[str, Any]) -> str:
     if budget_levels:
         parts.append(f"Mức ngân sách ưu tiên là {_join_items(budget_levels)}.")
 
+    budget_text = _format_budget_range(slots.get("budget_min"), slots.get("budget_max"))
+    if budget_text:
+        parts.append(f"Tôi muốn phòng có giá khoảng {budget_text}.")
+
     hotel_types = _normalize_text_items(slots.get("hotel_types"))
     if hotel_types:
         parts.append(f"Tôi ưu tiên loại hình lưu trú như {_join_items(hotel_types)}.")
@@ -95,6 +99,35 @@ def _normalize_text_items(values: Any, *, limit: int = 12) -> list[str]:
 
 def _join_items(values: list[str]) -> str:
     return ", ".join(values)
+
+
+def _format_budget_range(budget_min: Any, budget_max: Any) -> str:
+    min_text = _format_vnd_million(budget_min)
+    max_text = _format_vnd_million(budget_max)
+    if min_text and max_text:
+        if min_text == max_text:
+            return f"{min_text} triệu"
+        return f"{min_text} triệu đến {max_text} triệu"
+    if max_text:
+        return f"tối đa {max_text} triệu"
+    if min_text:
+        return f"từ {min_text} triệu"
+    return ""
+
+
+def _format_vnd_million(value: Any) -> str:
+    if value is None:
+        return ""
+    try:
+        million_value = float(value) / 1_000_000
+    except (TypeError, ValueError):
+        return ""
+    if million_value <= 0:
+        return ""
+    rounded = round(million_value, 2)
+    if rounded.is_integer():
+        return str(int(rounded))
+    return f"{rounded:.2f}".rstrip("0").rstrip(".")
 
 
 def build_search_query_template(inp: RecommendInput) -> str:
