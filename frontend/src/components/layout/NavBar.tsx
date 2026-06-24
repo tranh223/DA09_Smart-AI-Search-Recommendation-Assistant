@@ -12,7 +12,7 @@ const LINKS: { label: string; route?: Route }[] = [
   { label: 'Blog' },
 ];
 
-export function NavBar({ active, onNavigate }: { active?: Route; onNavigate?: (route: Route) => void } = {}) {
+export function NavBar({ active, onNavigate, showLinks = true }: { active?: Route; onNavigate?: (route: Route) => void; showLinks?: boolean } = { showLinks: true }) {
   const { user, role, logout } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -65,8 +65,9 @@ export function NavBar({ active, onNavigate }: { active?: Route; onNavigate?: (r
           VinJourney
         </a>
 
-        <ul style={{ display: 'flex', gap: '36px', listStyle: 'none', margin: 0, padding: 0 }}>
-          {LINKS.map(link => {
+        {showLinks && (
+          <ul style={{ display: 'flex', gap: '36px', listStyle: 'none', margin: 0, padding: 0 }}>
+            {LINKS.map(link => {
             const isActive = !!link.route && link.route === active;
             return (
               <li key={link.label}>
@@ -86,8 +87,9 @@ export function NavBar({ active, onNavigate }: { active?: Route; onNavigate?: (r
                 </a>
               </li>
             );
-          })}
-        </ul>
+            })}
+          </ul>
+        )}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {/* ── Logged in: Avatar + dropdown ── */}

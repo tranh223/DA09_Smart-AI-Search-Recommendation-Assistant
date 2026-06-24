@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { t } from '../../styles/theme';
 import { sendChatMessage, type BackendChatData } from '../../services/backendApi';
 import { type Hotel, type HotelListParams, type RecoQuery, extractImages } from '../../services/hotels';
@@ -201,7 +202,18 @@ function BotBubble({
           fontFamily: t.font, fontSize: '14px',
           color: t.ink, lineHeight: 1.6, boxShadow: t.shadowSoft,
         }}>
-          {msg.text}
+          <ReactMarkdown
+            components={{
+              p: ({ children }) => <p style={{ margin: '0 0 8px' }}>{children}</p>,
+              ul: ({ children }) => <ul style={{ margin: '6px 0 8px', paddingLeft: '20px' }}>{children}</ul>,
+              ol: ({ children }) => <ol style={{ margin: '6px 0 8px', paddingLeft: '20px' }}>{children}</ol>,
+              li: ({ children }) => <li style={{ marginBottom: '4px' }}>{children}</li>,
+              h2: ({ children }) => <h2 style={{ margin: '0 0 8px', fontSize: '15px', lineHeight: 1.4 }}>{children}</h2>,
+              strong: ({ children }) => <strong style={{ fontWeight: 700 }}>{children}</strong>,
+            }}
+          >
+            {msg.text}
+          </ReactMarkdown>
         </div>
         {msg.chips && (
           <QuickReplyChips chips={msg.chips} onChip={onChip} disabled={chipsDisabled} />
