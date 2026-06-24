@@ -164,6 +164,7 @@ from app.api.routes.auth import router as auth_router  # noqa: E402
 from app.api.routes.chat import router as chat_router  # noqa: E402
 from app.api.routes.health import router as health_router  # noqa: E402
 from app.api.routes.test import router as test_router  # noqa: E402
+from app.api.routes.dashboard import router as dashboard_router  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -285,6 +286,7 @@ async def _global_error_handler(request: Request, exc: Exception) -> JSONRespons
 app.include_router(auth_router)
 app.include_router(chat_router)
 app.include_router(health_router)
+app.include_router(dashboard_router)
 
 if ENABLE_TEST_ENDPOINTS:
     app.include_router(test_router)

@@ -83,18 +83,23 @@ export function AdminPage({ onNavigate }: { onNavigate?: (route: Route) => void 
           maxWidth: 720,
         }}>
           {[
-            { icon: '📊', title: 'Thống kê', desc: 'Dashboard & analytics' },
+            { icon: '📊', title: 'Thống kê', desc: 'Dashboard & analytics', href: '/dashboard' },
             { icon: '👥', title: 'Người dùng', desc: 'Quản lý tài khoản' },
             { icon: '🏨', title: 'Khách sạn', desc: 'Quản lý dữ liệu' },
           ].map(card => (
-            <div key={card.title} style={{
+            <div key={card.title} onClick={() => {
+                if (card.href) {
+                  window.history.pushState({}, '', card.href);
+                  window.dispatchEvent(new PopStateEvent('popstate'));
+                }
+              }} style={{
               background: t.surface,
               border: `1px solid ${t.border}`,
               borderRadius: 16,
               padding: '28px 24px',
               textAlign: 'center',
               transition: 'box-shadow .2s, transform .2s',
-              cursor: 'default',
+              cursor: card.href ? 'pointer' : 'default',
             }}
               onMouseEnter={e => {
                 e.currentTarget.style.boxShadow = t.shadow;
@@ -117,7 +122,7 @@ export function AdminPage({ onNavigate }: { onNavigate?: (route: Route) => void 
                 color: t.ink3,
                 display: 'inline-block',
               }}>
-                Đang phát triển...
+                {card.href ? 'Mở' : 'Đang phát triển...'}
               </div>
             </div>
           ))}

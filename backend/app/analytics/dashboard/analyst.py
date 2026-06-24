@@ -48,7 +48,7 @@ COST_PER_INPUT_TOKEN = 0.15 / 1000000
 COST_PER_OUTPUT_TOKEN = 0.6 / 1000000
 
 def analysis_by_day(month: int):
-    year = datetime.now().year()
+    year = datetime.now().year
     eval_collection = get_collection("Eval")
 
     # Lấy hết document trong tháng, đánh index theo "date" để tra cứu nhanh
@@ -93,15 +93,15 @@ def analysis_by_day(month: int):
         input_token_lst = doc.get('input_token', [])
         output_token_lst = doc.get('output_token', [])
 
-        csat.append(sum(csat_list) / len(csat_list) if csat_list else 0)
-        latency.append(sum(latency_list) / len(latency_list) if latency_list else 0)
-        ttft.append(sum(ttft_list) / len(ttft_list) if ttft_list else 0)
+        csat.append(round(sum(csat_list) / len(csat_list) * 100, 2) if csat_list else 0)
+        latency.append(round(sum(latency_list) / len(latency_list), 2) if latency_list else 0)
+        ttft.append(round(sum(ttft_list) / len(ttft_list), 2) if ttft_list else 0)
         input_token.append(round(sum(input_token_lst) / len(input_token_lst), 2) if input_token_lst else 0)
         output_token.append(round(sum(output_token_lst) / len(output_token_lst), 2) if output_token_lst else 0)
 
         if booking_list:
             booked = sum(1 for b in booking_list if b is True)
-            booking.append(booked / len(booking_list))
+            booking.append(round(booked / len(booking_list) * 100, 2))
         else:
             booking.append(0)
 
@@ -180,10 +180,10 @@ def analysis_by_month(year: int):
             output_token += doc.get('output_token', [])
         
         months.append(month)
-        csat_month.append(sum(csat)/len(csat) if len(csat) > 0 else 0)
-        latency_month.append(sum(latency)/len(latency) if len(latency) > 0 else 0)
-        ttft_month.append(sum(ttft)/len(ttft) if len(ttft) > 0 else 0)
-        booking_month.append(sum(booking)/len(booking) if len(booking) > 0 else 0)
+        csat_month.append(round(sum(csat)/len(csat) * 100, 2) if len(csat) > 0 else 0)
+        latency_month.append(round(sum(latency)/len(latency), 2) if len(latency) > 0 else 0)
+        ttft_month.append(round(sum(ttft)/len(ttft), 2) if len(ttft) > 0 else 0)
+        booking_month.append(round(sum(booking)/len(booking) * 100, 2) if len(booking) > 0 else 0)
         ragas_month["faithfulness"].append(sum(ragas["faithfulness"])/len(ragas["faithfulness"]) if len(ragas["faithfulness"]) > 0 else 0)
         ragas_month["answer_relevance"].append(sum(ragas["answer_relevance"])/len(ragas["answer_relevance"]) if len(ragas["answer_relevance"]) > 0 else 0)
         ragas_month["context_precision"].append(sum(ragas["context_precision"])/len(ragas["context_precision"]) if len(ragas["context_precision"]) > 0 else 0)
