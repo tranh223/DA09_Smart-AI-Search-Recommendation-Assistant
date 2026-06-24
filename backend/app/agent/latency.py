@@ -2,7 +2,10 @@
 
 `with_timing` bao bọc mỗi node, ghi timing + context vào:
   • latency_trace  — dict accumulated trong AgentState (backward-compat)
-  • FlowTrace span — chi tiết đầy đủ qua core.trace contextvar
+  • FlowTrace span — chi tiết đầy đủ qua core.trace contextvar, bao gồm:
+      - input_snapshot: state snapshot TRƯỚC khi node chạy
+      - output_patch:   output node TRẢ VỀ (delta state)
+      - data (context): scalars + detail dicts (log console + JSON)
 """
 from __future__ import annotations
 
@@ -11,7 +14,7 @@ import time
 from collections.abc import Callable
 from typing import Any, TypeVar
 
-from app.agent.tracer import extract_node_context
+from app.agent.tracer import extract_node_context, extract_node_input, extract_node_output
 from app.core.trace import current_trace
 
 NodeFn = TypeVar("NodeFn", bound=Callable[[dict[str, Any]], dict[str, Any]])
@@ -34,10 +37,12 @@ def elapsed_ms(start: float) -> float:
 def with_timing(node_name: str, node_fn: NodeFn) -> NodeFn:
     """
     Bao bọc một graph node để:
-      1. Đo wall-clock elapsed_ms.
-      2. Tích lũy vào latency_trace trong AgentState.
-      3. Tạo Span trong FlowTrace contextvar với toàn bộ context chi tiết.
-      4. Log một dòng tóm tắt lên ota.flow (console).
+      1. Snapshot input state TRƯỚC khi node chạy.
+      2. Chạy node, đo wall-clock elapsed_ms.
+      3. Snapshot output patch (result) SAU khi node chạy.
+      4. Tích lũy vào latency_trace trong AgentState.
+      5. Tạo Span đầy đủ trong FlowTrace contextvar (input + output + context).
+      6. Log một dòng tóm tắt lên ota.flow (console).
     """
 
     def wrapped(state: dict[str, Any]) -> dict[str, Any]:
@@ -45,33 +50,48 @@ def with_timing(node_name: str, node_fn: NodeFn) -> NodeFn:
         request_id = state.get("request_id") or state.get("session_id") or "-"
         logger.debug("[graph][%s] node=%s start", request_id, node_name)
 
-        # ── Chạy node thực sự ────────────────────────────────────────────────
+        # ── 1. Snapshot input TRƯỚC khi node chạy ────────────────────────────
+        input_snap = extract_node_input(node_name, state)
+
+        # ── 2. Chạy node thực sự ─────────────────────────────────────────────
+        node_error: str | None = None
+        node_status = "ok"
         try:
             result = node_fn(state) or {}
-        except Exception:
+        except Exception as exc:
             ms = elapsed_ms(start)
+            node_error = f"{type(exc).__name__}: {exc}"
+            node_status = "error"
             logger.exception(
                 "[graph][%s] node=%s FAILED after %.2fms", request_id, node_name, ms,
             )
             raise
+        finally:
+            # Đảm bảo luôn tính elapsed kể cả khi lỗi
+            node_ms = elapsed_ms(start)
 
-        # ── Tích lũy latency_trace (backward-compat cho build_latency_summary) ──
+        # ── 3. Snapshot output PATCH node trả về ─────────────────────────────
+        output_snap = extract_node_output(node_name, state, result)
+
+        # ── 4. Tích lũy latency_trace (backward-compat cho build_latency_summary) ──
         trace_dict: dict[str, float] = dict(state.get("latency_trace") or {})
         if "latency_trace" in result:
             trace_dict.update(result.pop("latency_trace"))
-        node_ms = elapsed_ms(start)
         trace_dict[node_name] = node_ms
 
-        # ── Extract context cho cả console và FlowTrace ───────────────────────
+        # ── 5. Extract context cho cả console và FlowTrace ───────────────────
         context = extract_node_context(node_name, state, result)
 
-        # ── Populate FlowTrace span ───────────────────────────────────────────
+        # ── 6. Populate FlowTrace span (input + output + context) ─────────────
         flow_trace = current_trace()
         if flow_trace is not None:
             span = flow_trace.begin(node_name)
-            span.finish(status="ok" if True else "error")
-            # Gán đúng elapsed từ thực đo (không tính lại)
             span.elapsed_ms = node_ms
+            span.status = node_status
+            if node_error:
+                span.error = node_error
+            span.input_snapshot = input_snap
+            span.output_patch = output_snap
             span.data.update(context)
             flow_trace.log_span(span)
         else:

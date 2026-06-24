@@ -21,7 +21,7 @@ Sử dụng:
 
     # Khi kết thúc request:
     trace.log_end(needs_clarify=..., intent=..., n_recs=...)
-    trace.finalize()          # dump full JSON
+    trace.finalize()          # dump full JSON + persist MongoDB
     reset_trace(token)
 """
 from __future__ import annotations
@@ -32,6 +32,7 @@ import logging
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Any, Generator
 
 # ── Loggers ───────────────────────────────────────────────────────────────────
@@ -52,13 +53,23 @@ _trace_var: contextvars.ContextVar["FlowTrace | None"] = contextvars.ContextVar(
 
 @dataclass
 class Span:
-    """Một đơn vị thời gian trong request trace."""
+    """Một đơn vị thời gian trong request trace.
+
+    Mỗi node trong LangGraph được wrap thành 1 Span với:
+      - input_snapshot : snapshot các field state TRƯỚC khi node chạy
+      - output_patch   : dict node TRẢ VỀ (delta state)
+      - data           : context summary (scalars + detail dicts) sau khi chạy
+    """
 
     name: str
     started_at: float = field(default_factory=time.perf_counter)
     elapsed_ms: float = 0.0
     status: str = "ok"          # ok | error | skip | warn
     error: str | None = None
+    # Input/Output snapshots (populated by with_timing in latency.py)
+    input_snapshot: dict[str, Any] = field(default_factory=dict)
+    output_patch: dict[str, Any] = field(default_factory=dict)
+    # Scalar + detail context populated by extract_node_context
     data: dict[str, Any] = field(default_factory=dict)
     sub_spans: list["Span"] = field(default_factory=list)
 
@@ -88,8 +99,12 @@ class Span:
         }
         if self.error:
             d["error"] = self.error
+        if self.input_snapshot:
+            d["input"] = self.input_snapshot
+        if self.output_patch:
+            d["output"] = self.output_patch
         if self.data:
-            d["data"] = self.data
+            d["context"] = self.data
         if self.sub_spans:
             d["sub_spans"] = [s.to_dict() for s in self.sub_spans]
         return d
@@ -103,6 +118,7 @@ class FlowTrace:
 
     Console output (ota.flow): mỗi span → 1 dòng tóm tắt.
     File output  (ota.trace):  finalize() → 1 dòng JSON đầy đủ cuối request.
+    MongoDB:                   finalize() → upsert vào collection trace_runs.
     """
 
     def __init__(
@@ -117,7 +133,12 @@ class FlowTrace:
         self.session_id = session_id
         self.query = query
         self.started_at = time.perf_counter()
+        self.started_at_iso = datetime.now(timezone.utc).isoformat()
         self.spans: list[Span] = []
+        # Populated by analytics_node / log_end
+        self.final_intent: str = ""
+        self.final_n_recs: int = 0
+        self.needs_clarify: bool = False
 
     # ── Tiện ích ─────────────────────────────────────────────────────────────
 
@@ -184,6 +205,9 @@ class FlowTrace:
         n_recs: int = 0,
         n_srcs: int = 0,
     ) -> None:
+        self.final_intent = intent
+        self.final_n_recs = n_recs
+        self.needs_clarify = needs_clarify
         total_ms = round(self.elapsed_total_ms())
         p = self._p
         stage_ms = {s.name: s.elapsed_ms for s in self.spans}
@@ -201,19 +225,33 @@ class FlowTrace:
             )
         FLOW_LOG.info("%s %s", p, _SEP)
 
-    # ── JSON dump (detail) ────────────────────────────────────────────────────
+    # ── JSON dump + MongoDB persist ───────────────────────────────────────────
 
-    def finalize(self) -> None:
-        """Dump toàn bộ trace ra ota.trace logger (JSON một dòng)."""
-        doc: dict[str, Any] = {
+    def to_doc(self) -> dict[str, Any]:
+        """Trả về dict đầy đủ đại diện trace này, dùng cho JSONL và MongoDB."""
+        return {
             "request_id": self.request_id,
             "user_id": self.user_id,
             "session_id": self.session_id,
             "query": self.query,
+            "started_at": self.started_at_iso,
             "total_ms": self.elapsed_total_ms(),
+            "intent": self.final_intent,
+            "n_recs": self.final_n_recs,
+            "needs_clarification": self.needs_clarify,
             "spans": [s.to_dict() for s in self.spans],
         }
+
+    def finalize(self) -> None:
+        """Dump toàn bộ trace ra ota.trace logger (JSONL) và MongoDB trace_runs."""
+        doc = self.to_doc()
         DETAIL_LOG.info(json.dumps(doc, ensure_ascii=False, default=str))
+        # Persist to MongoDB async-safe (fire-and-forget via try/except)
+        try:
+            from app.db.trace_store import save_trace  # noqa: PLC0415
+            save_trace(doc)
+        except Exception:  # noqa: BLE001
+            pass  # MongoDB not available — JSONL is the fallback
 
 
 # ── ContextVar helpers ────────────────────────────────────────────────────────
