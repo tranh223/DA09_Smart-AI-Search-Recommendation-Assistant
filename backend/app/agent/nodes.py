@@ -3,14 +3,15 @@
 from __future__ import annotations
 
 import logging
+import os
 import re
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from app.agent.latency import build_latency_summary
 from app.agent.qu_adapter import pipeline_result_to_state
-from app.agent.response_builder import build_response_with_llm
+from app.agent.response_builder import build_guardrail_response_with_llm, build_response_with_llm
 from app.agent.state import AgentState
 from app.core.trace import current_trace
 from app.recommendation.engine import run_candidate_pipeline, run_rerank_from_merged
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_CANDIDATE_LIMIT_PER_SOURCE = 10
 MAX_CANDIDATE_LIMIT_PER_SOURCE = 50
+DEFAULT_TAGREMOVED_RECONCILE_INTERVAL_HOURS = 24
 
 
 # ── QueryUnderstandingPipeline singleton ─────────────────────────────────────
@@ -123,9 +125,12 @@ def _load_conversation_summary(user_id: str) -> str:
         return ""
     try:
         from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
-        from app.utils.util import transform_id  # noqa: PLC0415
         summaries = get_collection("Summary")
-        doc = summaries.find_one({"user_id": transform_id(user_id)}, {"content": 1})
+        doc = summaries.find_one({"user_id": user_id}, {"content": 1})
+        if doc is None:
+            from app.utils.util import transform_id  # noqa: PLC0415
+
+            doc = summaries.find_one({"_id": transform_id(user_id)}, {"content": 1})
         return doc.get("content") or "" if doc else ""
     except Exception as exc:  # noqa: BLE001
         logger.warning("[session_node] MongoDB summary load failed: %s", exc)
@@ -170,6 +175,49 @@ def _merge_server_over_fallback(
     return merged
 
 
+def _load_user_scoped_doc(
+    collection_name: str,
+    user_id: str,
+    projection: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
+    if not user_id:
+        return None
+    from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
+    from app.utils.util import transform_id  # noqa: PLC0415
+
+    collection = get_collection(collection_name)
+    doc = collection.find_one({"user_id": user_id}, projection)
+    if doc is not None:
+        return doc
+    return collection.find_one({"_id": transform_id(user_id)}, projection)
+
+
+def _normalize_user_scoped_doc_key(collection_name: str, user_id: str) -> None:
+    if not user_id:
+        return
+    try:
+        from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
+        from app.utils.util import transform_id  # noqa: PLC0415
+
+        collection = get_collection(collection_name)
+        if collection.find_one({"user_id": user_id}, {"_id": 1}) is not None:
+            return
+        legacy_doc = collection.find_one({"_id": transform_id(user_id)}, {"_id": 1, "user_id": 1})
+        if legacy_doc is None or legacy_doc.get("user_id") == user_id:
+            return
+        collection.update_one(
+            {"_id": legacy_doc["_id"]},
+            {"$set": {"user_id": user_id}},
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "[session_node] MongoDB %s key normalization failed for user=%s: %s",
+            collection_name,
+            user_id,
+            exc,
+        )
+
+
 def _load_session_context(session_id: str) -> dict[str, Any]:
     if not session_id:
         return {}
@@ -193,14 +241,8 @@ def _load_long_term_profile(user_id: str) -> dict[str, Any]:
     if not user_id:
         return {}
     try:
-        from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
-        from app.utils.util import transform_id  # noqa: PLC0415
-
-        users = get_collection("Users")
         projection = {"long_term_profile": 1, "profile": 1, "name": 1}
-        doc = users.find_one({"_id": transform_id(user_id)}, projection)
-        if doc is None:
-            doc = users.find_one({"user_id": user_id}, projection)
+        doc = _load_user_scoped_doc("Users", user_id, projection)
         if not doc:
             return {}
         profile = doc.get("profile") if isinstance(doc.get("profile"), dict) else {}
@@ -209,6 +251,210 @@ def _load_long_term_profile(user_id: str) -> dict[str, Any]:
     except Exception as exc:  # noqa: BLE001
         logger.warning("[session_node] MongoDB long_term_profile load failed: %s", exc)
         return {}
+
+
+def _load_tagremoved_profile(user_id: str) -> dict[str, Any]:
+    if not user_id:
+        return {}
+    try:
+        doc = _load_user_scoped_doc("TagRemoved", user_id, {"tagremoved_profile": 1})
+        payload = doc.get("tagremoved_profile") if doc else None
+        return payload if isinstance(payload, dict) else {}
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[session_node] MongoDB tagremoved_profile load failed: %s", exc)
+        return {}
+
+
+def _parse_datetime(value: Any) -> datetime | None:
+    if isinstance(value, datetime):
+        return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value))
+        return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+    except ValueError:
+        return None
+
+
+def _tagremoved_reconcile_interval_hours() -> int:
+    raw = os.getenv(
+        "TAGREMOVED_RECONCILE_INTERVAL_HOURS",
+        str(DEFAULT_TAGREMOVED_RECONCILE_INTERVAL_HOURS),
+    )
+    try:
+        hours = int(raw)
+    except (TypeError, ValueError):
+        hours = DEFAULT_TAGREMOVED_RECONCILE_INTERVAL_HOURS
+    return max(hours, 1)
+
+
+def _latest_interaction(first: str, second: str) -> str:
+    return max(first, second)
+
+
+def _merge_count_maps(
+    base_map: dict[str, Any],
+    incoming_map: dict[str, Any],
+) -> dict[str, Any]:
+    merged: dict[str, Any] = {}
+    for key, value in (base_map or {}).items():
+        if isinstance(value, dict) and "count" in value and "last_interaction" in value:
+            merged[str(key)] = {
+                "count": int(value.get("count", 0)),
+                "last_interaction": str(value.get("last_interaction", "")),
+            }
+    for key, value in (incoming_map or {}).items():
+        if not (isinstance(value, dict) and "count" in value and "last_interaction" in value):
+            continue
+        normalized_key = str(key)
+        current = merged.get(normalized_key)
+        if current is None:
+            merged[normalized_key] = {
+                "count": int(value.get("count", 0)),
+                "last_interaction": str(value.get("last_interaction", "")),
+            }
+            continue
+        merged[normalized_key] = {
+            "count": int(current.get("count", 0)) + int(value.get("count", 0)),
+            "last_interaction": _latest_interaction(
+                str(current.get("last_interaction", "")),
+                str(value.get("last_interaction", "")),
+            ),
+        }
+    return merged
+
+
+def _merge_long_term_profile_dicts(
+    base_profile: dict[str, Any],
+    incoming_profile: dict[str, Any],
+) -> dict[str, Any]:
+    merged = dict(base_profile or {})
+    score_fields = [
+        "traveler_type",
+        "long_term_trip_types",
+        "long_term_budget_levels",
+        "long_term_preference_habits",
+        "long_term_hotel_types",
+        "long_term_room_views",
+        "long_term_amenities",
+    ]
+    for field in score_fields:
+        merged[field] = _merge_count_maps(
+            base_profile.get(field, {}) if isinstance(base_profile, dict) else {},
+            incoming_profile.get(field, {}) if isinstance(incoming_profile, dict) else {},
+        )
+
+    base_neg = base_profile.get("long_term_negative_preferences", {}) if isinstance(base_profile, dict) else {}
+    incoming_neg = (
+        incoming_profile.get("long_term_negative_preferences", {})
+        if isinstance(incoming_profile, dict)
+        else {}
+    )
+    merged["long_term_negative_preferences"] = {
+        field: _merge_count_maps(
+            base_neg.get(field, {}) if isinstance(base_neg, dict) else {},
+            incoming_neg.get(field, {}) if isinstance(incoming_neg, dict) else {},
+        )
+        for field in (
+            "avoid_hotel_types",
+            "avoid_amenities",
+            "avoid_preference_habits",
+            "avoid_nearby_places",
+            "avoid_locations",
+        )
+    }
+
+    merged["long_term_price_range"] = dict(
+        (base_profile.get("long_term_price_range", {}) if isinstance(base_profile, dict) else {}) or {}
+    )
+    incoming_price = incoming_profile.get("long_term_price_range", {}) if isinstance(incoming_profile, dict) else {}
+    if isinstance(incoming_price, dict):
+        for key in ("min", "max", "currency"):
+            if incoming_price.get(key) is not None:
+                merged["long_term_price_range"][key] = incoming_price.get(key)
+
+    for scalar_field in ("nationality", "age_group", "current_workplace", "is_enough"):
+        incoming_value = incoming_profile.get(scalar_field) if isinstance(incoming_profile, dict) else None
+        if incoming_value is not None:
+            merged[scalar_field] = incoming_value
+        elif scalar_field not in merged and isinstance(base_profile, dict):
+            merged[scalar_field] = base_profile.get(scalar_field)
+    base_clicks = base_profile.get("recommendation_clicks") if isinstance(base_profile, dict) else None
+    incoming_clicks = incoming_profile.get("recommendation_clicks") if isinstance(incoming_profile, dict) else None
+    if isinstance(incoming_clicks, dict) and incoming_clicks.get("hotel"):
+        merged["recommendation_clicks"] = incoming_clicks
+    elif base_clicks is not None:
+        merged["recommendation_clicks"] = base_clicks
+    return merged
+
+
+def _reconcile_tagremoved_profile_if_due(user_id: str) -> tuple[dict[str, Any], dict[str, Any]]:
+    if not user_id:
+        return {}, {}
+    try:
+        from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
+
+        users = get_collection("Users")
+        tagremoved = get_collection("TagRemoved")
+        _normalize_user_scoped_doc_key("Users", user_id)
+        _normalize_user_scoped_doc_key("TagRemoved", user_id)
+        user_doc = _load_user_scoped_doc("Users", user_id, {"long_term_profile": 1})
+        tagremoved_doc = _load_user_scoped_doc("TagRemoved", user_id)
+
+        long_term_profile = (
+            user_doc.get("long_term_profile") if isinstance(user_doc, dict) else {}
+        ) or {}
+        removed_profile = (
+            tagremoved_doc.get("tagremoved_profile") if isinstance(tagremoved_doc, dict) else {}
+        ) or {}
+        if not removed_profile:
+            return long_term_profile if isinstance(long_term_profile, dict) else {}, {}
+
+        last_reconciled_at = _parse_datetime(
+            tagremoved_doc.get("last_reconciled_at") if isinstance(tagremoved_doc, dict) else None
+        )
+        interval_hours = _tagremoved_reconcile_interval_hours()
+        now = datetime.now(timezone.utc)
+        if last_reconciled_at and now < (last_reconciled_at + timedelta(hours=interval_hours)):
+            return (
+                long_term_profile if isinstance(long_term_profile, dict) else {},
+                removed_profile if isinstance(removed_profile, dict) else {},
+            )
+
+        merged_profile = _merge_long_term_profile_dicts(
+            long_term_profile if isinstance(long_term_profile, dict) else {},
+            removed_profile if isinstance(removed_profile, dict) else {},
+        )
+        users.update_one(
+            {"user_id": user_id},
+            {
+                "$set": {
+                    "user_id": user_id,
+                    "long_term_profile": merged_profile,
+                    "updated_at": now,
+                },
+                "$setOnInsert": {"created_at": now},
+            },
+            upsert=True,
+        )
+        tagremoved.update_one(
+            {"user_id": user_id},
+            {
+                "$set": {
+                    "user_id": user_id,
+                    "tagremoved_profile": {},
+                    "updated_at": now,
+                    "last_reconciled_at": now,
+                },
+                "$setOnInsert": {"created_at": now},
+            },
+            upsert=True,
+        )
+        return merged_profile, {}
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[session_node] MongoDB tagremoved reconcile failed: %s", exc)
+        return _load_long_term_profile(user_id), _load_tagremoved_profile(user_id)
 
 
 def _build_server_user_profile(state: AgentState) -> dict[str, Any]:
@@ -223,17 +469,23 @@ def _build_server_user_profile(state: AgentState) -> dict[str, Any]:
         fallback_session_context if isinstance(fallback_session_context, dict) else {},
     )
 
-    server_long_term = _load_long_term_profile(user_id)
+    server_long_term, server_tagremoved = _reconcile_tagremoved_profile_if_due(user_id)
     fallback_long_term = fallback.get("long_term_profile") if isinstance(fallback, dict) else {}
     long_term_profile = _merge_server_over_fallback(
         server_long_term,
         fallback_long_term if isinstance(fallback_long_term, dict) else {},
+    )
+    fallback_tagremoved = fallback.get("tagremoved_profile") if isinstance(fallback, dict) else {}
+    tagremoved_profile = _merge_server_over_fallback(
+        server_tagremoved,
+        fallback_tagremoved if isinstance(fallback_tagremoved, dict) else {},
     )
 
     return {
         "user_id": user_id,
         "name": fallback.get("name") if isinstance(fallback, dict) else None,
         "long_term_profile": long_term_profile,
+        "tagremoved_profile": tagremoved_profile,
         "session_context": session_context,
     }
 
@@ -325,6 +577,7 @@ def intent_node(state: AgentState) -> dict[str, Any]:
         user_profile_raw = {**user_profile_raw, "user_id": user_id}
 
     chat_history: list[dict[str, str]] = state.get("chat_history") or []
+    conversation_summary: str = state.get("conversation_summary") or ""
     limit = _candidate_limit_per_source(state)
 
     req_id = state.get("request_id") or state.get("session_id") or "-"
@@ -338,6 +591,7 @@ def intent_node(state: AgentState) -> dict[str, Any]:
             query=query,
             user_profile_input=user_profile_raw,
             conversation_history=chat_history,
+            conversation_summary=conversation_summary,
         )
         mapped = pipeline_result_to_state(result, query=query, limit_per_source=limit)
         logger.debug(
@@ -438,6 +692,39 @@ def clarify_node(state: AgentState) -> dict[str, Any]:
     missing = state.get("clarification_missing_fields") or []
     intent = state.get("intent") or "clarification_needed"
     latency = build_latency_summary(state)
+    guardrail = ((state.get("qu_trace") or {}).get("guardrail") or {})
+
+    if guardrail and guardrail.get("allow") is False:
+        guardrail_response = build_guardrail_response_with_llm(
+            query=state.get("raw_query") or "",
+            category=str(guardrail.get("category") or ""),
+            reason=str(guardrail.get("reason") or ""),
+            conversation_summary=state.get("conversation_summary") or "",
+            chat_history=state.get("chat_history") or [],
+        )
+        answer = guardrail_response.get("answer") or question
+        next_suggestions = guardrail_response.get("next_suggestions") or []
+        logger.debug(
+            "[%s][clarify] guardrail_blocked category=%s answer=%.60s",
+            req_id,
+            guardrail.get("category"),
+            answer,
+        )
+        return {
+            "clarification_question": "",
+            "final_response": {
+                "answer": answer,
+                "intent": intent,
+                "recommendations": [],
+                "sources": [],
+                "next_suggestions": next_suggestions,
+                "needs_clarification": False,
+                "clarification_question": "",
+                "missing_fields": [],
+                "explanation": str(guardrail.get("reason") or ""),
+                "latency": latency,
+            },
+        }
 
     logger.debug(
         "[%s][clarify] missing_fields=%s  question=%.60s",
@@ -460,7 +747,6 @@ def clarify_node(state: AgentState) -> dict[str, Any]:
     }
 
 
-
 # ── Rewrite node ──────────────────────────────────────────────────────────────
 def rewrite_node(state: AgentState) -> dict[str, Any]:
     """Query rewrite placeholder — pass-through hiện tại, chờ RAG module."""
@@ -475,7 +761,7 @@ def rag_node(state: AgentState) -> dict[str, Any]:
     Chỉ kích hoạt với intent liên quan đến Q&A / thông tin / đặc điểm khách sạn:
       information, special_feature, hotel_similar
 
-    Intent hotel_search / personalization / trending bỏ qua RAG để giảm latency
+    Intent hotel_search / personalization bỏ qua RAG để giảm latency
     (RAG chạy song song với recommend+rerank nên không block).
 
     Fallback: trả empty nếu RAG chatbot không khởi tạo được.
@@ -752,6 +1038,7 @@ def _persist_profile_state_directly(
         now = datetime.now(timezone.utc)
         session_context = user_profile.get("session_context")
         long_term_profile = user_profile.get("long_term_profile")
+        tagremoved_profile = user_profile.get("tagremoved_profile")
 
         session_set: dict[str, Any] = {
             "user_id": user_id or user_profile.get("user_id"),
@@ -781,14 +1068,29 @@ def _persist_profile_state_directly(
         )
 
         if user_id and isinstance(long_term_profile, dict):
+            _normalize_user_scoped_doc_key("Users", user_id)
             users = get_collection("Users")
             users.update_one(
-                # {"_id": transform_id(user_id)},
                 {"user_id": user_id},
                 {
                     "$set": {
-                        # "user_id": user_id,
+                        "user_id": user_id,
                         "long_term_profile": long_term_profile,
+                        "updated_at": now,
+                    },
+                    "$setOnInsert": {"created_at": now},
+                },
+                upsert=True,
+            )
+        if user_id and isinstance(tagremoved_profile, dict):
+            _normalize_user_scoped_doc_key("TagRemoved", user_id)
+            tagremoved = get_collection("TagRemoved")
+            tagremoved.update_one(
+                {"user_id": user_id},
+                {
+                    "$set": {
+                        "user_id": user_id,
+                        "tagremoved_profile": tagremoved_profile,
                         "updated_at": now,
                     },
                     "$setOnInsert": {"created_at": now},
@@ -875,18 +1177,42 @@ def _persist_chat_history_directly(
 
         if user_id:
             summaries = get_collection("Summary")
-            summaries.update_one(
+            _normalize_user_scoped_doc_key("Summary", user_id)
+            summary_doc = summaries.find_one(
                 {"user_id": user_id},
-                {
-                    "$push": {
-                        "history": {
-                            "$each": [history_item],
-                            "$slice": -10,
-                        }
-                    },
-                    "$setOnInsert": {"user_id": user_id},
-                },
-                upsert=True,
+                {"history": {"$slice": -1}},
             )
+            if summary_doc is None:
+                summary_doc = summaries.find_one(
+                    {"_id": transform_id(user_id)},
+                    {"history": {"$slice": -1}},
+                )
+
+            last_history_item = None
+            if isinstance(summary_doc, dict):
+                history_tail = summary_doc.get("history")
+                if isinstance(history_tail, list) and history_tail:
+                    candidate = history_tail[-1]
+                    if isinstance(candidate, dict):
+                        last_history_item = candidate
+
+            if last_history_item != history_item:
+                summaries.update_one(
+                    {"user_id": user_id},
+                    {
+                        "$push": {
+                            "history": {
+                                "$each": [history_item],
+                                "$slice": -10,
+                            }
+                        },
+                        "$set": {
+                            "user_id": user_id,
+                            "updated_at": now,
+                        },
+                        "$setOnInsert": {"created_at": now},
+                    },
+                    upsert=True,
+                )
     except Exception as exc:  # noqa: BLE001
         logger.warning("[analytics_node] direct Mongo history persist failed: %s", exc)

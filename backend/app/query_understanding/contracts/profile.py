@@ -80,6 +80,7 @@ class UserProfile:
     user_id: str
     name: str | None = None
     long_term_profile: LongTermProfile = field(default_factory=LongTermProfile)
+    tagremoved_profile: LongTermProfile = field(default_factory=LongTermProfile)
     session_context: SessionContext = field(default_factory=SessionContext)
 
 

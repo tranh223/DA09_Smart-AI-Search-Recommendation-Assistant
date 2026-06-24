@@ -40,6 +40,7 @@ class Profile(BaseModel):
     is_enough: bool = False
 
     # {tag_name: {count, last_interaction}} — ánh xạ vào INTERESTED_IN trên Neo4j
+    traveler_type: dict[str, InteractionScore] = Field(default_factory=dict)
     long_term_preference_habits: dict[str, InteractionScore] = Field(default_factory=dict)
 
     # {trip_type_name: {count, last_interaction}}
@@ -91,7 +92,7 @@ class RecommendInput(BaseModel):
 class CandidateHotel(BaseModel):
     hotel_id: int
     hotel_name: str | None = None
-    source: str                             # "embedding_search" | "trending" | "personalization"
+    source: str                             # "embedding_search" | "personalization"
     score: float = 0.0
     matched_paths: list[str] = Field(default_factory=list)
     reason: str = ""
