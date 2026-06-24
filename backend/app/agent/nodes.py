@@ -238,6 +238,93 @@ def _load_session_context(session_id: str) -> dict[str, Any]:
         return {}
 
 
+def _load_summary_session_context(user_id: str) -> dict[str, Any]:
+    if not user_id:
+        return {}
+    try:
+        from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
+        from app.utils.util import transform_id  # noqa: PLC0415
+
+        summaries = get_collection("Summary")
+        doc = summaries.find_one({"user_id": user_id}, {"session_context": 1})
+        if doc is None:
+            doc = summaries.find_one({"_id": transform_id(user_id)}, {"session_context": 1})
+        summary_context = doc.get("session_context") if doc else None
+        if not isinstance(summary_context, dict):
+            return {}
+        return _summary_session_context_to_runtime(summary_context)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[session_node] MongoDB summary session_context load failed: %s", exc)
+        return {}
+
+
+def _summary_session_context_to_runtime(summary_context: dict[str, Any]) -> dict[str, Any]:
+    runtime: dict[str, Any] = {}
+    for summary_key, runtime_key in (
+        ("destination", "destination"),
+        ("number_of_guests", "number_of_guests"),
+        ("check_in", "check_in"),
+        ("check_out", "check_out"),
+    ):
+        value = summary_context.get(summary_key)
+        if _has_meaningful_value(value):
+            runtime[runtime_key] = value
+
+    price_range: dict[str, Any] = {}
+    budget_min = summary_context.get("budget_min")
+    budget_max = summary_context.get("budget_max")
+    if budget_min is not None:
+        price_range["min"] = budget_min
+    if budget_max is not None:
+        price_range["max"] = budget_max
+    if price_range:
+        price_range["currency"] = "VND"
+        runtime["session_price_range"] = price_range
+    return runtime
+
+
+def _runtime_session_context_to_summary(session_context: dict[str, Any]) -> dict[str, Any]:
+    summary_context: dict[str, Any] = {}
+    for runtime_key, summary_key in (
+        ("destination", "destination"),
+        ("number_of_guests", "number_of_guests"),
+        ("check_in", "check_in"),
+        ("check_out", "check_out"),
+    ):
+        value = session_context.get(runtime_key)
+        if _has_meaningful_value(value):
+            summary_context[summary_key] = value
+
+    price_range = session_context.get("session_price_range")
+    if isinstance(price_range, dict):
+        budget_min = price_range.get("min")
+        budget_max = price_range.get("max")
+        if budget_min is not None:
+            summary_context["budget_min"] = budget_min
+        if budget_max is not None:
+            summary_context["budget_max"] = budget_max
+    return summary_context
+
+
+def _merge_summary_session_context(
+    existing_context: dict[str, Any],
+    incoming_context: dict[str, Any],
+) -> dict[str, Any]:
+    merged = dict(existing_context or {})
+    for key in (
+        "destination",
+        "number_of_guests",
+        "check_in",
+        "check_out",
+        "budget_min",
+        "budget_max",
+    ):
+        value = incoming_context.get(key)
+        if _has_meaningful_value(value):
+            merged[key] = value
+    return merged
+
+
 def _load_long_term_profile(user_id: str) -> dict[str, Any]:
     if not user_id:
         return {}
@@ -464,10 +551,15 @@ def _build_server_user_profile(state: AgentState) -> dict[str, Any]:
     fallback = state.get("user_profile") or {}
 
     server_session_context = _load_session_context(session_id)
+    summary_session_context = _load_summary_session_context(user_id)
     fallback_session_context = fallback.get("session_context") if isinstance(fallback, dict) else {}
+    fallback_or_summary_context = _merge_server_over_fallback(
+        summary_session_context,
+        fallback_session_context if isinstance(fallback_session_context, dict) else {},
+    )
     session_context = _merge_server_over_fallback(
         server_session_context,
-        fallback_session_context if isinstance(fallback_session_context, dict) else {},
+        fallback_or_summary_context,
     )
 
     server_long_term, server_tagremoved = _reconcile_tagremoved_profile_if_due(user_id)
@@ -1087,6 +1179,40 @@ def _persist_profile_state_directly(
             },
             upsert=True,
         )
+
+        if user_id and isinstance(session_context, dict):
+            summary_session_context = _runtime_session_context_to_summary(session_context)
+            if summary_session_context:
+                _normalize_user_scoped_doc_key("Summary", user_id)
+                summaries = get_collection("Summary")
+                existing_summary = summaries.find_one(
+                    {"user_id": user_id},
+                    {"session_context": 1},
+                )
+                existing_summary_context = (
+                    existing_summary.get("session_context")
+                    if isinstance(existing_summary, dict)
+                    else {}
+                )
+                if not isinstance(existing_summary_context, dict):
+                    existing_summary_context = {}
+                merged_summary_context = _merge_summary_session_context(
+                    existing_summary_context,
+                    summary_session_context,
+                )
+                summaries.update_one(
+                    {"user_id": user_id},
+                    {
+                        "$set": {
+                            "user_id": user_id,
+                            "session_context": merged_summary_context,
+                            "updated_at": now,
+                            "last_updated": now,
+                        },
+                        "$setOnInsert": {"created_at": now},
+                    },
+                    upsert=True,
+                )
 
         if user_id and isinstance(long_term_profile, dict):
             _normalize_user_scoped_doc_key("Users", user_id)
