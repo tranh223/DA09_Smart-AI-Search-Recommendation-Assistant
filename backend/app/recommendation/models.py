@@ -40,6 +40,7 @@ class Profile(BaseModel):
     is_enough: bool = False
 
     # {tag_name: {count, last_interaction}} — ánh xạ vào INTERESTED_IN trên Neo4j
+    traveler_type: dict[str, InteractionScore] = Field(default_factory=dict)
     long_term_preference_habits: dict[str, InteractionScore] = Field(default_factory=dict)
 
     # {trip_type_name: {count, last_interaction}}

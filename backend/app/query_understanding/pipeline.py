@@ -3,7 +3,7 @@ import logging
 import os
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -11,7 +11,13 @@ from typing import Any
 
 from query_understanding.checker import ModelChecker
 from query_understanding.guardrail.classifier import OTAGuardrailClassifier
-from query_understanding.intent import LLMIntentExtractor, SemanticTagMapper, TagGraphExpansionService
+from query_understanding.intent import (
+    HiddenIntentInsightExtractor,
+    HiddenIntentResult,
+    LLMIntentExtractor,
+    SemanticTagMapper,
+    TagGraphExpansionService,
+)
 from query_understanding.merger import CurrentProfileMerger
 from query_understanding.models.intent import MappedSemanticItem, SemanticMappingResult
 from query_understanding.models.planner import (
@@ -61,6 +67,9 @@ JSON_TRACE_FILES = {
     "profile_retention": Path(
         os.getenv("QU_PROFILE_RETENTION_LOG_FILE", str(_QU_TRACE_DIR / "qu_profile_retention.json"))
     ),
+    "hidden_intent": Path(
+        os.getenv("QU_HIDDEN_INTENT_LOG_FILE", str(_QU_TRACE_DIR / "qu_hidden_intent.json"))
+    ),
 }
 _JSON_TRACE_LOCK = threading.Lock()
 
@@ -94,6 +103,7 @@ class QueryUnderstandingPipeline:
         guardrail: OTAGuardrailClassifier | None = None,
         checker: ModelChecker | None = None,
         intent_extractor: LLMIntentExtractor | None = None,
+        hidden_intent_extractor: HiddenIntentInsightExtractor | None = None,
         semantic_mapper: SemanticTagMapper | None = None,
         tag_graph_expander: TagGraphExpansionService | None = None,
         search_planner: SearchPlanner | None = None,
@@ -103,12 +113,16 @@ class QueryUnderstandingPipeline:
         self.guardrail = guardrail or OTAGuardrailClassifier()
         self.checker = checker or ModelChecker()
         self.intent_extractor = intent_extractor or LLMIntentExtractor()
+        self.hidden_intent_extractor = hidden_intent_extractor or HiddenIntentInsightExtractor()
         self.semantic_mapper = semantic_mapper or SemanticTagMapper()
         self.tag_graph_expander = tag_graph_expander or TagGraphExpansionService()
         self.search_planner = search_planner or SearchPlanner()
         self.router = router or Router()
         self.current_profile_merger = current_profile_merger or CurrentProfileMerger()
         self._parallel_executor = ThreadPoolExecutor(max_workers=2)
+        self._last_hidden_intent_trace: dict[str, Any] = {}
+        self._last_semantic_mapping_trace: dict[str, Any] = {}
+        self._last_tag_graph_expansion_trace: dict[str, Any] = {}
 
     def run(
         self,
@@ -190,6 +204,7 @@ class QueryUnderstandingPipeline:
                     llm_traces={
                         "guardrail": dict(self.guardrail.last_trace),
                         "intent": {},
+                        "hidden_intent": {},
                         "semantic_mapping": {},
                         "tag_graph_expansion": {},
                     },
@@ -259,6 +274,9 @@ class QueryUnderstandingPipeline:
                         asdict(post_extract_plan_readiness) if post_extract_plan_readiness else {}
                     ),
                     "intent": asdict(precheck_intent_result) if precheck_intent_result else {},
+                    "hidden_intent_trace": (
+                        dict(self._last_hidden_intent_trace) if precheck_intent_result else {}
+                    ),
                     "conversation_history": (
                         dict(self.intent_extractor.last_trace).get("conversation_history", [])
                         if precheck_intent_result
@@ -285,9 +303,14 @@ class QueryUnderstandingPipeline:
                     llm_traces={
                         "guardrail": dict(self.guardrail.last_trace),
                         "intent": dict(self.intent_extractor.last_trace) if precheck_intent_result else {},
-                        "semantic_mapping": dict(self.semantic_mapper.last_trace) if precheck_intent_result else {},
+                        "hidden_intent": (
+                            dict(self._last_hidden_intent_trace) if precheck_intent_result else {}
+                        ),
+                        "semantic_mapping": (
+                            dict(self._last_semantic_mapping_trace) if precheck_intent_result else {}
+                        ),
                         "tag_graph_expansion": (
-                            dict(self.tag_graph_expander.last_trace) if precheck_intent_result else {}
+                            dict(self._last_tag_graph_expansion_trace) if precheck_intent_result else {}
                         ),
                     },
                     user_profile=asdict(user_profile),
@@ -357,6 +380,7 @@ class QueryUnderstandingPipeline:
                 "initial_plan_readiness": asdict(initial_plan_readiness),
                 "plan_readiness": asdict(plan_readiness),
                 "intent": asdict(intent_result),
+                "hidden_intent_trace": dict(self._last_hidden_intent_trace),
                 "conversation_history": dict(self.intent_extractor.last_trace).get("conversation_history", []),
                 "search_plan": asdict(search_plan_result),
                 "router": asdict(router_result),
@@ -385,8 +409,9 @@ class QueryUnderstandingPipeline:
                 llm_traces={
                     "guardrail": dict(self.guardrail.last_trace),
                     "intent": dict(self.intent_extractor.last_trace),
-                    "semantic_mapping": dict(self.semantic_mapper.last_trace),
-                    "tag_graph_expansion": dict(self.tag_graph_expander.last_trace),
+                    "hidden_intent": dict(self._last_hidden_intent_trace),
+                    "semantic_mapping": dict(self._last_semantic_mapping_trace),
+                    "tag_graph_expansion": dict(self._last_tag_graph_expansion_trace),
                 },
                 user_profile=asdict(user_profile),
                 session_profile_update=asdict(session_update),
@@ -420,14 +445,60 @@ class QueryUnderstandingPipeline:
         conversation_history: list[dict[str, str]] | None = None,
     ) -> tuple[tuple[Any, SessionProfileUpdateResult, ActiveProfile], dict[str, float]]:
         detail_start = time.perf_counter()
-        intent_start = time.perf_counter()
-        intent_result = self.intent_extractor.extract(
-            query,
-            user_id=user_profile.user_id,
-            conversation_history=conversation_history,
-            session_context=asdict(user_profile.session_context),
+        extract_parallel_start = time.perf_counter()
+        hidden_timeout_seconds = float(os.getenv("HIDDEN_INTENT_TIMEOUT_SECONDS", "15") or "15")
+        extractor_executor = ThreadPoolExecutor(max_workers=2)
+        hidden_intent_result = HiddenIntentResult()
+        hidden_extractor = self._new_hidden_intent_extractor()
+        try:
+            intent_future = extractor_executor.submit(
+                self.intent_extractor.extract,
+                query,
+                user_id=user_profile.user_id,
+                conversation_history=conversation_history,
+                session_context=asdict(user_profile.session_context),
+            )
+            hidden_future = extractor_executor.submit(
+                hidden_extractor.extract,
+                query,
+                user_id=user_profile.user_id,
+                conversation_history=conversation_history,
+                session_context=asdict(user_profile.session_context),
+                long_term_profile=asdict(user_profile.long_term_profile),
+                tagremoved_profile=asdict(user_profile.tagremoved_profile),
+            )
+            intent_result = intent_future.result()
+            try:
+                hidden_intent_result = hidden_future.result(timeout=hidden_timeout_seconds)
+            except TimeoutError:
+                hidden_extractor.last_trace = {
+                    "path": "timeout",
+                    "enabled": True,
+                    "model": getattr(hidden_extractor, "model", None),
+                    "timeout_seconds": hidden_timeout_seconds,
+                }
+            except Exception as exc:
+                hidden_extractor.last_trace = {
+                    "path": "error",
+                    "enabled": True,
+                    "model": getattr(hidden_extractor, "model", None),
+                    "error": f"{type(exc).__name__}: {exc}",
+                }
+        finally:
+            extractor_executor.shutdown(wait=False, cancel_futures=True)
+        intent_extract_ms = _elapsed_ms(extract_parallel_start)
+        hidden_intent_trace = dict(getattr(hidden_extractor, "last_trace", {}))
+        self._last_hidden_intent_trace = hidden_intent_trace
+        _log_qu_json(
+            "hidden_intent",
+            "hidden_intent_completed",
+            {
+                "user_id": user_profile.user_id,
+                "query": query,
+                "hidden_intent": asdict(hidden_intent_result),
+                "hidden_intent_trace": hidden_intent_trace,
+            },
         )
-        intent_extract_ms = _elapsed_ms(intent_start)
         _log_qu_trace(
             "intent_extracted",
             {
@@ -440,25 +511,60 @@ class QueryUnderstandingPipeline:
         semantic_mapping_start = time.perf_counter()
         semantic_mapping = self.semantic_mapper.map_items(intent_result.semantic_preferences.items)
         semantic_mapping_ms = _elapsed_ms(semantic_mapping_start)
+        explicit_semantic_mapper_trace = dict(self.semantic_mapper.last_trace)
+        hidden_semantic_mapping = SemanticMappingResult()
+        hidden_semantic_mapping_ms = 0.0
+        hidden_semantic_mapper_trace: dict[str, Any] = {}
+        if hidden_intent_result.semantic_preferences.items:
+            hidden_semantic_mapping_start = time.perf_counter()
+            hidden_semantic_mapping = self.semantic_mapper.map_items(
+                hidden_intent_result.semantic_preferences.items
+            )
+            hidden_semantic_mapping_ms = _elapsed_ms(hidden_semantic_mapping_start)
+            hidden_semantic_mapper_trace = dict(self.semantic_mapper.last_trace)
+        self._last_semantic_mapping_trace = explicit_semantic_mapper_trace
+        merged_semantic_mapping = self._merge_semantic_mapping(
+            semantic_mapping,
+            hidden_semantic_mapping,
+        )
         _log_qu_trace(
             "tag_mapping_completed",
             {
                 "user_id": user_profile.user_id,
                 "semantic_mapping": asdict(semantic_mapping),
-                "semantic_mapper_trace": dict(self.semantic_mapper.last_trace),
+                "semantic_mapper_trace": explicit_semantic_mapper_trace,
+                "hidden_semantic_mapping": asdict(hidden_semantic_mapping),
+                "hidden_semantic_mapper_trace": hidden_semantic_mapper_trace,
             },
         )
         tag_graph_expansion_start = time.perf_counter()
         graph_seed_items = self._build_tag_graph_seed_items(intent_result, semantic_mapping)
         runtime_tag_expansion = self.tag_graph_expander.expand_mapping(graph_seed_items)
         tag_graph_expansion_ms = _elapsed_ms(tag_graph_expansion_start)
+        explicit_tag_graph_expansion_trace = dict(self.tag_graph_expander.last_trace)
+        hidden_graph_seed_items: list[MappedSemanticItem] = []
+        hidden_runtime_tag_expansion = RuntimeTagExpansion()
+        hidden_tag_graph_expansion_ms = 0.0
+        hidden_tag_graph_expansion_trace: dict[str, Any] = {"path": "skipped", "reason": "hidden_intent_no_graph_expansion"}
+        if hidden_semantic_mapping.mapped_items:
+            hidden_runtime_tag_expansion = self._runtime_tag_expansion_from_hidden_mapping(
+                hidden_semantic_mapping
+            )
+            runtime_tag_expansion = self._merge_runtime_tag_expansion(
+                runtime_tag_expansion,
+                hidden_runtime_tag_expansion,
+            )
+        self._last_tag_graph_expansion_trace = explicit_tag_graph_expansion_trace
         _log_qu_trace(
             "tag_graph_expansion_completed",
             {
                 "user_id": user_profile.user_id,
                 "graph_seed_items": [asdict(item) for item in graph_seed_items],
                 "runtime_tag_expansion": asdict(runtime_tag_expansion),
-                "tag_graph_expansion_trace": dict(self.tag_graph_expander.last_trace),
+                "tag_graph_expansion_trace": explicit_tag_graph_expansion_trace,
+                "hidden_graph_seed_items": [asdict(item) for item in hidden_graph_seed_items],
+                "hidden_runtime_tag_expansion": asdict(hidden_runtime_tag_expansion),
+                "hidden_tag_graph_expansion_trace": hidden_tag_graph_expansion_trace,
             },
         )
         _log_qu_json(
@@ -469,21 +575,28 @@ class QueryUnderstandingPipeline:
                 "query": query,
                 "semantic_preferences": asdict(intent_result.semantic_preferences),
                 "semantic_mapping": asdict(semantic_mapping),
-                "semantic_mapper_trace": dict(self.semantic_mapper.last_trace),
+                "semantic_mapper_trace": explicit_semantic_mapper_trace,
                 "graph_seed_items": [asdict(item) for item in graph_seed_items],
                 "runtime_tag_expansion": asdict(runtime_tag_expansion),
-                "tag_graph_expansion_trace": dict(self.tag_graph_expander.last_trace),
+                "tag_graph_expansion_trace": explicit_tag_graph_expansion_trace,
+                "hidden_semantic_preferences": asdict(hidden_intent_result.semantic_preferences),
+                "hidden_semantic_mapping": asdict(hidden_semantic_mapping),
+                "hidden_semantic_mapper_trace": hidden_semantic_mapper_trace,
+                "hidden_graph_seed_items": [asdict(item) for item in hidden_graph_seed_items],
+                "hidden_runtime_tag_expansion": asdict(hidden_runtime_tag_expansion),
+                "hidden_tag_graph_expansion_trace": hidden_tag_graph_expansion_trace,
             },
         )
         session_update_start = time.perf_counter()
         session_update = self._apply_session_profile_update(
             user_profile,
             intent_result,
-            semantic_mapping,
+            merged_semantic_mapping,
             runtime_tag_expansion,
             query=query,
         )
         session_profile_update_ms = _elapsed_ms(session_update_start)
+        self._apply_hidden_scalar_signals(user_profile, hidden_intent_result.scalar_signals)
         _log_qu_trace(
             "session_context_updated",
             {
@@ -494,7 +607,11 @@ class QueryUnderstandingPipeline:
             },
         )
         active_profile_start = time.perf_counter()
-        active_profile = self._build_active_profile(user_profile, query=query)
+        active_profile = self._build_active_profile(
+            user_profile,
+            query=query,
+            hidden_profile_signals=hidden_intent_result.profile_signals,
+        )
         active_profile_merge_ms = _elapsed_ms(active_profile_start)
         _log_qu_json(
             "profile_retention",
@@ -524,6 +641,8 @@ class QueryUnderstandingPipeline:
                 "tagremoved_profile": asdict(user_profile.tagremoved_profile),
                 "updated_session_context": asdict(user_profile.session_context),
                 "applied_updates": dict(session_update.applied_updates),
+                "hidden_intent": asdict(hidden_intent_result),
+                "hidden_intent_trace": hidden_intent_trace,
             },
         )
         self._log_current_active_profile_snapshot(
@@ -536,7 +655,9 @@ class QueryUnderstandingPipeline:
         detail = {
             "intent_extract_ms": intent_extract_ms,
             "semantic_mapping_ms": semantic_mapping_ms,
+            "hidden_semantic_mapping_ms": hidden_semantic_mapping_ms,
             "tag_graph_expansion_ms": tag_graph_expansion_ms,
+            "hidden_tag_graph_expansion_ms": hidden_tag_graph_expansion_ms,
             "session_profile_update_ms": session_profile_update_ms,
             "active_profile_merge_ms": active_profile_merge_ms,
             "total_extract_merge_inner_ms": _elapsed_ms(detail_start),
@@ -596,11 +717,125 @@ class QueryUnderstandingPipeline:
             runtime_tag_expansion=runtime_tag_expansion,
         )
 
-    def _build_active_profile(self, user_profile: UserProfile, *, query: str = "") -> ActiveProfile:
+    def _new_hidden_intent_extractor(self) -> Any:
+        extractor = getattr(self, "hidden_intent_extractor", None)
+        if isinstance(extractor, HiddenIntentInsightExtractor):
+            return HiddenIntentInsightExtractor(
+                model=getattr(extractor, "model", None),
+                temperature=getattr(extractor, "temperature", None),
+                min_confidence=getattr(extractor, "min_confidence", None),
+                enabled=getattr(extractor, "enabled", None),
+            )
+        return extractor or HiddenIntentInsightExtractor()
+
+    @staticmethod
+    def _merge_semantic_mapping(
+        explicit_mapping: SemanticMappingResult,
+        hidden_mapping: SemanticMappingResult,
+    ) -> SemanticMappingResult:
+        merged_items: list[MappedSemanticItem] = []
+        seen: set[tuple[str, str, str]] = set()
+        for source in (explicit_mapping, hidden_mapping):
+            for item in source.mapped_items:
+                tag_key = item.matched_tag or item.text
+                category_key = item.matched_category or item.category
+                key = (tag_key, category_key, item.target_field)
+                if key in seen:
+                    continue
+                seen.add(key)
+                merged_items.append(item)
+        return SemanticMappingResult(mapped_items=merged_items)
+
+    def _runtime_tag_expansion_from_hidden_mapping(
+        self,
+        hidden_mapping: SemanticMappingResult,
+    ) -> RuntimeTagExpansion:
+        mapped_tags: list[RuntimeTag] = []
+        seen: set[tuple[str, str]] = set()
+        for item in hidden_mapping.mapped_items:
+            if not item.matched_tag or not item.matched_category:
+                continue
+            if item.score is None or item.score <= self.semantic_mapper.score_threshold:
+                continue
+            key = (item.matched_tag, item.matched_category)
+            if key in seen:
+                continue
+            seen.add(key)
+            mapped_tags.append(
+                RuntimeTag(
+                    tag=item.matched_tag,
+                    category=item.matched_category,
+                    score=item.score,
+                    source="hidden_intent",
+                )
+            )
+        return RuntimeTagExpansion(
+            mapped_tags=list(mapped_tags),
+            expanded_tags=[],
+            final_tags=list(mapped_tags),
+        )
+
+    @staticmethod
+    def _merge_runtime_tag_expansion(
+        explicit_expansion: RuntimeTagExpansion,
+        hidden_expansion: RuntimeTagExpansion,
+    ) -> RuntimeTagExpansion:
+        return RuntimeTagExpansion(
+            mapped_tags=QueryUnderstandingPipeline._merge_runtime_tag_lists(
+                explicit_expansion.mapped_tags,
+                hidden_expansion.mapped_tags,
+            ),
+            expanded_tags=QueryUnderstandingPipeline._merge_runtime_tag_lists(
+                explicit_expansion.expanded_tags,
+                hidden_expansion.expanded_tags,
+            ),
+            final_tags=QueryUnderstandingPipeline._merge_runtime_tag_lists(
+                explicit_expansion.final_tags,
+                hidden_expansion.final_tags,
+            ),
+        )
+
+    @staticmethod
+    def _merge_runtime_tag_lists(
+        explicit_tags: list[RuntimeTag],
+        hidden_tags: list[RuntimeTag],
+    ) -> list[RuntimeTag]:
+        merged: list[RuntimeTag] = list(explicit_tags)
+        seen = {(tag.tag, tag.category) for tag in explicit_tags}
+        for tag in hidden_tags:
+            key = (tag.tag, tag.category)
+            if key in seen:
+                continue
+            seen.add(key)
+            merged.append(tag)
+        return merged
+
+    @staticmethod
+    def _apply_hidden_scalar_signals(user_profile: UserProfile, scalar_signals: list[Any]) -> None:
+        long_term = user_profile.long_term_profile
+        for signal in scalar_signals:
+            field_name = str(getattr(signal, "field", "")).strip()
+            value = str(getattr(signal, "value", "")).strip()
+            if field_name not in {"nationality", "age_group", "current_workplace"} or not value:
+                continue
+            if getattr(long_term, field_name, None) in (None, ""):
+                setattr(long_term, field_name, value)
+
+    def _build_active_profile(
+        self,
+        user_profile: UserProfile,
+        *,
+        query: str = "",
+        hidden_profile_signals: list[Any] | None = None,
+    ) -> ActiveProfile:
         merger = getattr(self, "current_profile_merger", None) or CurrentProfileMerger()
         if query:
-            return merger.merge_into_user_profile(user_profile, query=query)
-        return merger.merge(user_profile)
+            return merger.merge_into_user_profile(
+                user_profile,
+                query=query,
+                hidden_profile_signals=hidden_profile_signals,
+            )
+        return merger.merge(user_profile, hidden_profile_signals=hidden_profile_signals)
 
     def _log_current_active_profile_snapshot(
         self,

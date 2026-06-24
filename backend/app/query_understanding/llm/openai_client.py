@@ -59,6 +59,7 @@ class OpenAIResponsesClient:
         strict: bool = True,
         prompt_cache_key: str | None = None,
         prompt_cache_retention: str | None = None,
+        temperature: float | None = None,
     ) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "model": model,
@@ -89,6 +90,8 @@ class OpenAIResponsesClient:
             payload["prompt_cache_key"] = prompt_cache_key
         if prompt_cache_retention:
             payload["prompt_cache_retention"] = prompt_cache_retention
+        if temperature is not None:
+            payload["temperature"] = temperature
 
         body = json.dumps(payload).encode("utf-8")
         http_request = request.Request(

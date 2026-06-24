@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
+from typing import Any
 
 from query_understanding.merger.profile_retention_resolver import (
     ProfileRetentionResolver,
@@ -23,28 +25,46 @@ PREFERENCE_PROMOTION_MIN_COUNT = 5
 class CurrentProfileMerger:
     retention_resolver: ProfileRetentionResolver | None = None
 
-    def merge(self, user_profile: UserProfile) -> ActiveProfile:
+    def merge(
+        self,
+        user_profile: UserProfile,
+        *,
+        hidden_profile_signals: list[Any] | None = None,
+    ) -> ActiveProfile:
         long_term = user_profile.long_term_profile
         session = user_profile.session_context
+        hidden_maps = self._build_hidden_signal_maps(
+            hidden_profile_signals,
+            has_explicit_budget=bool(session.session_budget_levels),
+        )
 
         return ActiveProfile(
             nationality=long_term.nationality,
             age_group=long_term.age_group,
             current_workplace=long_term.current_workplace,
             is_enough=long_term.is_enough,
-            traveler_type=self._merge_score_maps(long_term.traveler_type, {}),
+            traveler_type=self._merge_score_maps(
+                long_term.traveler_type,
+                hidden_maps.get("traveler_type", {}),
+            ),
             long_term_trip_types=self._merge_score_maps(
                 long_term.long_term_trip_types,
                 session.session_trip_types,
             ),
             long_term_budget_levels=self._merge_score_maps(
                 long_term.long_term_budget_levels,
-                session.session_budget_levels,
+                self._merge_score_maps(
+                    session.session_budget_levels,
+                    hidden_maps.get("long_term_budget_levels", {}),
+                ),
             ),
             long_term_price_range=self._merge_price_range(long_term, session),
             long_term_preference_habits=self._merge_score_maps(
                 long_term.long_term_preference_habits,
-                self._build_promoted_preference_habits(session),
+                self._merge_score_maps(
+                    self._build_promoted_preference_habits(session),
+                    hidden_maps.get("long_term_preference_habits", {}),
+                ),
             ),
             long_term_hotel_types=self._merge_score_maps(
                 long_term.long_term_hotel_types,
@@ -83,13 +103,23 @@ class CurrentProfileMerger:
             ),
         )
 
-    def merge_into_user_profile(self, user_profile: UserProfile, *, query: str) -> ActiveProfile:
-        merged_active_profile = self.merge(user_profile)
+    def merge_into_user_profile(
+        self,
+        user_profile: UserProfile,
+        *,
+        query: str,
+        hidden_profile_signals: list[Any] | None = None,
+    ) -> ActiveProfile:
+        merged_active_profile = self.merge(
+            user_profile,
+            hidden_profile_signals=hidden_profile_signals,
+        )
         try:
             self._apply_long_term_retention(
                 user_profile=user_profile,
                 merged_active_profile=merged_active_profile,
                 query=query,
+                hidden_profile_signals=hidden_profile_signals,
             )
             return self._active_profile_from_long_term(user_profile.long_term_profile)
         except Exception:
@@ -101,12 +131,16 @@ class CurrentProfileMerger:
         user_profile: UserProfile,
         merged_active_profile: ActiveProfile,
         query: str,
+        hidden_profile_signals: list[Any] | None = None,
     ) -> None:
         resolver = self.retention_resolver or ProfileRetentionResolver()
         self.retention_resolver = resolver
         old_profile = user_profile.long_term_profile
         tagremoved_profile = user_profile.tagremoved_profile
-        session_signals = self._build_session_signals(user_profile.session_context)
+        session_signals = self._build_session_signals(
+            user_profile.session_context,
+            hidden_profile_signals=hidden_profile_signals,
+        )
         decisions = resolver.resolve(
             query=query,
             old_profile=old_profile,
@@ -126,13 +160,27 @@ class CurrentProfileMerger:
         )
 
     @staticmethod
-    def _build_session_signals(session: SessionContext) -> dict[str, dict[str, CountInteractionValue]]:
+    def _build_session_signals(
+        session: SessionContext,
+        *,
+        hidden_profile_signals: list[Any] | None = None,
+    ) -> dict[str, dict[str, CountInteractionValue]]:
         promoted_preferences = CurrentProfileMerger._build_promoted_preference_habits(session)
+        hidden_maps = CurrentProfileMerger._build_hidden_signal_maps(
+            hidden_profile_signals,
+            has_explicit_budget=bool(session.session_budget_levels),
+        )
         return {
-            "traveler_type": {},
+            "traveler_type": hidden_maps.get("traveler_type", {}),
             "long_term_trip_types": CurrentProfileMerger._clone_score_map(session.session_trip_types),
-            "long_term_budget_levels": CurrentProfileMerger._clone_score_map(session.session_budget_levels),
-            "long_term_preference_habits": promoted_preferences,
+            "long_term_budget_levels": CurrentProfileMerger._merge_score_maps(
+                CurrentProfileMerger._clone_score_map(session.session_budget_levels),
+                hidden_maps.get("long_term_budget_levels", {}),
+            ),
+            "long_term_preference_habits": CurrentProfileMerger._merge_score_maps(
+                promoted_preferences,
+                hidden_maps.get("long_term_preference_habits", {}),
+            ),
             "long_term_hotel_types": CurrentProfileMerger._clone_score_map(session.session_hotel_types),
             "long_term_room_views": CurrentProfileMerger._clone_score_map(session.session_room_views),
             "long_term_amenities": CurrentProfileMerger._clone_score_map(session.session_amenities),
@@ -487,6 +535,44 @@ class CurrentProfileMerger:
                 ),
             )
         return merged
+
+    @staticmethod
+    def _build_hidden_signal_maps(
+        hidden_profile_signals: list[Any] | None,
+        *,
+        has_explicit_budget: bool,
+    ) -> dict[str, dict[str, CountInteractionValue]]:
+        maps: dict[str, dict[str, CountInteractionValue]] = {
+            "traveler_type": {},
+            "long_term_budget_levels": {},
+            "long_term_preference_habits": {},
+        }
+        if not hidden_profile_signals:
+            return maps
+
+        today = date.today().isoformat()
+        for signal in hidden_profile_signals:
+            group = CurrentProfileMerger._read_signal_attr(signal, "group")
+            value = CurrentProfileMerger._read_signal_attr(signal, "value")
+            if group not in maps or not value:
+                continue
+            if group == "long_term_budget_levels" and has_explicit_budget:
+                continue
+            current = maps[group].get(value)
+            if current is None:
+                maps[group][value] = CountInteractionValue(count=1, last_interaction=today)
+                continue
+            maps[group][value] = CountInteractionValue(
+                count=current.count + 1,
+                last_interaction=CurrentProfileMerger._latest_interaction(current.last_interaction, today),
+            )
+        return maps
+
+    @staticmethod
+    def _read_signal_attr(signal: Any, name: str) -> str:
+        if isinstance(signal, dict):
+            return str(signal.get(name, "")).strip()
+        return str(getattr(signal, name, "")).strip()
 
     @staticmethod
     def _merge_price_range(long_term: LongTermProfile, session: SessionContext) -> PriceRange:

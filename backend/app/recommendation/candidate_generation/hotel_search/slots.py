@@ -16,6 +16,12 @@ def extract_slots(inp: RecommendInput) -> dict[str, Any]:
     check_in = sc.check_in
     check_out = sc.check_out
     trip_type = _pick_top_tag(ap.long_term_trip_types)
+    traveler_type = _collect_profile_group(_get_profile_group(ap, "traveler_type"))
+    budget_levels = _collect_profile_group(_get_profile_group(ap, "long_term_budget_levels"))
+    hotel_types = _collect_profile_group(_get_profile_group(ap, "long_term_hotel_types"))
+    room_views = _collect_profile_group(_get_profile_group(ap, "long_term_room_views"))
+    amenities = _collect_profile_group(_get_profile_group(ap, "long_term_amenities"))
+    preference_habits = _collect_profile_group(_get_profile_group(ap, "long_term_preference_habits"))
     profile_features = _collect_profile_features(inp)
 
     return {
@@ -23,6 +29,12 @@ def extract_slots(inp: RecommendInput) -> dict[str, Any]:
         "check_in": check_in,
         "check_out": check_out,
         "trip_type": trip_type,
+        "traveler_type": traveler_type,
+        "budget_levels": budget_levels,
+        "hotel_types": hotel_types,
+        "room_views": room_views,
+        "amenities": amenities,
+        "preference_habits": preference_habits,
         "profile_features": profile_features if profile_features else None,
         "limit": inp.limit_per_source,
     }
@@ -39,10 +51,10 @@ def _collect_profile_features(inp: RecommendInput) -> list[str]:
     seen: set[str] = set()
 
     for source in (
-        ap.long_term_hotel_types,
-        ap.long_term_room_views,
-        ap.long_term_amenities,
-        ap.long_term_preference_habits,
+        _get_profile_group(ap, "long_term_hotel_types"),
+        _get_profile_group(ap, "long_term_room_views"),
+        _get_profile_group(ap, "long_term_amenities"),
+        _get_profile_group(ap, "long_term_preference_habits"),
     ):
         for key, _value in _sort_tag_items(source):
             normalized_key = str(key).strip()
@@ -52,6 +64,31 @@ def _collect_profile_features(inp: RecommendInput) -> list[str]:
             collected.append(normalized_key)
 
     return collected[:12]
+
+
+def _get_profile_group(profile: Any, field_name: str) -> dict[str, Any]:
+    value = getattr(profile, field_name, None)
+    if isinstance(value, dict):
+        return value
+    if hasattr(profile, "model_extra") and isinstance(profile.model_extra, dict):
+        extra_value = profile.model_extra.get(field_name)
+        if isinstance(extra_value, dict):
+            return extra_value
+    return {}
+
+
+def _collect_profile_group(values: dict[str, Any], *, limit: int = 8) -> list[str]:
+    collected: list[str] = []
+    seen: set[str] = set()
+    for key, _value in _sort_tag_items(values):
+        normalized_key = str(key).strip()
+        if not normalized_key or normalized_key in seen:
+            continue
+        seen.add(normalized_key)
+        collected.append(normalized_key)
+        if len(collected) >= limit:
+            break
+    return collected
 
 
 def _sort_tag_items(values: dict[str, Any]) -> list[tuple[str, Any]]:

@@ -32,25 +32,69 @@ def _build_query_text(slots: dict[str, Any]) -> str:
         check_in = slots.get("check_in")
         check_out = slots.get("check_out")
         if check_in and check_out:
-            parts.append(f"Toi sap di {city} tu ngay {check_in} den ngay {check_out}.")
+            parts.append(f"Tôi sắp đi {city} từ ngày {check_in} đến ngày {check_out}.")
         elif check_in:
-            parts.append(f"Toi sap di {city} tu ngay {check_in}.")
+            parts.append(f"Tôi sắp đi {city} từ ngày {check_in}.")
         else:
-            parts.append(f"Toi sap di {city}.")
+            parts.append(f"Tôi sắp đi {city}.")
 
     trip_type = slots.get("trip_type")
     if trip_type:
-        parts.append(f"Toi muon khach san phu hop cho {trip_type}.")
+        parts.append(f"Tôi muốn khách sạn phù hợp cho {trip_type}.")
+
+    traveler_type = _normalize_text_items(slots.get("traveler_type"))
+    if traveler_type:
+        parts.append(f"Phong cách du lịch của tôi là {_join_items(traveler_type)}.")
+
+    budget_levels = _normalize_text_items(slots.get("budget_levels"))
+    if budget_levels:
+        parts.append(f"Mức ngân sách ưu tiên là {_join_items(budget_levels)}.")
+
+    hotel_types = _normalize_text_items(slots.get("hotel_types"))
+    if hotel_types:
+        parts.append(f"Tôi ưu tiên loại hình lưu trú như {_join_items(hotel_types)}.")
+
+    room_views = _normalize_text_items(slots.get("room_views"))
+    if room_views:
+        parts.append(f"Tôi muốn phòng có hướng nhìn như {_join_items(room_views)}.")
+
+    amenities = _normalize_text_items(slots.get("amenities"))
+    if amenities:
+        parts.append(f"Tôi muốn khách sạn có tiện ích như {_join_items(amenities)}.")
+
+    preference_habits = _normalize_text_items(slots.get("preference_habits"))
+    if preference_habits:
+        parts.append(f"Tôi muốn khách sạn có đặc điểm như {_join_items(preference_habits)}.")
 
     profile_features = slots.get("profile_features") or []
-    if profile_features:
+    if profile_features and not any((hotel_types, room_views, amenities, preference_habits)):
         parts.append(
-            "Toi muon khach san co cac tien ich va dac diem nhu "
-            + ", ".join(str(item) for item in profile_features[:12])
+            "Tôi muốn khách sạn có các tiện ích và đặc điểm như "
+            + _join_items(_normalize_text_items(profile_features)[:12])
             + "."
         )
 
     return " ".join(parts).strip()
+
+
+def _normalize_text_items(values: Any, *, limit: int = 12) -> list[str]:
+    if not isinstance(values, list):
+        return []
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        text = str(value).strip()
+        if not text or text in seen:
+            continue
+        seen.add(text)
+        normalized.append(text)
+        if len(normalized) >= limit:
+            break
+    return normalized
+
+
+def _join_items(values: list[str]) -> str:
+    return ", ".join(values)
 
 
 def _search_hotels_via_api(
