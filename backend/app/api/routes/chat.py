@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import asyncio
+import json as _json
 import logging
 import os
+import re as _re
 import time
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, field_validator
 
 from app.agent.graph import build_graph
@@ -240,3 +243,184 @@ async def chat(
     reset_trace(trace_token)
 
     return APIResponse.ok(data=data.model_dump(), request_id=req_id, latency_ms=elapsed_ms)
+
+
+# ── Streaming helpers ─────────────────────────────────────────────────────────
+
+def _sse(event: dict) -> str:
+    """Encode một dict thành SSE data line."""
+    return f"data: {_json.dumps(event, ensure_ascii=False)}\n\n"
+
+
+# ── /chat/stream endpoint ─────────────────────────────────────────────────────
+
+@router.post(
+    "/stream",
+    summary="Chat — Server-Sent Events streaming",
+    description=(
+        "Phiên bản streaming của /chat.\n\n"
+        "Trả về `text/event-stream` với các event JSON:\n\n"
+        "- `{type: 'status', message}` — trạng thái đang xử lý\n"
+        "- `{type: 'delta', text}` — từng token answer (Markdown)\n"
+        "- `{type: 'metadata', recommendations, next_suggestions, ...}` — kết quả đầy đủ\n"
+        "- `{type: 'done'}` — kết thúc stream\n"
+        "- `{type: 'error', message}` — lỗi (nếu có)\n\n"
+        "Graph pipeline chạy đầy đủ (session → intent → rag/recommend → rerank → "
+        "response_builder → analytics). Sau khi graph hoàn thành, answer được "
+        "stream từng token qua OpenAI text streaming. Metadata trả cuối stream."
+    ),
+)
+async def chat_stream(
+    req: ChatRequest,
+    request: Request,
+    current_user: dict = Depends(get_current_user_dep),
+) -> StreamingResponse:
+    req_id = get_request_id()
+    user_id: str = current_user["account"]["user_id"]
+
+    if graph is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Service unavailable: workflow engine failed to initialize.",
+        )
+
+    fallback_user_profile: dict[str, Any] = {**req.user_profile, "user_id": user_id}
+    if req.slots:
+        fallback_user_profile = _merge_slots_into_profile(fallback_user_profile, req.slots)
+
+    state: dict[str, Any] = {
+        "request_id": req_id,
+        "user_id": user_id,
+        "session_id": req.session_id,
+        "raw_query": req.query,
+        "user_profile": fallback_user_profile,
+        "slots": req.slots,
+        "candidate_limit_per_source": req.candidate_limit_per_source,
+        "rerank_options": req.rerank_options,
+        "request_started_at": time.perf_counter(),
+    }
+
+    async def event_generator():
+        t0 = time.perf_counter()
+        flow_trace = FlowTrace(
+            request_id=req_id,
+            user_id=user_id,
+            session_id=req.session_id,
+            query=req.query,
+        )
+        trace_token = set_current_trace(flow_trace)
+        log_flow_start(req_id, user_id, req.session_id, req.query)
+
+        # ── Bước 1: chạy graph, gửi status trong lúc chờ ─────────────────────
+        try:
+            yield _sse({"type": "status", "message": "Đang phân tích yêu cầu..."})
+
+            graph_task = asyncio.create_task(
+                asyncio.wait_for(
+                    graph.ainvoke(state),
+                    timeout=CHAT_TIMEOUT_SECONDS,
+                )
+            )
+
+            _status_queue = [
+                "Đang tìm kiếm khách sạn phù hợp...",
+                "Đang xử lý và xếp hạng kết quả...",
+                "Đang tổng hợp câu trả lời...",
+            ]
+            for _msg in _status_queue:
+                done, _ = await asyncio.wait({graph_task}, timeout=3.0)
+                if done:
+                    break
+                yield _sse({"type": "status", "message": _msg})
+
+            result = await graph_task
+
+        except asyncio.TimeoutError:
+            yield _sse({"type": "error", "message": "Yêu cầu hết thời gian, vui lòng thử lại."})
+            yield _sse({"type": "done"})
+            flow_trace.log_end(needs_clarify=False, intent="timeout", n_recs=0)
+            flow_trace.finalize()
+            reset_trace(trace_token)
+            return
+        except Exception as exc:
+            logger.error("[%s] chat_stream graph failed: %s", req_id, exc, exc_info=True)
+            yield _sse({"type": "error", "message": "Đã xảy ra lỗi khi xử lý yêu cầu."})
+            yield _sse({"type": "done"})
+            flow_trace.log_end(needs_clarify=False, intent="error", n_recs=0)
+            flow_trace.finalize()
+            reset_trace(trace_token)
+            return
+
+        elapsed_ms = round((time.perf_counter() - t0) * 1000)
+        final_response: dict[str, Any] = result.get("final_response") or {}
+        data = _build_chat_data(final_response)
+
+        # ── Bước 2: stream answer từng token từ LLM ──────────────────────────
+        # Dùng build_response_stream_with_llm() để gọi OpenAI streaming thật.
+        # Chạy sync generator trong thread riêng để không block event loop.
+        from app.agent.response_builder import build_response_stream_with_llm  # noqa: PLC0415
+
+        rag_answer: str = result.get("rag_answer") or ""
+        intent: str = data.intent or ""
+        destination: str = (
+            (result.get("user_profile") or {})
+            .get("session_context", {})
+            .get("destination", "")
+            or ""
+        )
+        ranked_recs: list[dict[str, Any]] = data.recommendations or []
+
+        token_queue: asyncio.Queue = asyncio.Queue()
+        _SENTINEL = object()
+
+        def _produce_tokens() -> None:
+            try:
+                for token in build_response_stream_with_llm(
+                    query=req.query,
+                    intent=intent,
+                    destination=destination,
+                    rag_answer=rag_answer,
+                    ranked_recommendations=ranked_recs,
+                ):
+                    loop.call_soon_threadsafe(token_queue.put_nowait, token)
+            except Exception as _exc:
+                logger.warning("[%s] stream token producer error: %s", req_id, _exc)
+            finally:
+                loop.call_soon_threadsafe(token_queue.put_nowait, _SENTINEL)
+
+        loop = asyncio.get_running_loop()
+        loop.run_in_executor(None, _produce_tokens)
+
+        while True:
+            token = await token_queue.get()
+            if token is _SENTINEL:
+                break
+            yield _sse({"type": "delta", "text": token})
+
+        # ── Bước 3: metadata đầy đủ ──────────────────────────────────────────
+        yield _sse({
+            "type": "metadata",
+            "intent": data.intent,
+            "recommendations": data.recommendations,
+            "sources": data.sources,
+            "next_suggestions": data.next_suggestions,
+            "needs_clarification": data.needs_clarification,
+            "clarification_question": data.clarification_question,
+            "explanation": data.explanation,
+            "latency": data.latency,
+        })
+
+        yield _sse({"type": "done"})
+
+        log_flow_end(req_id, elapsed_ms, result)
+        reset_trace(trace_token)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
