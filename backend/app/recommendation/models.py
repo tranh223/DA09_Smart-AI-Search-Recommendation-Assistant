@@ -82,6 +82,7 @@ class RecommendInput(BaseModel):
     profile: Profile
     session_context: SessionContext
     original_query: str = ""
+    search_query_template: str | None = None
     limit_per_source: int = 10
 
 
@@ -92,7 +93,7 @@ class RecommendInput(BaseModel):
 class CandidateHotel(BaseModel):
     hotel_id: int
     hotel_name: str | None = None
-    source: str                             # "embedding_search" | "personalization"
+    source: str                             # "template_search_api" | "personalization"
     score: float = 0.0
     matched_paths: list[str] = Field(default_factory=list)
     reason: str = ""

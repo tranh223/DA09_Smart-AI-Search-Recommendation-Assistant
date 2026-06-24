@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from datetime import date
+import re
+import unicodedata
 from typing import Any
 
 from query_understanding.models.intent import SemanticMappingResult
@@ -23,7 +25,7 @@ class EntityUpdateResult:
 
 
 class EntitySessionUpdater:
-    def apply(self, session: SessionContext, intent_result: Any) -> EntityUpdateResult:
+    def apply(self, session: SessionContext, intent_result: Any, *, query: str = "") -> EntityUpdateResult:
         entities = intent_result.entities
         constraints = intent_result.constraints
         applied_updates: dict[str, list[str] | str | None] = {}
@@ -52,11 +54,18 @@ class EntitySessionUpdater:
             applied_updates["session_trip_types"] = [trip_type]
             amenity_tags.append(trip_type)
 
-        price_min, price_max = normalize_budget_by_scope(
-            budget_scope=entities.budget_scope,
+        raw_price_min, raw_price_max = _correct_approximate_budget_parse(
+            query=query,
             price_min=entities.budget_min,
             price_max=entities.budget_max,
         )
+        price_min, price_max = normalize_budget_by_scope(
+            budget_scope=entities.budget_scope,
+            price_min=raw_price_min,
+            price_max=raw_price_max,
+        )
+        if raw_price_min != entities.budget_min or raw_price_max != entities.budget_max:
+            applied_updates["budget_parse_correction"] = "approximate_budget"
         if price_min is not None:
             session.session_price_range.min = price_min
             applied_updates["session_price_range_min"] = str(price_min)
@@ -133,12 +142,13 @@ class SessionProfileUpdater:
         intent_result: Any,
         semantic_mapping: SemanticMappingResult,
         runtime_tag_expansion: RuntimeTagExpansion | None = None,
+        query: str = "",
     ) -> SessionProfileUpdateResult:
         session = user_profile.session_context
         if runtime_tag_expansion is not None:
             session.runtime_tag_expansion = runtime_tag_expansion
 
-        entity_update = self.entity_updater.apply(session, intent_result)
+        entity_update = self.entity_updater.apply(session, intent_result, query=query)
         applied_updates = dict(entity_update.applied_updates)
 
         self._apply_nearby_place_from_mapping(
@@ -279,6 +289,57 @@ def build_count_interaction_value(count: int) -> CountInteractionValue:
 
 def normalize_long_term_trip_type_value(value: str) -> str:
     return value
+
+
+def _correct_approximate_budget_parse(
+    *,
+    query: str,
+    price_min: float | None,
+    price_max: float | None,
+) -> tuple[float | None, float | None]:
+    """Treat approximate budget wording as X..X before budget window expansion.
+
+    LLMs sometimes parse "khoang/tam X" as only an upper bound. That would
+    incorrectly route to the "duoi X" window. Keep explicit lower/upper bound
+    wording untouched.
+    """
+    if price_min is None and price_max is None:
+        return price_min, price_max
+    if not _has_approximate_budget_cue(query):
+        return price_min, price_max
+    if _has_one_sided_budget_cue(query):
+        return price_min, price_max
+    if price_min is None and price_max is not None:
+        return price_max, price_max
+    if price_max is None and price_min is not None:
+        return price_min, price_min
+    return price_min, price_max
+
+
+def _has_approximate_budget_cue(query: str) -> bool:
+    text = _normalize_query_text(query)
+    return bool(
+        re.search(
+            r"\b(khoang|tam|tam khoang|xap xi|gan|gan khoang|chung|khoang chung)\b",
+            text,
+        )
+    )
+
+
+def _has_one_sided_budget_cue(query: str) -> bool:
+    text = _normalize_query_text(query)
+    return bool(
+        re.search(
+            r"\b(duoi|khong qua|toi da|cao nhat|tren|hon|it nhat|tro len)\b",
+            text,
+        )
+    )
+
+
+def _normalize_query_text(query: str) -> str:
+    normalized = unicodedata.normalize("NFD", str(query or "").lower())
+    without_accents = "".join(char for char in normalized if unicodedata.category(char) != "Mn")
+    return re.sub(r"\s+", " ", without_accents).strip()
 
 
 def normalize_budget_by_scope(

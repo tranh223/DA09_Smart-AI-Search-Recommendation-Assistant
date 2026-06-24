@@ -84,10 +84,12 @@ def _in_clarify(s: dict[str, Any]) -> dict[str, Any]:
 
 
 def _in_rewrite(s: dict[str, Any]) -> dict[str, Any]:
+    recommend_input = s.get("recommend_input")
     return {
         "raw_query": s.get("raw_query"),
         "intent": s.get("intent"),
         "slots": s.get("slots") or {},
+        "has_recommend_input": recommend_input is not None,
     }
 
 
@@ -110,6 +112,7 @@ def _in_recommend(s: dict[str, Any]) -> dict[str, Any]:
         return {
             "user_id": ri.user_id if hasattr(ri, "user_id") else None,
             "original_query": ri.original_query if hasattr(ri, "original_query") else None,
+            "search_query_template": getattr(ri, "search_query_template", None),
             "limit_per_source": ri.limit_per_source if hasattr(ri, "limit_per_source") else None,
             "session_context": {
                 "destination": getattr(sc, "destination", None),
@@ -300,7 +303,10 @@ def _out_clarify(s: dict, r: dict) -> dict:
 
 
 def _out_rewrite(s: dict, r: dict) -> dict:
-    return {"rewritten_query": r.get("rewritten_query") or ""}
+    return {
+        "rewritten_query": r.get("rewritten_query") or "",
+        "search_query_template": r.get("search_query_template") or "",
+    }
 
 
 def _out_rag(s: dict, r: dict) -> dict:

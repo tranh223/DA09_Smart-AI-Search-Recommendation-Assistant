@@ -15,6 +15,7 @@ from app.agent.response_builder import build_guardrail_response_with_llm, build_
 from app.agent.state import AgentState
 from app.core.trace import current_trace
 from app.recommendation.engine import run_candidate_pipeline, run_rerank_from_merged
+from app.recommendation.candidate_generation.hotel_search.template_search_api import build_search_query_template
 from app.recommendation.models import PriceRange, Profile, RecommendInput, SessionContext
 
 logger = logging.getLogger(__name__)
@@ -749,8 +750,28 @@ def clarify_node(state: AgentState) -> dict[str, Any]:
 
 # ── Rewrite node ──────────────────────────────────────────────────────────────
 def rewrite_node(state: AgentState) -> dict[str, Any]:
-    """Query rewrite placeholder — pass-through hiện tại, chờ RAG module."""
-    return {"rewritten_query": state.get("raw_query", "")}
+    """Build a profile-based hotel search template for downstream Search API."""
+    raw_query = state.get("raw_query", "")
+    recommend_input = state.get("recommend_input")
+    if recommend_input is None:
+        return {"rewritten_query": raw_query, "search_query_template": ""}
+
+    try:
+        search_query_template = build_search_query_template(recommend_input)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[rewrite_node] build search query template failed: %s", exc)
+        return {"rewritten_query": raw_query, "search_query_template": ""}
+
+    if not search_query_template:
+        return {"rewritten_query": raw_query, "search_query_template": ""}
+
+    copy_fn = getattr(recommend_input, "model_copy", None) or getattr(recommend_input, "copy")
+    updated_recommend_input = copy_fn(update={"search_query_template": search_query_template})
+    return {
+        "rewritten_query": raw_query,
+        "search_query_template": search_query_template,
+        "recommend_input": updated_recommend_input,
+    }
 
 
 # ── RAG node ──────────────────────────────────────────────────────────────────

@@ -97,6 +97,11 @@ def _join_items(values: list[str]) -> str:
     return ", ".join(values)
 
 
+def build_search_query_template(inp: RecommendInput) -> str:
+    """Build the external search API query template from current recommendation state."""
+    return _build_query_text(extract_slots(inp))
+
+
 def _search_hotels_via_api(
     *,
     query_text: str,
@@ -107,7 +112,7 @@ def _search_hotels_via_api(
         "filters": {},
         "top_k": top_k,
     }
-    logger.info("[EmbeddingSearch] Search API request payload=%s", payload)
+    logger.info("[TemplateSearchAPI] Search API request payload=%s", payload)
     raw_payload = json.dumps(payload, ensure_ascii=False)
     headers = {"Content-Type": "application/json"}
     with httpx.Client(timeout=DEFAULT_HOTEL_SEARCH_TIMEOUT_SECONDS) as client:
@@ -207,7 +212,7 @@ def _hits_to_candidates(hits: list[dict[str, Any]]) -> list[CandidateHotel]:
             CandidateHotel(
                 hotel_id=hotel_id,
                 hotel_name=_coerce_hotel_name(hit),
-                source="embedding_search",
+                source="template_search_api",
                 score=score,
                 matched_paths=[f"Tag({name})" for name in tag_names[:5] if name],
                 reason=f"search_api match ({score:.3f}) | {city_name or ''}",
@@ -223,7 +228,7 @@ def _hits_to_candidates(hits: list[dict[str, Any]]) -> list[CandidateHotel]:
     return candidates
 
 
-def get_embedding_search_candidates(
+def get_template_search_api_candidates(
     inp: RecommendInput,
     trace: RecommendTrace | None = None,
 ) -> list[CandidateHotel]:
@@ -235,15 +240,17 @@ def get_embedding_search_candidates(
 
     if not city:
         if trace and trace.enabled:
-            trace.info("Missing city -> skip embedding_search")
-        logger.info("[EmbeddingSearch] No city -> skip.")
+            trace.info("Missing city -> skip template_search_api")
+        logger.info("[TemplateSearchAPI] No city -> skip.")
         return []
 
-    query_text = _build_query_text(slots)
+    query_text = (inp.search_query_template or "").strip()
+    if not query_text:
+        query_text = _build_query_text(slots)
     if not query_text:
         if trace and trace.enabled:
-            trace.info("Empty query template -> skip embedding_search")
-        logger.info("[EmbeddingSearch] Empty query template -> skip.")
+            trace.info("Empty query template -> skip template_search_api")
+        logger.info("[TemplateSearchAPI] Empty query template -> skip.")
         return []
 
     try:
@@ -262,14 +269,14 @@ def get_embedding_search_candidates(
                 },
             )
     except Exception as exc:  # noqa: BLE001
-        logger.warning("[EmbeddingSearch] Search API error: %s", exc)
+        logger.warning("[TemplateSearchAPI] Search API error: %s", exc)
         if trace and trace.enabled:
             trace.info(f"Search API error: {exc}")
         return []
 
     candidates = _hits_to_candidates(hits)
     logger.info(
-        "[EmbeddingSearch] Returned %d candidates at %s via search API.",
+        "[TemplateSearchAPI] Returned %d candidates at %s via search API.",
         len(candidates),
         city,
     )
