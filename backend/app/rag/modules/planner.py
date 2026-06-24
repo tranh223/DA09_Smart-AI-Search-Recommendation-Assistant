@@ -15,11 +15,13 @@ PLANNER_SYSTEM_PROMPT = """You are a smart Planner. When given a user query, do 
 3. If the query requires multiple processing steps, break the task into reasonable logical steps.
 4. If the query missing informations not important like destination, amentities or expectation, you can simulations those informations
 5. Clearly determine which information sources are needed to answer the question or complete the task:
-   - RAG Database (vector search)
+   - RAG Hotel Ask (hotel-scoped vector search)
    - Knowledge Graph
    - User Profile
    - Short-term Memory
-   - Hotel SQL (if policy/rules must be fetched precisely)
+6. Rewrite the user's question into a concise Hotel Ask query for the RAG tool.
+   - Keep the canonical hotel name or hotel_id clues when present.
+   - Put the actual information need first, e.g. policy, breakfast, room, amenities.
 Return the result as structured JSON with the following schema:
 {
     "query_type": "string",
@@ -32,12 +34,10 @@ Return the result as structured JSON with the following schema:
     "needs_graph": boolean,
     "needs_user_profile": boolean,
     "needs_short_term_memory": boolean,
-    "needs_hotel_sql": boolean,
 
     "tool_inputs": {
-        "rag": {"query": string, "top_k": number},
-        "graph": {"query": string, "top_k": number},
-        "hotel_sql": {"query": string, "need": string[]}
+        "rag": {"query": string, "top_k": number, "hotel_ids": number[], "sections": string[]},
+        "graph": {"query": string, "top_k": number}
     },
 
     "required_steps": ["string"],
@@ -90,7 +90,7 @@ def plan(query: str) -> dict:
             "needs_graph": True,
             "needs_user_profile": True,
             "needs_short_term_memory": True,
-            "needs_hotel_sql": True,
+            "tool_inputs": {"rag": {"query": query, "top_k": 3}, "graph": {"query": query, "top_k": 3}},
             "required_steps": [
 
                 "Phân tích query",

@@ -21,7 +21,7 @@ def _masked_config() -> Dict[str, str]:
     return masked
 
 
-def test_graph_config() -> Dict[str, str]:
+def test_graph_config() -> None:
     """Test graph config loads from .env."""
     print("TEST: Load Neo4j config")
     config = get_graph_config()
@@ -33,10 +33,10 @@ def test_graph_config() -> Dict[str, str]:
     assert config["database"], "GRAPH_DB_DATABASE or NEO4J_DATABASE is required"
 
     print(f"OK Config: {json.dumps(_masked_config(), ensure_ascii=False)}")
-    return config
+    test_graph_config.config = config  # type: ignore[attr-defined]
 
 
-def test_graph_connection() -> int:
+def test_graph_connection() -> None:
     """Test direct Cypher execution against Neo4j."""
     print("\nTEST: Neo4j connection")
     rows = run_cypher("MATCH (n) RETURN count(n) AS node_count")
@@ -47,10 +47,10 @@ def test_graph_connection() -> int:
     assert isinstance(rows[0]["node_count"], int), "Expected node_count to be int"
 
     print(f"OK Connected. Node count: {rows[0]['node_count']}")
-    return rows[0]["node_count"]
+    test_graph_connection.node_count = rows[0]["node_count"]  # type: ignore[attr-defined]
 
 
-def test_graph_metadata() -> Dict[str, Any]:
+def test_graph_metadata() -> None:
     """Test graph labels and relationship types are readable."""
     print("\nTEST: Neo4j metadata")
     label_rows = run_cypher("CALL db.labels() YIELD label RETURN collect(label) AS labels")
@@ -67,10 +67,10 @@ def test_graph_metadata() -> Dict[str, Any]:
 
     print(f"OK Labels ({len(labels)}): {labels[:10]}")
     print(f"OK Relationship types ({len(relationship_types)}): {relationship_types[:10]}")
-    return {"labels": labels, "relationship_types": relationship_types}
+    test_graph_metadata.metadata = {"labels": labels, "relationship_types": relationship_types}  # type: ignore[attr-defined]
 
 
-def test_search_graph_returns_list() -> List[Dict[str, Any]]:
+def test_search_graph_returns_list() -> None:
     """Test search_graph returns a result list."""
     print("\nTEST: search_graph returns list")
     results = search_graph("", top_k=3)
@@ -79,12 +79,13 @@ def test_search_graph_returns_list() -> List[Dict[str, Any]]:
     assert len(results) <= 3, "Expected search_graph to respect top_k"
 
     print(f"OK Returned {len(results)} result(s)")
-    return results
+    test_search_graph_returns_list.results = results  # type: ignore[attr-defined]
 
 
-def test_search_graph_result_structure(results: List[Dict[str, Any]]) -> None:
+def test_search_graph_result_structure() -> None:
     """Test result shape when the graph has retrievable nodes."""
     print("\nTEST: search_graph result structure")
+    results = getattr(test_search_graph_returns_list, "results", [])
     if not results:
         print("SKIP: Graph search returned no rows")
         return
@@ -123,12 +124,16 @@ def run_smoke_tests() -> Dict[str, Any]:
     print("SMOKE TEST: graph_tool")
     print("=" * 60)
 
-    config = test_graph_config()
-    node_count = test_graph_connection()
-    metadata = test_graph_metadata()
-    results = test_search_graph_returns_list()
-    test_search_graph_result_structure(results)
+    test_graph_config()
+    test_graph_connection()
+    test_graph_metadata()
+    test_search_graph_returns_list()
+    test_search_graph_result_structure()
     test_search_graph_top_k_zero()
+
+    config = test_graph_config.config  # type: ignore[attr-defined]
+    node_count = test_graph_connection.node_count  # type: ignore[attr-defined]
+    metadata = test_graph_metadata.metadata  # type: ignore[attr-defined]
 
     print("\n" + "=" * 60)
     print("OK ALL GRAPH TESTS PASSED")

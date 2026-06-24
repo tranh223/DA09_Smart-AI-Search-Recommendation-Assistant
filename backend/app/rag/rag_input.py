@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 IntentType = Literal[
@@ -15,6 +15,10 @@ IntentType = Literal[
 
 
 class RAGFeatures(BaseModel):
+    """Structured features extracted from user input."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     hotel_name: str | None = None
     destination: str | None = None
     amenities: list[str] = Field(default_factory=list)
@@ -22,11 +26,19 @@ class RAGFeatures(BaseModel):
 
 
 class RAGParameters(BaseModel):
+    """Parameters for RAG request."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     query: str = Field(min_length=1)
     features: RAGFeatures = Field(default_factory=RAGFeatures)
 
 
 class RAGRequest(BaseModel):
+    """Structured RAG request contract."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     intent_type: IntentType
     source: Literal["RAG_SERVICE"] = "RAG_SERVICE"
     parameters: RAGParameters
@@ -36,22 +48,19 @@ INTENT_ROUTES: dict[IntentType, dict[str, Any]] = {
     "HOTEL_FEATURE_QA": {
         "needs_rag": True,
         "needs_graph": False,
-        "needs_hotel_sql": True,
-        "rag_sections": ["description", "activities"],
+        "rag_sections": ["description", "overview", "semantic_profile", "faq"],
         "hotel_sql_needs": ["detail", "activities"],
     },
     "HOTEL_POLICY_QA": {
         "needs_rag": True,
         "needs_graph": False,
-        "needs_hotel_sql": True,
-        "rag_sections": ["policy"],
+        "rag_sections": ["faq", "description", "semantic_profile"],
         "hotel_sql_needs": ["policies"],
     },
     "HOTEL_COMPARISON_QA": {
         "needs_rag": True,
         "needs_graph": True,
-        "needs_hotel_sql": True,
-        "rag_sections": ["description", "policy", "activities"],
+        "rag_sections": ["description", "overview", "semantic_profile", "faq"],
         "hotel_sql_needs": ["detail", "policies", "activities"],
     },
 }
@@ -100,9 +109,17 @@ def build_structured_plan(request: RAGRequest) -> dict[str, Any]:
         "sub_objects": [*features.amenities, *features.expectations],
         "needs_rag": route["needs_rag"],
         "needs_graph": route["needs_graph"],
-        "needs_hotel_sql": route["needs_hotel_sql"],
+        "needs_hotel_sql": True,
         "rag_sections": list(route["rag_sections"]),
-        "hotel_sql_needs": list(route["hotel_sql_needs"]),
+        "hotel_sql_needs": route.get("hotel_sql_needs", []),
+        "tool_inputs": {
+            "rag": {
+                "query": build_retrieval_query(request),
+                "top_k": 3,
+                "hotel_ids": [],
+                "sections": list(route["rag_sections"]),
+            }
+        },
         "required_steps": [
             "Retrieve evidence using the provided intent and features",
             "Cross-check evidence from selected sources",

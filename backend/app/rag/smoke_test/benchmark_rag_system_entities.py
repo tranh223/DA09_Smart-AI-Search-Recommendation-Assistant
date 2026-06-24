@@ -177,7 +177,7 @@ def run_case(case: EntityCase, user_id: str = "user_001") -> Dict[str, Any]:
 
     rag_evidence = _count_rag_evidence(detailed.get("rag"))
     graph_evidence = _count_graph_evidence(detailed.get("graph"))
-    hotel_sql_evidence = _count_hotel_sql_evidence(detailed.get("hotel_sql_results"))
+    hotel_sql_evidence = _count_hotel_sql_evidence(detailed.get("hotel_sql"))
 
     entity_highlights = _extract_entity_highlights(response_text, case.entity_keywords)
     keyword_coverage = entity_highlights["hit_count"] / max(len(case.entity_keywords), 1)

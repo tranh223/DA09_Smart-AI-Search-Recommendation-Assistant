@@ -1,236 +1,347 @@
-"""tools.rag_tool
+"""Hotel Ask retrieval tool for the RAG pipeline.
 
-FAISS-based vector retrieval for hotels.
+The old local FAISS hotel chunk search has been replaced by DA10 Hotel Ask:
+    GET /hotel/{hotel_id}/ask?q=...&top_k=...&sections=...
 
-- Embeddings are stored in FAISS.
-- Metadata is NOT embedded; instead stored in a sidecar JSON.
-- Metadata filtering is performed in Python after FAISS candidate retrieval.
-
-Expected data files (default under data/):
-- faiss_hotels.index
-- faiss_hotels_meta.json        (vector_id -> metadata dict)
-- faiss_hotels_chunks.json      (vector_id -> {chunk_id, section, content, metadata})
-- faiss_hotels_config.json
-
-Note: FAISS itself does not provide built-in metadata filtering; we retrieve candidates first
-and then apply filter predicates in Python.
+This tool deliberately does not use an API key. It resolves hotel entities from
+the local CSV catalog, then asks the remote service for chunk-level evidence
+within each resolved hotel.
 """
 
 from __future__ import annotations
 
-import json
-import re
-import unicodedata
+import asyncio
+import logging
+import os
+from collections.abc import Mapping, Sequence
+from typing import Any
+
+import httpx
+from dotenv import load_dotenv
+from pydantic import BaseModel, ConfigDict, Field
 
 from utils.langsmith_tracer import tracer
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
 
-import numpy as np
+try:
+    from modules.hotel_entity_intent_helper import extract_hotel_entities
+except Exception:  # pragma: no cover - direct package import fallback
+    from app.rag.modules.hotel_entity_intent_helper import extract_hotel_entities
 
-_INDEX = None
-_META: Dict[str, Any] | None = None
-_CHUNKS: Dict[str, Any] | None = None
+load_dotenv()
 
+logger = logging.getLogger(__name__)
 
-def _normalize_lookup_text(value: str) -> str:
-    value = value.lower().replace("đ", "d")
-    value = unicodedata.normalize("NFD", value)
-    value = "".join(ch for ch in value if unicodedata.category(ch) != "Mn")
-    return re.sub(r"[^a-z0-9]+", " ", value).strip()
+DEFAULT_HOTEL_ASK_BASE_URL = "https://search-api-d6vrfitoma-as.a.run.app"
+RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
+VALID_SECTIONS = {"description", "room_type", "faq", "overview", "semantic_profile"}
 
 
-def _resolve_hotel_ids(hotel_name: str) -> Set[int]:
-    """Resolve hotel ids from loaded vector metadata by hotel name."""
+class HotelAskInput(BaseModel):
+    """Input payload for Hotel Ask retrieval."""
 
-    if not hotel_name or not hotel_name.strip():
-        return set()
+    model_config = ConfigDict(strict=False)
 
-    global _META
-    if _META is None:
-        meta_path = Path(__file__).resolve().parents[1] / "data" / "faiss_hotels_meta.json"
-        _META = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
+    query: str
+    hotel_ids: list[int] = Field(default_factory=list)
+    sections: list[str] = Field(default_factory=list)
+    top_k: int = 5
 
-    needle = _normalize_lookup_text(hotel_name)
-    needle_compact = needle.replace(" ", "")
-    if not needle:
-        return set()
 
-    resolved: Set[int] = set()
-    for meta in (_META or {}).values():
-        if not isinstance(meta, dict):
-            continue
+class HotelAskChunk(BaseModel):
+    """Single normalized Hotel Ask evidence chunk."""
 
-        candidate_name = meta.get("hotel_name")
-        hotel_id = meta.get("hotel_id")
-        if not candidate_name or hotel_id is None:
-            continue
+    model_config = ConfigDict(strict=False)
 
-        haystack = _normalize_lookup_text(str(candidate_name))
-        haystack_compact = haystack.replace(" ", "")
-        if (
-            needle in haystack
-            or needle_compact in haystack_compact
-            or all(part in haystack.split() for part in needle.split())
-        ):
-            try:
-                resolved.add(int(hotel_id))
-            except (TypeError, ValueError):
+    score: float = 0.0
+    chunk_id: str | None = None
+    section: str | None = None
+    content: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class HotelAskOutput(BaseModel):
+    """Normalized output for one or more Hotel Ask calls."""
+
+    model_config = ConfigDict(strict=False)
+
+    query: str
+    hotel_ids: list[int]
+    chunks: list[HotelAskChunk] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
+
+
+class HotelAskTool:
+    """Retrieve chunk evidence from the DA10 Hotel Ask API."""
+
+    def __init__(
+        self,
+        *,
+        base_url: str | None = None,
+        timeout: float = 15.0,
+        max_retries: int = 2,
+        retry_backoff_seconds: float = 0.4,
+        client: httpx.AsyncClient | None = None,
+    ) -> None:
+        self.base_url = (
+            base_url
+            or os.getenv("HOTEL_ASK_BASE_URL")
+            or os.getenv("DA10_SEARCH_API_BASE_URL")
+            or DEFAULT_HOTEL_ASK_BASE_URL
+        ).rstrip("/")
+        self.timeout = timeout
+        self.max_retries = max_retries
+        self.retry_backoff_seconds = retry_backoff_seconds
+        self._client = client
+        self._owns_client = client is None
+
+    async def __aenter__(self) -> "HotelAskTool":
+        self._get_client()
+        return self
+
+    async def __aexit__(self, exc_type: object, exc: object, tb: object) -> None:
+        await self.aclose()
+
+    async def aclose(self) -> None:
+        if self._client is not None and self._owns_client:
+            await self._client.aclose()
+            self._client = None
+
+    async def ask(self, payload: HotelAskInput) -> HotelAskOutput:
+        """Ask Hotel Ask for every provided hotel_id and normalize chunks."""
+
+        hotel_ids = _uniq_ints(payload.hotel_ids)
+        if not payload.query.strip():
+            return HotelAskOutput(query=payload.query, hotel_ids=hotel_ids)
+        if not hotel_ids:
+            return HotelAskOutput(
+                query=payload.query,
+                hotel_ids=[],
+                errors=["No hotel_id resolved for Hotel Ask."],
+            )
+
+        sections = _normalize_sections(payload.sections)
+        top_k = min(max(int(payload.top_k), 1), 20)
+        tasks = [
+            self._ask_one(hotel_id=hotel_id, query=payload.query, top_k=top_k, sections=sections)
+            for hotel_id in hotel_ids
+        ]
+        responses = await asyncio.gather(*tasks, return_exceptions=True)
+
+        chunks: list[HotelAskChunk] = []
+        errors: list[str] = []
+        for hotel_id, response in zip(hotel_ids, responses, strict=True):
+            if isinstance(response, Exception):
+                errors.append(f"hotel_id={hotel_id}: {response}")
                 continue
+            chunks.extend(_normalize_chunks(response, hotel_id=hotel_id, query=payload.query))
 
-    return resolved
-
-
-def _load_once() -> None:
-    global _INDEX, _META, _CHUNKS
-    if _INDEX is not None and _META is not None and _CHUNKS is not None:
-        return
-
-    base_dir = Path(__file__).resolve().parents[1] / "data"
-    idx_path = base_dir / "faiss_hotels.index"
-    meta_path = base_dir / "faiss_hotels_meta.json"
-    chunks_path = base_dir / "faiss_hotels_chunks.json"
-
-    if not idx_path.exists():
-        raise FileNotFoundError(
-            f"FAISS index not found at {idx_path}. Run scripts/build_faiss_hotels_index.py first."
+        chunks.sort(key=lambda item: item.score, reverse=True)
+        return HotelAskOutput(
+            query=payload.query,
+            hotel_ids=hotel_ids,
+            chunks=chunks[:top_k],
+            errors=errors,
         )
 
-    import faiss  # type: ignore
+    async def _ask_one(
+        self,
+        *,
+        hotel_id: int,
+        query: str,
+        top_k: int,
+        sections: Sequence[str],
+    ) -> dict[str, Any]:
+        params: dict[str, Any] = {"q": query, "top_k": top_k}
+        if sections:
+            params["sections"] = list(sections)
+        return await self._request_json("GET", f"/hotel/{hotel_id}/ask", params=params)
 
-    _INDEX = faiss.read_index(str(idx_path))
+    async def _request_json(
+        self,
+        method: str,
+        path: str,
+        *,
+        params: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        client = self._get_client()
+        url = f"{self.base_url}{path}"
+        last_error: Exception | None = None
 
-    if meta_path.exists():
-        _META = json.loads(meta_path.read_text(encoding="utf-8"))
-    else:
-        _META = {}
+        for attempt in range(self.max_retries + 1):
+            try:
+                response = await client.request(
+                    method,
+                    url,
+                    params=params,
+                    headers={"accept": "application/json"},
+                    timeout=self.timeout,
+                )
+                if response.status_code in RETRYABLE_STATUS_CODES:
+                    response.raise_for_status()
+                response.raise_for_status()
+                data = response.json()
+                return data if isinstance(data, dict) else {"chunks": data}
+            except (httpx.TimeoutException, httpx.TransportError, httpx.HTTPStatusError) as exc:
+                last_error = exc
+                if not self._should_retry(exc, attempt):
+                    logger.exception("Hotel Ask request failed: %s %s", method, url)
+                    raise
 
-    if chunks_path.exists():
-        _CHUNKS = json.loads(chunks_path.read_text(encoding="utf-8"))
-    else:
-        _CHUNKS = {}
+                delay = self.retry_backoff_seconds * (2**attempt)
+                logger.warning(
+                    "Retrying Hotel Ask request: method=%s url=%s attempt=%s delay=%.2fs error=%s",
+                    method,
+                    url,
+                    attempt + 1,
+                    delay,
+                    exc,
+                )
+                await asyncio.sleep(delay)
+
+        if last_error is not None:
+            raise last_error
+        raise RuntimeError(f"Hotel Ask request failed without an exception: {method} {url}")
+
+    def _get_client(self) -> httpx.AsyncClient:
+        if self._client is None:
+            self._client = httpx.AsyncClient()
+        return self._client
+
+    def _should_retry(self, exc: Exception, attempt: int) -> bool:
+        if attempt >= self.max_retries:
+            return False
+        if isinstance(exc, (httpx.TimeoutException, httpx.TransportError)):
+            return True
+        if isinstance(exc, httpx.HTTPStatusError):
+            return exc.response.status_code in RETRYABLE_STATUS_CODES
+        return False
 
 
-def _embed_query(query: str) -> np.ndarray:
-    from sentence_transformers import SentenceTransformer
-
-    # Prefer the model used when building the index.
-    # We read it from faiss_hotels_config.json if available.
-    if not hasattr(_embed_query, "_model"):
-        model_name = "BAAI/bge-m3"
+def _uniq_ints(values: Sequence[Any]) -> list[int]:
+    out: list[int] = []
+    seen: set[int] = set()
+    for value in values:
         try:
-            base_dir = Path(__file__).resolve().parents[1] / "data"
-            cfg_path = base_dir / "faiss_hotels_config.json"
-            if cfg_path.exists():
-                cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
-                model_name = cfg.get("embedding_model") or model_name
-        except Exception:
-            pass
-
-        _embed_query._model = SentenceTransformer(model_name)
-
-    model = _embed_query._model
-    vec = model.encode([query], normalize_embeddings=True, show_progress_bar=False)
-    return np.array(vec, dtype=np.float32)
+            int_value = int(value)
+        except (TypeError, ValueError):
+            continue
+        if int_value in seen:
+            continue
+        seen.add(int_value)
+        out.append(int_value)
+    return out
 
 
+def _normalize_sections(sections: Sequence[str] | None) -> list[str]:
+    out: list[str] = []
+    for section in sections or []:
+        normalized = str(section).strip()
+        if normalized in VALID_SECTIONS and normalized not in out:
+            out.append(normalized)
+    return out
 
-def _metadata_match(meta: Dict[str, Any], filters: Optional[Dict[str, Any]]) -> bool:
-    """Match a chunk metadata dict against filter constraints.
 
-    Supported semantics:
-    - scalar equality (actual == wanted)
-    - if actual is list, then:
-        - wanted is str: membership
-        - wanted is list: all members must be in actual
-    """
+def _normalize_chunks(data: Mapping[str, Any], *, hotel_id: int, query: str) -> list[HotelAskChunk]:
+    raw_chunks = data.get("chunks") or data.get("results") or []
+    if not isinstance(raw_chunks, list):
+        return []
 
-    if not filters:
-        return True
-
-    for key, wanted in filters.items():
-        actual = meta.get(key)
-
-        if wanted is None:
+    chunks: list[HotelAskChunk] = []
+    for item in raw_chunks:
+        if not isinstance(item, Mapping):
+            continue
+        content = item.get("text") or item.get("content") or ""
+        if not isinstance(content, str) or not content.strip():
             continue
 
-        if isinstance(actual, list):
-            if isinstance(wanted, str):
-                if wanted not in actual:
-                    return False
-            elif isinstance(wanted, list):
-                if not all(x in actual for x in wanted):
-                    return False
-            else:
-                return False
-        elif isinstance(wanted, list):
-            if actual not in wanted:
-                return False
-        else:
-            if actual != wanted:
-                return False
+        metadata = {
+            "hotel_id": hotel_id,
+            "query": query,
+            "source": "hotel_ask",
+            "source_type": item.get("source_type"),
+        }
+        section = item.get("section")
+        if isinstance(section, str):
+            metadata["section"] = section
 
-    return True
+        chunks.append(
+            HotelAskChunk(
+                score=_coerce_float(item.get("score")),
+                chunk_id=str(item.get("chunk_id")) if item.get("chunk_id") is not None else None,
+                section=section if isinstance(section, str) else None,
+                content=content,
+                metadata=metadata,
+            )
+        )
+    return chunks
+
+
+def _coerce_float(value: Any) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _resolve_hotel_ids_from_query(query: str, max_hotels: int = 3) -> list[int]:
+    """Extract hotel IDs from query text using entity matching."""
+    try:
+        entities = extract_hotel_entities(query, max_entities=max_hotels)
+        resolved = [entity.hotel_id for entity in entities]
+        if resolved:
+            logger.info(f"Resolved {len(resolved)} hotel IDs from query: {resolved}")
+        else:
+            logger.debug(f"No hotel IDs resolved from query: {query[:100]}")
+        return resolved
+    except Exception as exc:
+        logger.warning(f"Hotel entity extraction failed: {exc}")
+        return []
 
 
 @tracer.trace("tool_rag_search")
-def search_rag(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
-    """Search the hotels RAG vector DB.
+def search_rag(
+    query: str,
+    top_k: int = 5,
+    *,
+    hotel_ids: Sequence[int] | None = None,
+    sections: Sequence[str] | None = None,
+) -> list[dict[str, Any]]:
+    """Search hotel-scoped RAG evidence via Hotel Ask.
 
-    This matches the existing call site in modules/retrieval.py:
-        search_rag(query, top_k)
-
-    Returns list of dict results:
-      [{score, chunk_id, section, content, metadata}, ...]
-
-    Metadata filtering hook:
-      If later you extend this to accept filters, you can call internal search
-      with a `filters` param; for now we keep current signature.
+    Returns the legacy list-of-dicts shape consumed by modules/retrieval.py:
+    [{score, chunk_id, section, content, metadata}, ...]
     """
-
-    _load_once()
 
     if not query or not query.strip():
         return []
 
-    k = max(int(top_k), 1)
-    candidate_k = min(max(k * 8, 20), 500)
+    resolved_ids = _uniq_ints(list(hotel_ids or []))
+    if not resolved_ids:
+        resolved_ids = _resolve_hotel_ids_from_query(query)
+        logger.info(f"search_rag: query={query[:80]} resolved_ids={resolved_ids}")
 
-    qvec = _embed_query(query)
+    async def _run() -> HotelAskOutput:
+        async with HotelAskTool() as tool:
+            return await tool.ask(
+                HotelAskInput(
+                    query=query,
+                    hotel_ids=resolved_ids,
+                    sections=list(sections or []),
+                    top_k=top_k,
+                )
+            )
 
-    # Embeddings were normalized at indexing and at query time.
-    # Use inner product as cosine similarity.
-    # _load_once guarantees _INDEX is initialized
-    scores, ids = _INDEX.search(qvec, candidate_k)  # type: ignore[union-attr]
-    ids = ids[0]
-    scores = scores[0]
+    try:
+        asyncio.get_running_loop()
+        raise RuntimeError("search_rag must be called from a synchronous context.")
+    except RuntimeError as exc:
+        if "synchronous context" in str(exc):
+            raise
+        output = asyncio.run(_run())
 
-    out: List[Dict[str, Any]] = []
+    if output.errors:
+        logger.warning("Hotel Ask completed with errors: %s", output.errors)
 
-    for vid, score in zip(ids, scores):
-        if int(vid) < 0:
-            continue
-
-        vid_str = str(int(vid))
-        meta = (_META or {}).get(vid_str, {})
-        chunk_payload = (_CHUNKS or {}).get(vid_str, {})
-
-        # No filter by default
-        if not _metadata_match(meta, filters=None):
-            continue
-
-        out.append(
-            {
-                "score": float(score),
-                "chunk_id": chunk_payload.get("chunk_id"),
-                "section": chunk_payload.get("section"),
-                "content": chunk_payload.get("content"),
-                "metadata": chunk_payload.get("metadata") or meta,
-            }
-        )
-
-        if len(out) >= k:
-            break
-
-    return out
-
+    result = [chunk.model_dump() for chunk in output.chunks]
+    logger.info(f"search_rag returned {len(result)} chunks")
+    return result
