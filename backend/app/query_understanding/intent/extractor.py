@@ -156,6 +156,9 @@ STRUCTURED FACT RULES
 - Extract check_in and check_out in YYYY-MM-DD format only.
 - If check_in/check_out were explicit in session_context or conversation_history and the current query is a follow-up, carry them over.
 - Extract budget_min and budget_max as VND numbers when money is clearly mentioned.
+- For `dưới X`, `không quá X`, `tối đa X`, extract only budget_max=`X`.
+- For `trên X`, `từ X trở lên`, `ít nhất X`, extract only budget_min=`X`.
+- For `khoảng X`, `tầm X`, `xấp xỉ X`, extract budget_min=`X` and budget_max=`X` so downstream logic can expand a symmetric budget window.
 - Extract constraints.budget_level as `low`, `medium`, or `high` when the query gives a hotel budget amount or clear budget wording.
 - Use `low` for budget-sensitive, cheap, affordable, low-cost, or clearly low hotel price requests. Use `high` for luxury, premium, high-end, expensive requests. Use `medium` for middle-range neutral budgets. Use null only when budget information is absent or insufficient.
 - Extract constraints.note_amenities as `max` when the user explicitly asks for broad amenity completeness such as many amenities, full amenities, maximum amenities, or fully equipped hotel amenities.
@@ -297,6 +300,14 @@ class LLMIntentExtractor:
         current_date = date.today().isoformat()
         normalized_history = self._normalize_history(conversation_history)
         normalized_session_context = self._normalize_session_context(session_context)
+        prompt_cache = self.client.build_prompt_cache_settings(
+            component_name="qu_intent",
+            model=self.model,
+            instructions=INTENT_INSTRUCTIONS,
+            schema_name="intent_result",
+            schema=INTENT_SCHEMA,
+            strict=False,
+        )
         payload = self.client.create_structured_output(
             model=self.model,
             instructions=INTENT_INSTRUCTIONS,
@@ -310,6 +321,8 @@ class LLMIntentExtractor:
             schema=INTENT_SCHEMA,
             safety_identifier=user_id,
             strict=False,
+            prompt_cache_key=prompt_cache.get("prompt_cache_key"),
+            prompt_cache_retention=prompt_cache.get("prompt_cache_retention"),
         )
 
         self.last_trace = {
@@ -317,6 +330,8 @@ class LLMIntentExtractor:
             "model": self.model,
             "conversation_history": normalized_history,
             "session_context": normalized_session_context,
+            "prompt_cache": prompt_cache,
+            "response_meta": dict(self.client.last_response_meta),
             "payload": payload,
         }
 

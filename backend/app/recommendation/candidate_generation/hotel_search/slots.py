@@ -1,4 +1,4 @@
-"""Trích xuất slots từ RecommendInput cho embedding search."""
+"""Extract current-profile search context for hotel embedding search."""
 
 from __future__ import annotations
 
@@ -6,55 +6,99 @@ from typing import Any
 
 from app.recommendation.models import RecommendInput
 
-_TRIP_TYPE_TAG_MAP = {
-    "Gia đình có trẻ nhỏ": "Gia đình có trẻ nhỏ",
-    "Gia đình có thanh thiếu niên": "Gia đình có thanh thiếu niên",
-    "Cặp đôi": "Cặp đôi",
-    "Khách đi công tác": "Khách đi công tác",
-    "Khách du lịch một mình": "Khách du lịch một mình",
-    "Nhóm du khách": "Nhóm du khách",
-    "family": "Gia đình có trẻ nhỏ",
-    "couple": "Cặp đôi",
-    "solo": "Khách du lịch một mình",
-    "business": "Khách đi công tác",
-    "group": "Nhóm du khách",
-}
-
 
 def extract_slots(inp: RecommendInput) -> dict[str, Any]:
-    """Chuyển RecommendInput → flat slot dict (city, price, tags, ...)."""
+    """Convert RecommendInput into a compact, profile-driven search context."""
     sc = inp.session_context
     ap = inp.profile
 
     city = sc.destination or ""
-
-    max_price: float | None = None
-    if sc.session_price_range and sc.session_price_range.max:
-        max_price = float(sc.session_price_range.max)
-    elif ap.long_term_price_range and ap.long_term_price_range.max:
-        max_price = float(ap.long_term_price_range.max)
-
-    nearby_place = sc.nearby_place or ""
-
-    tags: list[str] = []
-    for trip_key in ap.long_term_trip_types:
-        mapped = _TRIP_TYPE_TAG_MAP.get(trip_key, trip_key)
-        if mapped not in tags:
-            tags.append(mapped)
-    for habit_tag in ap.long_term_preference_habits:
-        if habit_tag not in tags:
-            tags.append(habit_tag)
-    for view_tag in ap.long_term_room_views:
-        if view_tag not in tags:
-            tags.append(view_tag)
-    for amenity_tag in ap.long_term_amenities:
-        if amenity_tag not in tags:
-            tags.append(amenity_tag)
+    check_in = sc.check_in
+    check_out = sc.check_out
+    trip_type = _pick_top_tag(ap.long_term_trip_types)
+    traveler_type = _collect_profile_group(_get_profile_group(ap, "traveler_type"))
+    budget_levels = _collect_profile_group(_get_profile_group(ap, "long_term_budget_levels"))
+    hotel_types = _collect_profile_group(_get_profile_group(ap, "long_term_hotel_types"))
+    room_views = _collect_profile_group(_get_profile_group(ap, "long_term_room_views"))
+    amenities = _collect_profile_group(_get_profile_group(ap, "long_term_amenities"))
+    preference_habits = _collect_profile_group(_get_profile_group(ap, "long_term_preference_habits"))
+    profile_features = _collect_profile_features(inp)
 
     return {
         "city": city,
-        "max_price": max_price,
-        "nearby_place": nearby_place if nearby_place else None,
-        "tags": tags if tags else None,
+        "check_in": check_in,
+        "check_out": check_out,
+        "trip_type": trip_type,
+        "traveler_type": traveler_type,
+        "budget_levels": budget_levels,
+        "hotel_types": hotel_types,
+        "room_views": room_views,
+        "amenities": amenities,
+        "preference_habits": preference_habits,
+        "profile_features": profile_features if profile_features else None,
         "limit": inp.limit_per_source,
     }
+
+
+def _pick_top_tag(values: dict[str, Any]) -> str | None:
+    ranked = _sort_tag_items(values)
+    return ranked[0][0] if ranked else None
+
+
+def _collect_profile_features(inp: RecommendInput) -> list[str]:
+    ap = inp.profile
+    collected: list[str] = []
+    seen: set[str] = set()
+
+    for source in (
+        _get_profile_group(ap, "long_term_hotel_types"),
+        _get_profile_group(ap, "long_term_room_views"),
+        _get_profile_group(ap, "long_term_amenities"),
+        _get_profile_group(ap, "long_term_preference_habits"),
+    ):
+        for key, _value in _sort_tag_items(source):
+            normalized_key = str(key).strip()
+            if not normalized_key or normalized_key in seen:
+                continue
+            seen.add(normalized_key)
+            collected.append(normalized_key)
+
+    return collected[:12]
+
+
+def _get_profile_group(profile: Any, field_name: str) -> dict[str, Any]:
+    value = getattr(profile, field_name, None)
+    if isinstance(value, dict):
+        return value
+    if hasattr(profile, "model_extra") and isinstance(profile.model_extra, dict):
+        extra_value = profile.model_extra.get(field_name)
+        if isinstance(extra_value, dict):
+            return extra_value
+    return {}
+
+
+def _collect_profile_group(values: dict[str, Any], *, limit: int = 8) -> list[str]:
+    collected: list[str] = []
+    seen: set[str] = set()
+    for key, _value in _sort_tag_items(values):
+        normalized_key = str(key).strip()
+        if not normalized_key or normalized_key in seen:
+            continue
+        seen.add(normalized_key)
+        collected.append(normalized_key)
+        if len(collected) >= limit:
+            break
+    return collected
+
+
+def _sort_tag_items(values: dict[str, Any]) -> list[tuple[str, Any]]:
+    items = list((values or {}).items())
+    return sorted(
+        items,
+        key=lambda item: (
+            int(getattr(item[1], "count", 0) or 0),
+            str(getattr(item[1], "last_interaction", "") or ""),
+            str(item[0]),
+        ),
+        reverse=True,
+    )
