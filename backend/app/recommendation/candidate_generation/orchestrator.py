@@ -4,7 +4,7 @@ Nhận RecommendInput → quyết định nguồn nào cần chạy → chạy s
 list[CandidateHotel] từ tất cả nguồn (chưa merge, chưa rank).
 
 Quy tắc bật nguồn:
-  EMBEDDING_SEARCH — luôn bật nếu có city (semantic retrieval qua Qdrant)
+  TEMPLATE_SEARCH_API — luôn bật nếu có city (external search API từ template query)
   PERSONALIZATION  — bật nếu user_id không phải guest/anonymous
 """
 
@@ -14,8 +14,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from app.recommendation.models import RecommendInput, CandidateHotel
 from app.recommendation.trace import RecommendTrace
-from app.recommendation.candidate_generation.hotel_search.embedding_search import (
-    get_embedding_search_candidates,
+from app.recommendation.candidate_generation.hotel_search.template_search_api import (
+    get_template_search_api_candidates,
 )
 from app.recommendation.candidate_generation.personalization.personalization import (
     get_personalization_candidates,
@@ -33,10 +33,10 @@ def _is_anonymous(user_id: str) -> bool:
 
 def _decide_sources(inp: RecommendInput) -> dict[str, bool]:
     city = inp.session_context.destination
-    use_embedding = bool(city)
+    use_template_search = bool(city)
     use_personal = bool(city) and not _is_anonymous(inp.user_id)
     return {
-        "embedding_search": use_embedding,
+        "template_search_api": use_template_search,
         "personalization": use_personal,
     }
 
@@ -73,10 +73,10 @@ def generate_candidates(
     all_candidates: list[CandidateHotel] = []
 
     if trace and trace.enabled:
-        if sources["embedding_search"]:
-            trace.section("③ HYBRID SEARCH (BGE-M3 + BM25 + Qdrant)")
-            results = get_embedding_search_candidates(inp, trace=trace)
-            trace.candidates("embedding_search", results)
+        if sources["template_search_api"]:
+            trace.section("③ TEMPLATE SEARCH API")
+            results = get_template_search_api_candidates(inp, trace=trace)
+            trace.candidates("template_search_api", results)
             all_candidates.extend(results)
 
         if sources["personalization"]:
@@ -93,8 +93,8 @@ def generate_candidates(
     )
 
     tasks: dict[str, callable] = {}
-    if sources["embedding_search"]:
-        tasks["embedding_search"] = lambda: get_embedding_search_candidates(inp)
+    if sources["template_search_api"]:
+        tasks["template_search_api"] = lambda: get_template_search_api_candidates(inp)
     if sources["personalization"]:
         tasks["personalization"] = lambda: get_personalization_candidates(inp)
 

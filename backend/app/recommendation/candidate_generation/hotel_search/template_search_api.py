@@ -50,6 +50,10 @@ def _build_query_text(slots: dict[str, Any]) -> str:
     if budget_levels:
         parts.append(f"Mức ngân sách ưu tiên là {_join_items(budget_levels)}.")
 
+    budget_text = _format_budget_range(slots.get("budget_min"), slots.get("budget_max"))
+    if budget_text:
+        parts.append(f"Tôi muốn phòng có giá khoảng {budget_text}.")
+
     hotel_types = _normalize_text_items(slots.get("hotel_types"))
     if hotel_types:
         parts.append(f"Tôi ưu tiên loại hình lưu trú như {_join_items(hotel_types)}.")
@@ -97,6 +101,40 @@ def _join_items(values: list[str]) -> str:
     return ", ".join(values)
 
 
+def _format_budget_range(budget_min: Any, budget_max: Any) -> str:
+    min_text = _format_vnd_million(budget_min)
+    max_text = _format_vnd_million(budget_max)
+    if min_text and max_text:
+        if min_text == max_text:
+            return f"{min_text} triệu"
+        return f"{min_text} triệu đến {max_text} triệu"
+    if max_text:
+        return f"tối đa {max_text} triệu"
+    if min_text:
+        return f"từ {min_text} triệu"
+    return ""
+
+
+def _format_vnd_million(value: Any) -> str:
+    if value is None:
+        return ""
+    try:
+        million_value = float(value) / 1_000_000
+    except (TypeError, ValueError):
+        return ""
+    if million_value <= 0:
+        return ""
+    rounded = round(million_value, 2)
+    if rounded.is_integer():
+        return str(int(rounded))
+    return f"{rounded:.2f}".rstrip("0").rstrip(".")
+
+
+def build_search_query_template(inp: RecommendInput) -> str:
+    """Build the external search API query template from current recommendation state."""
+    return _build_query_text(extract_slots(inp))
+
+
 def _search_hotels_via_api(
     *,
     query_text: str,
@@ -107,7 +145,7 @@ def _search_hotels_via_api(
         "filters": {},
         "top_k": top_k,
     }
-    logger.info("[EmbeddingSearch] Search API request payload=%s", payload)
+    logger.info("[TemplateSearchAPI] Search API request payload=%s", payload)
     raw_payload = json.dumps(payload, ensure_ascii=False)
     headers = {"Content-Type": "application/json"}
     with httpx.Client(timeout=DEFAULT_HOTEL_SEARCH_TIMEOUT_SECONDS) as client:
@@ -207,7 +245,7 @@ def _hits_to_candidates(hits: list[dict[str, Any]]) -> list[CandidateHotel]:
             CandidateHotel(
                 hotel_id=hotel_id,
                 hotel_name=_coerce_hotel_name(hit),
-                source="embedding_search",
+                source="template_search_api",
                 score=score,
                 matched_paths=[f"Tag({name})" for name in tag_names[:5] if name],
                 reason=f"search_api match ({score:.3f}) | {city_name or ''}",
@@ -223,7 +261,7 @@ def _hits_to_candidates(hits: list[dict[str, Any]]) -> list[CandidateHotel]:
     return candidates
 
 
-def get_embedding_search_candidates(
+def get_template_search_api_candidates(
     inp: RecommendInput,
     trace: RecommendTrace | None = None,
 ) -> list[CandidateHotel]:
@@ -235,15 +273,17 @@ def get_embedding_search_candidates(
 
     if not city:
         if trace and trace.enabled:
-            trace.info("Missing city -> skip embedding_search")
-        logger.info("[EmbeddingSearch] No city -> skip.")
+            trace.info("Missing city -> skip template_search_api")
+        logger.info("[TemplateSearchAPI] No city -> skip.")
         return []
 
-    query_text = _build_query_text(slots)
+    query_text = (inp.search_query_template or "").strip()
+    if not query_text:
+        query_text = _build_query_text(slots)
     if not query_text:
         if trace and trace.enabled:
-            trace.info("Empty query template -> skip embedding_search")
-        logger.info("[EmbeddingSearch] Empty query template -> skip.")
+            trace.info("Empty query template -> skip template_search_api")
+        logger.info("[TemplateSearchAPI] Empty query template -> skip.")
         return []
 
     try:
@@ -262,14 +302,14 @@ def get_embedding_search_candidates(
                 },
             )
     except Exception as exc:  # noqa: BLE001
-        logger.warning("[EmbeddingSearch] Search API error: %s", exc)
+        logger.warning("[TemplateSearchAPI] Search API error: %s", exc)
         if trace and trace.enabled:
             trace.info(f"Search API error: {exc}")
         return []
 
     candidates = _hits_to_candidates(hits)
     logger.info(
-        "[EmbeddingSearch] Returned %d candidates at %s via search API.",
+        "[TemplateSearchAPI] Returned %d candidates at %s via search API.",
         len(candidates),
         city,
     )

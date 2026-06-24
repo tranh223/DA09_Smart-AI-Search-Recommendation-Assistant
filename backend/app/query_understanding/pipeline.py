@@ -709,12 +709,12 @@ class QueryUnderstandingPipeline:
         *,
         query: str,
     ) -> SessionProfileUpdateResult:
-        del query  # Kept for backward-compatible call sites and tests.
         return SessionProfileUpdater(score_threshold=self.semantic_mapper.score_threshold).apply(
             user_profile=user_profile,
             intent_result=intent_result,
             semantic_mapping=semantic_mapping,
             runtime_tag_expansion=runtime_tag_expansion,
+            query=query,
         )
 
     def _new_hidden_intent_extractor(self) -> Any:

@@ -38,6 +38,7 @@ class AgentState(TypedDict, total=False):
     slots: dict[str, Any]
     slot_is_complete: bool
     rewritten_query: str
+    search_query_template: str
     needs_clarification: bool
     clarification_question: str
     clarification_missing_fields: list[str]
