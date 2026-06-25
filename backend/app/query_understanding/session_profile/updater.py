@@ -52,7 +52,6 @@ class EntitySessionUpdater:
                 trip_type: build_count_interaction_value(1),
             }
             applied_updates["session_trip_types"] = [trip_type]
-            amenity_tags.append(trip_type)
 
         raw_price_min, raw_price_max = _correct_approximate_budget_parse(
             query=query,

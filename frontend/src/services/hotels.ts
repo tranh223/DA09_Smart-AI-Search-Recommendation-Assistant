@@ -12,6 +12,23 @@ export interface HotelAmenity {
   category?: string;
 }
 
+export interface HotelNearbyPlace {
+  id?: number;
+  name: string;
+  type?: string;
+  category?: string;
+  distance_km?: number;
+}
+
+export interface HotelActivity {
+  id?: number;
+  activity_id?: number;
+  title: string;
+  description?: string;
+  price_amount?: number;
+  review_score?: number;
+}
+
 export interface Hotel {
   id: number;
   name: string;
@@ -29,6 +46,8 @@ export interface Hotel {
   min_price?: number; // VND
   images: HotelImage[];
   amenities?: HotelAmenity[];
+  nearby_places?: HotelNearbyPlace[];
+  activities?: HotelActivity[];
 }
 
 export interface HotelListResult {
@@ -95,6 +114,39 @@ function normalizeAmenities(raw: any): HotelAmenity[] | undefined {
     .filter((a) => a.name);
 }
 
+function normalizeNearbyPlaces(raw: any): HotelNearbyPlace[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  return raw
+    .map((place) => {
+      if (typeof place === 'string') return { name: place };
+      return {
+        id: toNumber(place?.id),
+        name: place?.name,
+        type: place?.type,
+        category: place?.category_name ?? place?.category,
+        distance_km: toNumber(place?.distance_km ?? place?.distanceKm),
+      };
+    })
+    .filter((place) => place.name);
+}
+
+function normalizeActivities(raw: any): HotelActivity[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  return raw
+    .map((activity) => {
+      if (typeof activity === 'string') return { title: activity };
+      return {
+        id: toNumber(activity?.id),
+        activity_id: toNumber(activity?.activity_id ?? activity?.activityId),
+        title: activity?.title ?? activity?.name,
+        description: activity?.description,
+        price_amount: toNumber(activity?.price_amount ?? activity?.priceAmount ?? activity?.price),
+        review_score: toNumber(activity?.review_score ?? activity?.reviewScore),
+      };
+    })
+    .filter((activity) => activity.title);
+}
+
 function normalizeHotel(raw: any): Hotel {
   return {
     id: raw.id ?? raw.hotel_id,
@@ -115,6 +167,8 @@ function normalizeHotel(raw: any): Hotel {
       minRoomPrice(raw.rooms),
     images: extractImages(raw),
     amenities: normalizeAmenities(raw.amenities),
+    nearby_places: normalizeNearbyPlaces(raw.nearby_places ?? raw.nearbyPlaces ?? raw.places_nearby),
+    activities: normalizeActivities(raw.activities ?? raw.hotel_activities),
   };
 }
 
