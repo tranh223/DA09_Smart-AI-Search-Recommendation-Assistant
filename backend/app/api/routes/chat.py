@@ -252,6 +252,17 @@ def _sse(event: dict) -> str:
     return f"data: {_json.dumps(event, ensure_ascii=False)}\n\n"
 
 
+def _iter_answer_chunks(answer: str, *, chunk_size: int = 80):
+    """Yield deterministic text chunks from the graph-built final answer.
+
+    The graph already ran the correct response path. Re-streaming through a
+    second LLM call can drift from guardrail/clarification decisions.
+    """
+    text = answer or ""
+    for start in range(0, len(text), chunk_size):
+        yield text[start : start + chunk_size]
+
+
 # ── /chat/stream endpoint ─────────────────────────────────────────────────────
 
 @router.post(

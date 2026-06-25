@@ -149,6 +149,8 @@ _TASK_TO_INTENT: dict[str, str] = {
 
 def _derive_intent(pipeline_result: PipelineResult) -> str:
     checker = pipeline_result.trace.checker or {}
+    if checker.get("assistant_help"):
+        return "assistant_help"
     if checker.get("assistant_capability"):
         return "assistant_capability"
     rr = pipeline_result.router_result
@@ -174,13 +176,9 @@ _FIELD_QUESTIONS: dict[str, str] = {
 }
 
 _GUARDRAIL_MESSAGES: dict[str, str] = {
-    "PROMPT_INJECTION": "Câu hỏi của bạn không được hệ thống hỗ trợ.",
-    "JAILBREAK": "Câu hỏi của bạn không được hệ thống hỗ trợ.",
-    "SPAM": "Vui lòng đặt câu hỏi rõ ràng hơn.",
-    "ANOMALOUS_INPUT": "Đầu vào không hợp lệ, vui lòng thử lại.",
     "OUT_OF_SCOPE": (
-        "Tôi chỉ hỗ trợ tìm kiếm và gợi ý khách sạn. "
-        "Bạn cần hỗ trợ gì về khách sạn không?"
+        "Mình chưa có dữ liệu hoặc chuyên môn để hỗ trợ nội dung này. "
+        "Hiện tại VinBot hỗ trợ tìm kiếm, hỏi đáp và gợi ý khách sạn/lưu trú."
     ),
 }
 
@@ -195,6 +193,8 @@ _ASSISTANT_CAPABILITY_MESSAGE = (
 def _build_clarification(trace: PipelineTrace) -> tuple[str, list[str]]:
     """Trả về (câu hỏi làm rõ, danh sách field còn thiếu) từ pipeline trace."""
     checker: dict[str, Any] = trace.checker
+    if checker.get("assistant_help"):
+        return "Mình sẽ kiểm tra lại ngữ cảnh cuộc trò chuyện để trả lời bạn.", []
     if checker.get("assistant_capability"):
         return _ASSISTANT_CAPABILITY_MESSAGE, []
 

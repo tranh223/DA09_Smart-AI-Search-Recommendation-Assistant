@@ -56,24 +56,69 @@ def normalize_profile(profile: dict[str, Any] | None) -> dict[str, Any]:
             "nearby_place": session.get("nearby_place"),
             "number_of_guests": session.get("number_of_guests"),
             "has_children": session.get("has_children"),
-            "price_range": as_dict(session.get("session_price_range")),
-            "trip_types": normalize_count_group(session.get("session_trip_types")),
-            "budget_levels": normalize_count_group(session.get("session_budget_levels")),
-            "preference_habits": normalize_count_group(session.get("session_preference_habits")),
-            "hotel_types": normalize_count_group(session.get("session_hotel_types")),
-            "room_views": normalize_count_group(session.get("session_room_views")),
-            "amenities": normalize_count_group(session.get("session_amenities")),
-            "negative_preferences": _negative_groups(session.get("session_negative_preferences")),
+            "price_range": as_dict(session.get("session_price_range") or session.get("price_range")),
+            "trip_types": normalize_count_group(
+                session.get("session_trip_types")
+                or session.get("suitable_for")
+                or session.get("trip_types")
+            ),
+            "budget_levels": normalize_count_group(
+                session.get("session_budget_levels")
+                or session.get("budget_levels")
+            ),
+            "preference_habits": normalize_count_group(
+                session.get("session_preference_habits")
+                or session.get("preference_habits")
+            ),
+            "hotel_types": normalize_count_group(
+                session.get("session_hotel_types")
+                or session.get("hotel_types")
+            ),
+            "room_views": normalize_count_group(
+                session.get("session_room_views")
+                or session.get("room_views")
+            ),
+            "amenities": normalize_count_group(
+                session.get("session_amenities")
+                or session.get("amenities")
+            ),
+            "negative_preferences": _negative_groups(
+                session.get("session_negative_preferences")
+                or session.get("negative_preferences")
+            ),
             "boost_amenity_rich_hotels": bool(session.get("boost_amenity_rich_hotels")),
         },
         "long_term": {
-            "hotel_types": normalize_count_group(long_term.get("long_term_hotel_types")),
-            "trip_types": normalize_count_group(long_term.get("long_term_trip_types")),
-            "budget_levels": normalize_count_group(long_term.get("long_term_budget_levels")),
-            "preference_habits": normalize_count_group(long_term.get("long_term_preference_habits")),
-            "room_views": normalize_count_group(long_term.get("long_term_room_views")),
-            "amenities": normalize_count_group(long_term.get("long_term_amenities")),
+            "hotel_types": normalize_count_group(
+                long_term.get("long_term_hotel_types")
+                or long_term.get("hotel_types")
+            ),
+            "trip_types": normalize_count_group(
+                long_term.get("long_term_trip_types")
+                or long_term.get("traveler_type")
+                or long_term.get("suitable_for")
+                or long_term.get("trip_types")
+            ),
+            "budget_levels": normalize_count_group(
+                long_term.get("long_term_budget_levels")
+                or long_term.get("budget_levels")
+            ),
+            "preference_habits": normalize_count_group(
+                long_term.get("long_term_preference_habits")
+                or long_term.get("preference_habits")
+            ),
+            "room_views": normalize_count_group(
+                long_term.get("long_term_room_views")
+                or long_term.get("room_views")
+            ),
+            "amenities": normalize_count_group(
+                long_term.get("long_term_amenities")
+                or long_term.get("amenities")
+            ),
             "recommendation_clicks": {"hotel": hotel_clicks},
-            "negative_preferences": _negative_groups(long_term.get("long_term_negative_preferences")),
+            "negative_preferences": _negative_groups(
+                long_term.get("long_term_negative_preferences")
+                or long_term.get("negative_preferences")
+            ),
         },
     }
