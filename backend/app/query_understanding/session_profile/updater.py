@@ -52,7 +52,6 @@ class EntitySessionUpdater:
                 trip_type: build_count_interaction_value(1),
             }
             applied_updates["session_trip_types"] = [trip_type]
-            amenity_tags.append(trip_type)
 
         raw_price_min, raw_price_max = _correct_approximate_budget_parse(
             query=query,
@@ -109,7 +108,6 @@ class TagSessionRouter:
         for tag in tags:
             if tag.category == "SUITABLE_FOR":
                 trip_types.append(normalize_long_term_trip_type_value(tag.tag))
-                amenities.append(tag.tag)
             elif tag.category == "ROOM_VIEW":
                 room_views.append(tag.tag)
             elif tag.category == "REVIEW_TAG":
