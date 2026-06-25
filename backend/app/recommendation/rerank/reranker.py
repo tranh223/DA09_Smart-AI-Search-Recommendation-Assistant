@@ -10,7 +10,6 @@ from typing import Any, TypedDict
 from .booking_signals import compute_booking_signals
 from .config import load_settings
 from .explain_builder import build_reasons, build_warnings
-from .llm_reranker import rerank_with_llm
 from .logger import write_rerank_log
 from .normalizer import normalize_candidates
 from .profile_normalizer import normalize_profile
@@ -36,6 +35,8 @@ SESSION_OPTION_KEYS = {
     "has_children",
     "check_in",
     "check_out",
+    "suitable_for",
+    "trip_types",
     "session_trip_types",
     "session_budget_levels",
     "session_price_range",
@@ -765,23 +766,18 @@ def rerank(
         score_ms, len(scored), filtered,
     )
 
-    # ── Phase 5: LLM rerank ──────────────────────────────────────────────
-    t_llm = time.perf_counter()
-    llm_candidates = scored[:llm_top_n]
-    llm_results, llm_source, llm_fallback, llm_debug = rerank_with_llm(
-        settings, query, profile, llm_candidates, use_llm, llm_dry_run
-    )
-    llm_ms = (time.perf_counter() - t_llm) * 1000
-    log.info("[Rerank] Phase 5 LLM | %.2f ms | source=%s used=%s", llm_ms, llm_source, bool(llm_results))
+    # ── Phase 5: LLM rerank (REMOVED) ──────────────────────────────────────
+    llm_candidates = []
+    llm_results = {}
+    llm_source = "none"
+    llm_fallback = False
+    llm_debug = {"status": "removed"}
+    llm_ms = 0.0
 
+    # ── Phase 6: Rank ──────────────────────────────────────────────────────
     ranked: list[dict[str, Any]] = []
     for item in scored:
-        llm_payload = llm_results.get(item["item_id"])
-        llm_score = llm_payload["llm_score"] if llm_payload else None
-        if llm_score is None:
-            final_score = item["base_score"]
-        else:
-            final_score = clamp(base_weight * item["base_score"] + llm_weight * llm_score)
+        final_score = item["base_score"]
         ranked.append(
             {
                 "item_id": item["item_id"],
@@ -789,11 +785,11 @@ def rerank(
                 "primary_image": item.get("primary_image"),
                 "final_score": round_score(final_score),
                 "base_score": round_score(item["base_score"]),
-                "llm_score": None if llm_score is None else round_score(llm_score),
+                "llm_score": None,
                 "feature_scores": item["feature_scores"],
                 "negative_penalty": item["negative_penalty"],
-                "reasons": build_reasons(item, profile, as_dict(llm_payload).get("reasons")),
-                "warnings": build_warnings(item, as_dict(llm_payload).get("warnings")),
+                "reasons": build_reasons(item, profile, None),
+                "warnings": build_warnings(item, None),
             }
         )
 
@@ -904,7 +900,7 @@ def rerank(
             "normalized_profile_summary": {
                 "user_id": profile.get("user_id"),
                 "session": profile.get("session"),
-                "long_term_top_hotel_types": profile.get("long_term", {}).get("hotel_types"),
+                "long_term": profile.get("long_term"),
             },
             "latency_ms": latency_ms,
             "latency_breakdown": debug["latency_breakdown"],

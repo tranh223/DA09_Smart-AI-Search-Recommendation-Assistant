@@ -131,7 +131,18 @@ def merge_candidates(candidates: list[CandidateHotel]) -> list[MergedCandidate]:
         n_sources = len(entry["sources"])
         bonus = MULTI_SOURCE_BONUS.get(n_sources, 0.0)
 
-        pre_rank_score = min(weighted_sum + bonus, 1.0)   # cap ở 1.0
+        # Boost trùng khớp đặc biệt (xuất hiện ở cả Personalization và Search API)
+        overlap_boost = 0.0
+        if "personalization" in entry["sources"] and "template_search_api" in entry["sources"]:
+            overlap_boost = 0.20
+            entry["metadata"]["overlap_boost_applied"] = True
+            entry["metadata"]["overlap_boost_value"] = overlap_boost
+            logger.info(
+                "[Merger] Boosted hotel_id=%s (+%.2f) due to source overlap %s",
+                hid, overlap_boost, entry["sources"]
+            )
+
+        pre_rank_score = min(weighted_sum + bonus + overlap_boost, 1.0)   # cap ở 1.0
 
         merged.append(
             MergedCandidate(
