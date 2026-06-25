@@ -82,7 +82,7 @@ _RESPONSE_SCHEMA: dict[str, Any] = {
         },
         "next_suggestions": {
             "type": "array",
-            "description": "Hãy sinh các gợi ý tiếp theo được cá nhân hóa cho người dùng dựa trên intent hiện tại, lịch sử tương tác, sở thích, ngữ cảnh phiên làm việc và mục tiêu tiềm ẩn; ưu tiên các gợi ý có khả năng giúp người dùng đạt mục tiêu nhanh nhất.(không phải là câu hỏi)",
+            "description": "Hãy sinh các gợi ý tiếp theo được cá nhân hóa cho người dùng dựa trên intent hiện tại, lịch sử tương tác, sở thích, ngữ cảnh phiên làm việc và mục tiêu tiềm ẩn; ưu tiên các gợi ý có khả năng giúp người dùng đạt mục tiêu nhanh nhất.(phần này sẽ là phần user sẽ có thể chat với bot)",
             "items": {"type": "string"},
         },
     },
@@ -428,8 +428,10 @@ def build_response_stream_with_llm(
 ) -> Generator[str, None, None]:
     """Yield từng text token Markdown của answer qua OpenAI streaming.
 
-    Dùng cho /chat/stream endpoint — chỉ stream phần answer (plain Markdown text).
-    hotel_reasons và next_suggestions phải lấy từ kết quả graph.ainvoke() riêng.
+    DEPRECATED: Không còn được gọi từ /chat/stream endpoint. Endpoint đó
+    giờ stream trực tiếp data.answer từ kết quả graph (build_response_with_llm
+    đã chạy bên trong response_builder_node) để tránh double LLM call.
+    Giữ lại để backward-compat nếu cần dùng standalone.
 
     Fallback: nếu LLM không khả dụng hoặc stream lỗi, yield toàn bộ
     fallback answer trong một lần để không block caller.

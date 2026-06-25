@@ -353,47 +353,22 @@ async def chat_stream(
         final_response: dict[str, Any] = result.get("final_response") or {}
         data = _build_chat_data(final_response)
 
-        # ── Bước 2: stream answer từng token từ LLM ──────────────────────────
-        # Dùng build_response_stream_with_llm() để gọi OpenAI streaming thật.
-        # Chạy sync generator trong thread riêng để không block event loop.
-        from app.agent.response_builder import build_response_stream_with_llm  # noqa: PLC0415
-
-        rag_answer: str = result.get("rag_answer") or ""
-        intent: str = data.intent or ""
-        destination: str = (
-            (result.get("user_profile") or {})
-            .get("session_context", {})
-            .get("destination", "")
-            or ""
+        # ── Bước 2: stream answer từng word từ kết quả đã có ────────────────
+        # data.answer đã được sinh bởi response_builder_node trong graph (LLM call #1).
+        # Không gọi LLM lần 2 — stream trực tiếp để giảm latency.
+        # Delay nhỏ giữa các word để giữ trải nghiệm typing effect cho UI.
+        _STREAM_WORD_DELAY: float = float(
+            os.getenv("STREAM_WORD_DELAY_SECONDS", "0.018")
         )
-        ranked_recs: list[dict[str, Any]] = data.recommendations or []
-
-        token_queue: asyncio.Queue = asyncio.Queue()
-        _SENTINEL = object()
-
-        def _produce_tokens() -> None:
-            try:
-                for token in build_response_stream_with_llm(
-                    query=req.query,
-                    intent=intent,
-                    destination=destination,
-                    rag_answer=rag_answer,
-                    ranked_recommendations=ranked_recs,
-                ):
-                    loop.call_soon_threadsafe(token_queue.put_nowait, token)
-            except Exception as _exc:
-                logger.warning("[%s] stream token producer error: %s", req_id, _exc)
-            finally:
-                loop.call_soon_threadsafe(token_queue.put_nowait, _SENTINEL)
-
-        loop = asyncio.get_running_loop()
-        loop.run_in_executor(None, _produce_tokens)
-
-        while True:
-            token = await token_queue.get()
-            if token is _SENTINEL:
-                break
-            yield _sse({"type": "delta", "text": token})
+        answer_text: str = data.answer or ""
+        if answer_text:
+            # Tách theo word (giữ whitespace) để giữ định dạng Markdown
+            chunks = _re.split(r"(\s+)", answer_text)
+            for chunk in chunks:
+                if chunk:
+                    yield _sse({"type": "delta", "text": chunk})
+                    if _STREAM_WORD_DELAY > 0:
+                        await asyncio.sleep(_STREAM_WORD_DELAY)
 
         # ── Bước 3: metadata đầy đủ ──────────────────────────────────────────
         yield _sse({

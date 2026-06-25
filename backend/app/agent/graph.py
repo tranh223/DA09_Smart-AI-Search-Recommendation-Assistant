@@ -53,14 +53,18 @@ def build_graph():
         },
     )
 
-    # rewrite fan-out → RAG và Recommend chạy song song
+    # rewrite fan-out → RAG và Recommend chạy song song (cùng độ sâu 1 từ rewrite)
     graph.add_edge("clarify", "analytics")
     graph.add_edge("rewrite", "rag")
     graph.add_edge("rewrite", "recommend")
+
+    # Fan-in tại rerank: cả rag và recommend đều là 1 hop từ rewrite (equal depth).
+    # LangGraph chờ CẢ HAI hoàn thành trước khi chạy rerank → rerank chạy đúng 1 lần.
+    # rag_answer đã có trong state khi rerank kích hoạt response_builder.
+    graph.add_edge("rag", "rerank")
     graph.add_edge("recommend", "rerank")
 
-    # response_builder chờ cả rag và rerank hoàn thành (LangGraph fan-in tự động)
-    graph.add_edge("rag", "response_builder")
+    # response_builder chỉ có 1 predecessor (rerank) → không bao giờ chạy 2 lần.
     graph.add_edge("rerank", "response_builder")
 
     graph.add_edge("response_builder", "explain")
