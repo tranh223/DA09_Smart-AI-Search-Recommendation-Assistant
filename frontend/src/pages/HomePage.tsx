@@ -7,8 +7,19 @@ import { FeaturesStrip } from '../components/sections/FeaturesStrip';
 import { TestimonialsSection } from '../components/sections/TestimonialsSection';
 import { Footer } from '../components/layout/Footer';
 import { CHAT_DOCK_WIDTH } from '../components/chat/ChatBot';
+import { type HotelListParams } from '../services/hotels';
 
-export function HomePage({ onNavigate, onOpenChat, chatOpen = false }: { onNavigate?: (route: Route) => void; onOpenChat?: () => void; chatOpen?: boolean }) {
+export function HomePage({
+  onNavigate,
+  onOpenChat,
+  onSearchHotels,
+  chatOpen = false,
+}: {
+  onNavigate?: (route: Route) => void;
+  onOpenChat?: () => void;
+  onSearchHotels?: (params: HotelListParams) => void;
+  chatOpen?: boolean;
+}) {
   return (
     <div style={{
       fontFamily: t.font,
@@ -21,7 +32,14 @@ export function HomePage({ onNavigate, onOpenChat, chatOpen = false }: { onNavig
     }}>
       <NavBar active="home" onNavigate={onNavigate} />
       <HeroSection onOpenChat={() => onOpenChat?.()} />
-      <SearchSection />
+      <SearchSection
+        onSearch={({ destination, starRatingMin }) => {
+          onSearchHotels?.({
+            ...(destination ? { city: destination } : {}),
+            ...(starRatingMin != null ? { star_rating_min: starRatingMin } : {}),
+          });
+        }}
+      />
       <DestinationsSection onSeeAll={() => onNavigate?.('hotels')} />
       <FeaturesStrip />
       <TestimonialsSection />

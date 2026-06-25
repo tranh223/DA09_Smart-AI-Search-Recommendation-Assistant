@@ -1,8 +1,25 @@
+import { useState } from 'react';
 import { t } from '../../styles/theme';
 
-export function SearchSection() {
+export interface SearchValues {
+  destination: string;
+  starRatingMin?: number;
+}
+
+export function SearchSection({ onSearch }: { onSearch?: (values: SearchValues) => void }) {
+  const [destination, setDestination] = useState('');
+  const [starRatingMin, setStarRatingMin] = useState('');
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    onSearch?.({
+      destination: destination.trim(),
+      starRatingMin: starRatingMin ? Number(starRatingMin) : undefined,
+    });
+  }
+
   return (
-    <div style={{
+    <form onSubmit={handleSubmit} style={{
       background: t.surface,
       border: `1px solid ${t.border}`,
       borderRadius: t.rPanel,
@@ -14,39 +31,44 @@ export function SearchSection() {
     }}>
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: '20px', alignItems: 'end' }}>
         <FieldGroup label="Điểm đến">
-          <input type="text" placeholder="Phú Quốc, Đà Nẵng, Hội An..." style={inputStyle} />
+          <input
+            type="text"
+            placeholder="Phú Quốc, Đà Nẵng, Hội An..."
+            value={destination}
+            onChange={(e) => setDestination(e.target.value)}
+            style={inputStyle}
+          />
         </FieldGroup>
-        <FieldGroup label="Ngày đi">
-          <input type="date" style={inputStyle} />
-        </FieldGroup>
-        <FieldGroup label="Số người">
-          <select style={inputStyle}>
-            <option>2 người lớn</option>
-            <option>1 người lớn</option>
-            <option>2 + 1 trẻ em</option>
-            <option>Nhóm (5+)</option>
+        <FieldGroup label="Hạng sao">
+          <select style={inputStyle} value={starRatingMin} onChange={(e) => setStarRatingMin(e.target.value)}>
+            <option value="">Tất cả</option>
+            <option value="3">3 sao trở lên</option>
+            <option value="4">4 sao trở lên</option>
+            <option value="5">5 sao</option>
           </select>
         </FieldGroup>
-        <button style={{
-          background: t.navy,
-          color: t.onNavy,
-          fontFamily: t.font,
-          fontSize: '15px',
-          fontWeight: 600,
-          padding: '13px 32px',
-          borderRadius: t.rPill,
-          border: 'none',
-          cursor: 'pointer',
-          whiteSpace: 'nowrap',
-          transition: 'background .15s',
-        }}
-          onMouseEnter={e => (e.currentTarget.style.background = t.navyHover)}
-          onMouseLeave={e => (e.currentTarget.style.background = t.navy)}
+        <button
+          type="submit"
+          style={{
+            background: t.navy,
+            color: t.onNavy,
+            fontFamily: t.font,
+            fontSize: '15px',
+            fontWeight: 600,
+            padding: '13px 32px',
+            borderRadius: t.rPill,
+            border: 'none',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+            transition: 'background .15s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = t.navyHover)}
+          onMouseLeave={(e) => (e.currentTarget.style.background = t.navy)}
         >
           Tìm kiếm
         </button>
       </div>
-    </div>
+    </form>
   );
 }
 
