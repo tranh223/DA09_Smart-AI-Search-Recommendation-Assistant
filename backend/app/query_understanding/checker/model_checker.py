@@ -105,6 +105,30 @@ class ModelChecker:
         )
 
     @classmethod
+    def is_assistant_capability_query(cls, query: str) -> bool:
+        """Detect user questions about what the assistant can do.
+
+        These queries are valid conversational turns, but they are not hotel
+        recommendation requests even when the session already has enough hotel
+        context.
+        """
+        normalized = cls._normalize_for_pattern_match(query)
+        if not normalized:
+            return False
+        capability_patterns = (
+            r"\bban\s+(co\s+the\s+)?(lam|giup|ho\s+tro)\s+gi\b",
+            r"\bban\s+giup\s+(duoc\s+)?gi\b",
+            r"\bban\s+co\s+the\s+giup\s+gi\b",
+            r"\b(chuc\s+nang|kha\s+nang)\s+(cua\s+)?ban\b",
+            r"\bban\s+co\s+nhung\s+(chuc\s+nang|kha\s+nang)\s+gi\b",
+            r"\btoi\s+co\s+the\s+hoi\s+ban\s+gi\b",
+            r"\bban\s+ho\s+tro\s+duoc\s+nhung\s+gi\b",
+            r"\bwhat\s+can\s+you\s+do\b",
+            r"\bhow\s+can\s+you\s+help\b",
+        )
+        return any(re.search(pattern, normalized, re.IGNORECASE) for pattern in capability_patterns)
+
+    @classmethod
     def _missing_recommendation_fields(cls, session: SessionContext) -> list[str]:
         missing_fields: list[str] = []
         if not session.destination:
@@ -155,6 +179,14 @@ class ModelChecker:
             or session.session_price_range.min is not None
             or session.session_price_range.max is not None
         )
+
+    @staticmethod
+    def _normalize_for_pattern_match(text: str) -> str:
+        import unicodedata
+
+        normalized = unicodedata.normalize("NFD", str(text or "").lower())
+        without_accents = "".join(char for char in normalized if unicodedata.category(char) != "Mn")
+        return " ".join(without_accents.split())
 
     @staticmethod
     def _top_count_key(values: dict[str, object]) -> str | None:

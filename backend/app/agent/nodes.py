@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 import os
 import re
@@ -15,7 +17,7 @@ from app.agent.response_builder import build_guardrail_response_with_llm, build_
 from app.agent.state import AgentState
 from app.core.trace import current_trace
 from app.recommendation.engine import run_candidate_pipeline, run_rerank_from_merged
-from app.recommendation.candidate_generation.hotel_search.template_search_api import build_search_query_template
+from app.recommendation.candidate_generation.hotel_search.slots import extract_slots
 from app.recommendation.models import PriceRange, Profile, RecommendInput, SessionContext
 
 logger = logging.getLogger(__name__)
@@ -32,6 +34,8 @@ DEFAULT_TAGREMOVED_RECONCILE_INTERVAL_HOURS = 24
 _pipeline_lock = threading.Lock()
 _pipeline: Any = None          # QueryUnderstandingPipeline instance
 _pipeline_init_failed = False  # Flag để không retry sau khi init đã thất bại
+_summary_jobs_lock = threading.Lock()
+_summary_jobs_in_progress: set[str] = set()
 
 
 def _get_pipeline() -> Any:
@@ -92,28 +96,24 @@ def _load_chat_history(
     *,
     allow_summary_fallback: bool = True,
 ) -> list[dict[str, Any]]:
-    """Load chat history from the current session, then fallback to user summary.
+    """Load chat history from MongoDB Summary.history.
 
     Format MongoDB: [{"user_query": "...", "llm_answer": "..."}]
     Normalize sang format QU pipeline: [{"role": "user", "content": "..."}, ...]
     """
-    if not session_id and not user_id:
+    del session_id
+    if not user_id or not allow_summary_fallback:
         return []
     try:
         from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
         from app.utils.util import transform_id  # noqa: PLC0415
 
-        if session_id:
-            sessions = get_collection("Sessions")
-            doc = sessions.find_one({"_id": transform_id(session_id)}, {"history": 1})
-            if doc and isinstance(doc.get("history"), list) and doc["history"]:
-                return _normalize_chat_history_items(doc["history"])
-
-        if user_id and allow_summary_fallback:
-            summaries = get_collection("Summary")
-            doc = summaries.find_one({"user_id": user_id}, {"history": 1})
-            if doc and isinstance(doc.get("history"), list):
-                return _normalize_chat_history_items(doc["history"])
+        summaries = get_collection("Summary")
+        doc = summaries.find_one({"user_id": user_id}, {"history": 1})
+        if doc is None:
+            doc = summaries.find_one({"_id": transform_id(user_id)}, {"history": 1})
+        if doc and isinstance(doc.get("history"), list):
+            return _normalize_chat_history_items(doc["history"])
         return []
     except Exception as exc:  # noqa: BLE001
         logger.warning("[session_node] MongoDB history load failed: %s", exc)
@@ -584,13 +584,12 @@ def _build_server_user_profile(state: AgentState) -> dict[str, Any]:
 
 
 def session_node(state: AgentState) -> dict[str, Any]:
-    """Load short-term memory từ MongoDB và compress history nếu quá dài.
+    """Load short-term memory từ MongoDB.
 
     Flow:
-      1. Load chat_history từ MongoDB Sessions (normalize về role/content format)
+      1. Load chat_history từ MongoDB Summary.history (normalize về role/content format)
       2. Load conversation_summary từ MongoDB Summary
-      3. Nếu history >= 6 turns → gọi summarize_chat() để compress (LLM_MODEL)
-      4. Inject vào state để intent_node dùng làm conversation context
+      3. Inject vào state để intent_node dùng làm conversation context
 
     Fallback: nếu MongoDB hoặc OpenAI fail, dùng giá trị từ request (client-side history).
     """
@@ -628,18 +627,6 @@ def session_node(state: AgentState) -> dict[str, Any]:
         session_context.get("check_in"),
         session_context.get("check_out"),
     )
-
-    # Compress nếu lịch sử quá dài
-    try:
-        from app.memory.short_term.summary.summarizer import summarize_chat  # noqa: PLC0415
-        prev_len = len(history)
-        summary, history = summarize_chat(summary, history, user_id)
-        if len(history) < prev_len:
-            logger.debug(
-                "[%s][session] history compressed %d→%d turns", req_id, prev_len, len(history),
-            )
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("[session_node] summarize_chat failed — dùng history gốc: %s", exc)
 
     return {
         "chat_history": history,
@@ -787,6 +774,28 @@ def clarify_node(state: AgentState) -> dict[str, Any]:
     latency = build_latency_summary(state)
     guardrail = ((state.get("qu_trace") or {}).get("guardrail") or {})
 
+    if intent == "assistant_capability":
+        logger.debug("[%s][clarify] assistant_capability answer=%.60s", req_id, question)
+        return {
+            "clarification_question": "",
+            "final_response": {
+                "answer": question,
+                "intent": intent,
+                "recommendations": [],
+                "sources": [],
+                "next_suggestions": [
+                    "Tìm khách sạn theo điểm đến và ngày đi",
+                    "Gợi ý khách sạn theo ngân sách",
+                    "Tìm khách sạn có view hoặc tiện nghi mong muốn",
+                ],
+                "needs_clarification": False,
+                "clarification_question": "",
+                "missing_fields": [],
+                "explanation": "",
+                "latency": latency,
+            },
+        }
+
     if guardrail and guardrail.get("allow") is False:
         guardrail_response = build_guardrail_response_with_llm(
             query=state.get("raw_query") or "",
@@ -866,8 +875,115 @@ def rewrite_node(state: AgentState) -> dict[str, Any]:
     }
 
 
-# ── RAG node ──────────────────────────────────────────────────────────────────
+# ── Search query template builder ─────────────────────────────────────────────
+def build_search_query_template(inp: RecommendInput) -> str:
+    """Build the external Search API query template from current recommendation state."""
+    return _build_search_query_text(extract_slots(inp))
 
+
+def _build_search_query_text(slots: dict[str, Any]) -> str:
+    parts: list[str] = []
+
+    city = slots.get("city")
+    if city:
+        check_in = slots.get("check_in")
+        check_out = slots.get("check_out")
+        if check_in and check_out:
+            parts.append(f"Tôi sắp đi {city} từ ngày {check_in} đến ngày {check_out}.")
+        elif check_in:
+            parts.append(f"Tôi sắp đi {city} từ ngày {check_in}.")
+        else:
+            parts.append(f"Tôi sắp đi {city}.")
+
+    trip_type = slots.get("trip_type")
+    if trip_type:
+        parts.append(f"Tôi muốn khách sạn phù hợp cho {trip_type}.")
+
+    traveler_type = _normalize_search_template_items(slots.get("traveler_type"))
+    if traveler_type:
+        parts.append(f"Phong cách du lịch của tôi là {_join_search_template_items(traveler_type)}.")
+
+    budget_text = _format_search_template_budget_range(slots.get("budget_min"), slots.get("budget_max"))
+    if budget_text:
+        parts.append(f"Tôi muốn phòng có giá khoảng {budget_text}.")
+
+    hotel_types = _normalize_search_template_items(slots.get("hotel_types"))
+    if hotel_types:
+        parts.append(f"Tôi ưu tiên loại hình lưu trú như {_join_search_template_items(hotel_types)}.")
+
+    room_views = _normalize_search_template_items(slots.get("room_views"))
+    if room_views:
+        parts.append(f"Tôi muốn phòng có hướng nhìn như {_join_search_template_items(room_views)}.")
+
+    amenities = _normalize_search_template_items(slots.get("amenities"))
+    if amenities:
+        parts.append(f"Tôi muốn khách sạn có tiện ích như {_join_search_template_items(amenities)}.")
+
+    preference_habits = _normalize_search_template_items(slots.get("preference_habits"))
+    if preference_habits:
+        parts.append(f"Tôi muốn khách sạn có đặc điểm như {_join_search_template_items(preference_habits)}.")
+
+    profile_features = slots.get("profile_features") or []
+    if profile_features and not any((hotel_types, room_views, amenities, preference_habits)):
+        parts.append(
+            "Tôi muốn khách sạn có các tiện ích và đặc điểm như "
+            + _join_search_template_items(_normalize_search_template_items(profile_features)[:12])
+            + "."
+        )
+
+    return " ".join(parts).strip()
+
+
+def _normalize_search_template_items(values: Any, *, limit: int = 12) -> list[str]:
+    if not isinstance(values, list):
+        return []
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        text = str(value).strip()
+        if not text or text in seen:
+            continue
+        seen.add(text)
+        normalized.append(text)
+        if len(normalized) >= limit:
+            break
+    return normalized
+
+
+def _join_search_template_items(values: list[str]) -> str:
+    return ", ".join(values)
+
+
+def _format_search_template_budget_range(budget_min: Any, budget_max: Any) -> str:
+    min_text = _format_vnd_million_for_search_template(budget_min)
+    max_text = _format_vnd_million_for_search_template(budget_max)
+    if min_text and max_text:
+        if min_text == max_text:
+            return f"{min_text} triệu"
+        return f"{min_text} triệu đến {max_text} triệu"
+    if max_text:
+        return f"tối đa {max_text} triệu"
+    if min_text:
+        return f"từ {min_text} triệu"
+    return ""
+
+
+def _format_vnd_million_for_search_template(value: Any) -> str:
+    if value is None:
+        return ""
+    try:
+        million_value = float(value) / 1_000_000
+    except (TypeError, ValueError):
+        return ""
+    if million_value <= 0:
+        return ""
+    rounded = round(million_value, 2)
+    if rounded.is_integer():
+        return str(int(rounded))
+    return f"{rounded:.2f}".rstrip("0").rstrip(".")
+
+
+# ── RAG node ──────────────────────────────────────────────────────────────────
 def rag_node(state: AgentState) -> dict[str, Any]:
     """Chạy RAG pipeline (planner → retrieval → aggregation → generation).
 
@@ -1267,11 +1383,84 @@ def _emit_analytics(
                 question=query,
                 answer=answer,
             )
+            _schedule_summary_update(user_id=user_id)
         total_s = (latency_summary.get("total_ms") or 0) / 1000.0
         if total_s > 0:
             log_latency(time=total_s, session_id=session_id)
     except Exception as exc:  # noqa: BLE001
         logger.warning("[analytics_node] Kafka emit failed (non-fatal): %s", exc)
+
+
+def _schedule_summary_update(*, user_id: str) -> None:
+    if not user_id:
+        return
+    enabled = os.getenv("SUMMARY_BACKGROUND_ENABLED", "true").strip().lower()
+    if enabled in {"0", "false", "no", "off"}:
+        return
+    with _summary_jobs_lock:
+        if user_id in _summary_jobs_in_progress:
+            return
+        _summary_jobs_in_progress.add(user_id)
+
+    worker = threading.Thread(
+        target=_run_summary_update_background,
+        kwargs={"user_id": user_id},
+        name=f"summary-update-{user_id}",
+        daemon=True,
+    )
+    worker.start()
+
+
+def _run_summary_update_background(*, user_id: str) -> None:
+    try:
+        from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
+        from app.utils.util import transform_id  # noqa: PLC0415
+
+        summaries = get_collection("Summary")
+        doc = summaries.find_one(
+            {"user_id": user_id},
+            {"content": 1, "history": 1, "summary_history_fingerprint": 1},
+        )
+        if doc is None:
+            doc = summaries.find_one(
+                {"_id": transform_id(user_id)},
+                {"content": 1, "history": 1, "summary_history_fingerprint": 1},
+            )
+        if not isinstance(doc, dict):
+            return
+
+        summary = str(doc.get("content") or "")
+        history = doc.get("history") if isinstance(doc.get("history"), list) else []
+        threshold = int(os.getenv("SUMMARY_TRIGGER_THRESHOLD", "10") or "10")
+        if len(history) < threshold:
+            return
+
+        fingerprint = hashlib.sha256(
+            json.dumps(history, ensure_ascii=False, sort_keys=True, default=str).encode("utf-8")
+        ).hexdigest()
+        if doc.get("summary_history_fingerprint") == fingerprint:
+            logger.debug("[summary_background] skipped unchanged history user=%s", user_id)
+            return
+
+        from app.memory.short_term.summary.summarizer import summarize_chat  # noqa: PLC0415
+
+        summarize_chat(summary, history, user_id)
+        summaries.update_one(
+            {"user_id": user_id},
+            {
+                "$set": {
+                    "summary_history_fingerprint": fingerprint,
+                    "summary_updated_at": datetime.now(timezone.utc),
+                },
+            },
+            upsert=False,
+        )
+        logger.debug("[summary_background] completed user=%s history=%d", user_id, len(history))
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[summary_background] failed user=%s: %s", user_id, exc)
+    finally:
+        with _summary_jobs_lock:
+            _summary_jobs_in_progress.discard(user_id)
 
 
 def _persist_chat_history_directly(

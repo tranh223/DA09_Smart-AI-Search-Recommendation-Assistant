@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from app.recommendation.models import RecommendInput, CandidateHotel
 from app.recommendation.trace import RecommendTrace
-from app.recommendation.candidate_generation.hotel_search.template_search_api import (
+from app.recommendation.candidate_generation.hotel_search.search_api import (
     get_template_search_api_candidates,
 )
 from app.recommendation.candidate_generation.personalization.personalization import (
