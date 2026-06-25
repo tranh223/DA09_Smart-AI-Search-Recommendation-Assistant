@@ -6,7 +6,9 @@ import {
   getHotelImages,
   formatPrice,
   type Hotel,
+  type HotelActivity,
   type HotelImage,
+  type HotelNearbyPlace,
 } from '../../services/hotels';
 import { t } from '../../styles/theme';
 
@@ -14,6 +16,17 @@ interface Props {
   hotelId: number | null;
   fallback?: Hotel | null; // data đã có từ list, hiện ngay trong lúc tải chi tiết
   onClose: () => void;
+}
+
+function formatDistance(km?: number): string | null {
+  if (km == null) return null;
+  if (km < 1) return `${Math.round(km * 1000)} m`;
+  return `${km.toFixed(km % 1 === 0 ? 0 : 1)} km`;
+}
+
+function formatActivityPrice(value?: number): string | null {
+  if (!value || value <= 0) return null;
+  return value.toLocaleString('vi-VN') + 'đ';
 }
 
 export function HotelDetailModal({ hotelId, fallback, onClose }: Props) {
@@ -232,6 +245,26 @@ export function HotelDetailModal({ hotelId, fallback, onClose }: Props) {
                 </div>
               </div>
             )}
+
+            {hotel?.activities && hotel.activities.length > 0 && (
+              <DetailSection title="Vui chơi & hoạt động gần khách sạn">
+                <div style={{ display: 'grid', gap: '10px' }}>
+                  {hotel.activities.slice(0, 6).map((activity, i) => (
+                    <ActivityItem key={activity.id ?? activity.activity_id ?? i} activity={activity} />
+                  ))}
+                </div>
+              </DetailSection>
+            )}
+
+            {hotel?.nearby_places && hotel.nearby_places.length > 0 && (
+              <DetailSection title="Địa điểm lân cận">
+                <div style={{ display: 'grid', gap: '8px' }}>
+                  {hotel.nearby_places.slice(0, 8).map((place, i) => (
+                    <NearbyPlaceItem key={place.id ?? `${place.name}-${i}`} place={place} />
+                  ))}
+                </div>
+              </DetailSection>
+            )}
           </div>
         </div>
 
@@ -256,6 +289,75 @@ export function HotelDetailModal({ hotelId, fallback, onClose }: Props) {
           {error && <div style={{ color: '#c0392b', fontSize: '13px', marginTop: '16px' }}>{error}</div>}
         </div>
       </div>
+    </div>
+  );
+}
+
+function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginTop: '26px' }}>
+      <div style={{ fontFamily: t.serif, fontSize: '18px', fontWeight: 600, marginBottom: '12px' }}>
+        {title}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function ActivityItem({ activity }: { activity: HotelActivity }) {
+  const price = formatActivityPrice(activity.price_amount);
+
+  return (
+    <div style={{
+      border: `1px solid ${t.border}`,
+      borderRadius: t.rCard,
+      padding: '12px 14px',
+      background: t.bgSoft,
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start' }}>
+        <div style={{ fontSize: '14px', fontWeight: 700, lineHeight: 1.35 }}>{activity.title}</div>
+        {activity.review_score != null && (
+          <span style={{
+            flex: '0 0 auto',
+            fontSize: '12px',
+            fontWeight: 700,
+            color: t.accentDark,
+            background: t.accentSoft,
+            borderRadius: t.rPill,
+            padding: '3px 8px',
+          }}>
+            {activity.review_score.toFixed(1)}
+          </span>
+        )}
+      </div>
+      {activity.description && (
+        <div style={{ fontSize: '13px', color: t.ink2, lineHeight: 1.55, marginTop: '6px' }}>
+          {activity.description}
+        </div>
+      )}
+      {price && (
+        <div style={{ fontSize: '13px', color: t.ink, fontWeight: 700, marginTop: '8px' }}>
+          {price}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NearbyPlaceItem({ place }: { place: HotelNearbyPlace }) {
+  const distance = formatDistance(place.distance_km);
+  const meta = [place.category ?? place.type, distance].filter(Boolean).join(' · ');
+
+  return (
+    <div style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      gap: '12px',
+      borderBottom: `1px solid ${t.border}`,
+      padding: '8px 0',
+    }}>
+      <div style={{ fontSize: '14px', fontWeight: 600 }}>{place.name}</div>
+      {meta && <div style={{ fontSize: '12px', color: t.ink3, textAlign: 'right' }}>{meta}</div>}
     </div>
   );
 }
