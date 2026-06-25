@@ -26,7 +26,6 @@ REQUIRED_VARS = {
 OPTIONAL_VARS = {
     "LANGSMITH_API_KEY": "LangSmith API key (for tracing)",
     "MONGO_URI": "MongoDB connection string",
-    "VECTOR_DB_URL": "Qdrant vector DB URL",
     "HOTEL_ASK_BASE_URL": "Hotel Ask API endpoint",
 }
 
@@ -36,8 +35,6 @@ DEFAULT_VARS = {
     "RAG_LLM_MAX_TOKENS": "2000",
     "LLM_TIMEOUT_SECONDS": "30",
     "LOG_LEVEL": "INFO",
-    "QDRANT_COLLECTION_NAME": "hotels",
-    "HOTEL_ENTITY_VECTOR_MODEL": "BAAI/bge-m3",
     "API_HOST": "0.0.0.0",
     "API_PORT": "8000",
 }
@@ -139,26 +136,6 @@ def validate_env():
         print("[SKIP] Neo4j: neo4j-driver not installed")
     except Exception as exc:
         print(f"[ERROR] Neo4j test failed: {exc}")
-    
-    # Test Qdrant connection
-    try:
-        from qdrant_client import QdrantClient
-        
-        qdrant_url = os.getenv("VECTOR_DB_URL", "localhost:6333")
-        
-        if "://" not in qdrant_url:
-            qdrant_url = f"http://{qdrant_url}"
-        
-        try:
-            client = QdrantClient(url=qdrant_url, timeout=3)
-            collections = client.get_collections()
-            print(f"[OK] Qdrant connection successful ({len(collections.collections)} collections)")
-        except Exception as exc:
-            print(f"[WARN] Qdrant at {qdrant_url} is unreachable: {exc}")
-    except ImportError:
-        print("[SKIP] Qdrant: qdrant-client not installed")
-    except Exception as exc:
-        print(f"[ERROR] Qdrant test failed: {exc}")
     
     # Summary
     print("\n" + "=" * 90)

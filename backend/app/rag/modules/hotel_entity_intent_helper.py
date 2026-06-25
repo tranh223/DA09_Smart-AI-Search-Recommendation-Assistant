@@ -16,7 +16,6 @@ Cách dùng (trong pipeline planner/skill routing):
 from __future__ import annotations
 
 import csv
-import os
 import re
 from dataclasses import dataclass
 from functools import lru_cache
@@ -26,7 +25,6 @@ from typing import Dict, Iterable, List, Optional, Tuple
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_EXPORT_CSV = REPO_ROOT / "data" / "hotel_sql_local_export.csv"
-DEFAULT_ENTITY_VECTOR_MODEL = "BAAI/bge-m3"
 
 
 def _normalize_text(s: str) -> str:
@@ -114,88 +112,6 @@ def _load_hotel_catalog(export_csv_path: str) -> Tuple[Dict[str, List[Tuple[int,
 
 
 @lru_cache(maxsize=2)
-def _load_hotel_rows(export_csv_path: str) -> Tuple[Tuple[int, str], ...]:
-    """Load canonical hotel names from CSV as (hotel_id, hotel_name)."""
-
-    _, id_to_name = _load_hotel_catalog(export_csv_path)
-    return tuple((hotel_id, name) for hotel_id, name in id_to_name.items())
-
-
-@lru_cache(maxsize=2)
-def _build_vector_index(export_csv_path: str) -> Tuple[Tuple[int, str], object]:
-    """Build an in-memory vector index over canonical CSV hotel names.
-
-    The index is a normalized embedding matrix. It intentionally avoids writing
-    artifacts to disk so the CSV remains the source of truth.
-    """
-
-    rows = _load_hotel_rows(export_csv_path)
-    if not rows:
-        return rows, []
-
-    try:
-        import numpy as np
-        from sentence_transformers import SentenceTransformer
-    except Exception as exc:  # pragma: no cover - optional runtime dependency
-        raise RuntimeError(f"Vector hotel entity search is unavailable: {exc}") from exc
-
-    model_name = os.getenv("HOTEL_ENTITY_VECTOR_MODEL", DEFAULT_ENTITY_VECTOR_MODEL)
-    model = SentenceTransformer(model_name)
-    names = [name for _hotel_id, name in rows]
-    vectors = model.encode(names, normalize_embeddings=True, show_progress_bar=False)
-    return rows, np.asarray(vectors, dtype="float32")
-
-
-def _vector_search_hotel_entities(
-    query: str,
-    export_csv_path: str,
-    *,
-    top_k: int,
-    min_score: float,
-) -> List[HotelEntity]:
-    """Return semantic hotel-name matches from the CSV catalog."""
-
-    try:
-        import numpy as np
-        from sentence_transformers import SentenceTransformer
-
-        rows, matrix = _build_vector_index(export_csv_path)
-        if not rows or not hasattr(matrix, "shape"):
-            return []
-
-        model_name = os.getenv("HOTEL_ENTITY_VECTOR_MODEL", DEFAULT_ENTITY_VECTOR_MODEL)
-        if not hasattr(_vector_search_hotel_entities, "_models"):
-            _vector_search_hotel_entities._models = {}
-        models = _vector_search_hotel_entities._models
-        model = models.get(model_name)
-        if model is None:
-            model = SentenceTransformer(model_name)
-            models[model_name] = model
-
-        query_vector = model.encode([query], normalize_embeddings=True, show_progress_bar=False)
-        scores = np.asarray(query_vector, dtype="float32") @ matrix.T
-        ranked_indexes = np.argsort(scores[0])[::-1][: max(top_k, 1)]
-    except Exception:
-        return []
-
-    entities: List[HotelEntity] = []
-    for idx in ranked_indexes:
-        score = float(scores[0][idx])
-        if score < min_score:
-            continue
-        hotel_id, hotel_name = rows[int(idx)]
-        entities.append(
-            HotelEntity(
-                hotel_id=hotel_id,
-                hotel_name=hotel_name,
-                matched_text=query,
-                confidence=round(score, 4),
-            )
-        )
-    return entities
-
-
-@lru_cache(maxsize=2)
 def _build_token_inverted_index(export_csv_path: str) -> Dict[str, List[Tuple[int, str]]]:
     """Inverted index from token -> candidate hotels.
 
@@ -233,10 +149,9 @@ def extract_hotel_entities(
 ) -> List[HotelEntity]:
     """Extract and normalize hotel entities mentioned in query.
 
-    Heuristic matching:
-    1) exact normalized hotel_name substring
-    2) vector search over canonical CSV hotel names
-    3) n-gram matching on tokenized query against token inverted index candidates
+    Matching strategy (in order):
+    1) Exact normalized hotel_name substring match.
+    2) N-gram token matching against inverted index candidates.
 
     Confidence: rough score based on gram length.
     """
@@ -253,12 +168,10 @@ def extract_hotel_entities(
     matched: List[HotelEntity] = []
     used_ids: set[int] = set()
 
-    # 1) exact substring match on full normalized names
-    #    To keep it fast, only attempt for candidates whose names are not too long.
+    # 1) Exact substring match on full normalized names
     for norm_name, candidates in key_to_candidates.items():
         if not norm_name:
             continue
-        # If normalized name is present in query string, accept.
         if norm_name in q_norm:
             for hid, nm in candidates:
                 if hid in used_ids:
@@ -275,23 +188,7 @@ def extract_hotel_entities(
                 if len(matched) >= max_entities:
                     return matched
 
-    # 2) vector search over canonical names from the CSV.
-    vector_matches = _vector_search_hotel_entities(
-        query,
-        export_str,
-        top_k=max_entities,
-        min_score=float(os.getenv("HOTEL_ENTITY_VECTOR_MIN_SCORE", "0.52")),
-    )
-    for entity in vector_matches:
-        if entity.hotel_id in used_ids:
-            continue
-        matched.append(entity)
-        used_ids.add(entity.hotel_id)
-        if len(matched) >= max_entities:
-            matched.sort(key=lambda x: x.confidence, reverse=True)
-            return matched[:max_entities]
-
-    # 3) n-gram match
+    # 2) N-gram match
     q_toks = _tokenize_for_match(q_norm)
     if not q_toks:
         return matched
