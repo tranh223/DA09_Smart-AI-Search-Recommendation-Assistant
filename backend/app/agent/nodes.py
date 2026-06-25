@@ -37,6 +37,14 @@ _pipeline: Any = None          # QueryUnderstandingPipeline instance
 _pipeline_init_failed = False  # Flag để không retry sau khi init đã thất bại
 _summary_jobs_lock = threading.Lock()
 _summary_jobs_in_progress: set[str] = set()
+SUMMARY_SESSION_GROUP_KEYS = (
+    "session_trip_types",
+    "session_preference_habits",
+    "session_hotel_types",
+    "session_room_views",
+    "session_amenities",
+    "session_budget_levels",
+)
 
 
 def _get_pipeline() -> Any:
@@ -220,25 +228,6 @@ def _normalize_user_scoped_doc_key(collection_name: str, user_id: str) -> None:
         )
 
 
-def _load_session_context(session_id: str) -> dict[str, Any]:
-    if not session_id:
-        return {}
-    try:
-        from app.db.mongo.mongo_client import get_collection  # noqa: PLC0415
-        from app.utils.util import transform_id  # noqa: PLC0415
-
-        sessions = get_collection("Sessions")
-        doc = sessions.find_one(
-            {"_id": transform_id(session_id)},
-            {"session_context": 1},
-        )
-        session_context = doc.get("session_context") if doc else None
-        return session_context if isinstance(session_context, dict) else {}
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("[session_node] MongoDB session_context load failed: %s", exc)
-        return {}
-
-
 def _load_summary_session_context(user_id: str) -> dict[str, Any]:
     if not user_id:
         return {}
@@ -281,6 +270,10 @@ def _summary_session_context_to_runtime(summary_context: dict[str, Any]) -> dict
     if price_range:
         price_range["currency"] = "VND"
         runtime["session_price_range"] = price_range
+    for key in SUMMARY_SESSION_GROUP_KEYS:
+        value = summary_context.get(key)
+        if _has_meaningful_value(value):
+            runtime[key] = value
     return runtime
 
 
@@ -304,6 +297,10 @@ def _runtime_session_context_to_summary(session_context: dict[str, Any]) -> dict
             summary_context["budget_min"] = budget_min
         if budget_max is not None:
             summary_context["budget_max"] = budget_max
+    for key in SUMMARY_SESSION_GROUP_KEYS:
+        value = session_context.get(key)
+        if _has_meaningful_value(value):
+            summary_context[key] = value
     return summary_context
 
 
@@ -319,6 +316,7 @@ def _merge_summary_session_context(
         "check_out",
         "budget_min",
         "budget_max",
+        *SUMMARY_SESSION_GROUP_KEYS,
     ):
         value = incoming_context.get(key)
         if _has_meaningful_value(value):
@@ -548,19 +546,13 @@ def _reconcile_tagremoved_profile_if_due(user_id: str) -> tuple[dict[str, Any], 
 
 def _build_server_user_profile(state: AgentState) -> dict[str, Any]:
     user_id = state.get("user_id") or "anonymous_user"
-    session_id = state.get("session_id") or ""
     fallback = state.get("user_profile") or {}
 
-    server_session_context = _load_session_context(session_id)
     summary_session_context = _load_summary_session_context(user_id)
     fallback_session_context = fallback.get("session_context") if isinstance(fallback, dict) else {}
-    fallback_or_summary_context = _merge_server_over_fallback(
+    session_context = _merge_server_over_fallback(
         summary_session_context,
         fallback_session_context if isinstance(fallback_session_context, dict) else {},
-    )
-    session_context = _merge_server_over_fallback(
-        server_session_context,
-        fallback_or_summary_context,
     )
 
     server_long_term, server_tagremoved = _reconcile_tagremoved_profile_if_due(user_id)
@@ -775,20 +767,29 @@ def clarify_node(state: AgentState) -> dict[str, Any]:
     latency = build_latency_summary(state)
     guardrail = ((state.get("qu_trace") or {}).get("guardrail") or {})
 
-    if intent == "assistant_capability":
-        logger.debug("[%s][clarify] assistant_capability answer=%.60s", req_id, question)
+    if intent in {"assistant_help", "assistant_capability"}:
+        guardrail_response = build_guardrail_response_with_llm(
+            query=state.get("raw_query") or "",
+            category="ASSISTANT_HELP",
+            reason=str(guardrail.get("reason") or ""),
+            conversation_summary=state.get("conversation_summary") or "",
+            chat_history=state.get("chat_history") or [],
+        )
+        answer = guardrail_response.get("answer") or question
+        next_suggestions = guardrail_response.get("next_suggestions") or [
+            "Tìm khách sạn theo điểm đến và ngày đi",
+            "Gợi ý khách sạn theo ngân sách",
+            "Tìm khách sạn có view hoặc tiện nghi mong muốn",
+        ]
+        logger.debug("[%s][clarify] assistant_help answer=%.60s", req_id, answer)
         return {
             "clarification_question": "",
             "final_response": {
-                "answer": question,
+                "answer": answer,
                 "intent": intent,
                 "recommendations": [],
                 "sources": [],
-                "next_suggestions": [
-                    "Tìm khách sạn theo điểm đến và ngày đi",
-                    "Gợi ý khách sạn theo ngân sách",
-                    "Tìm khách sạn có view hoặc tiện nghi mong muốn",
-                ],
+                "next_suggestions": next_suggestions,
                 "needs_clarification": False,
                 "clarification_question": "",
                 "missing_fields": [],
@@ -1365,6 +1366,8 @@ def _persist_profile_state_directly(
             "updated_at": now,
         }
         if isinstance(session_context, dict):
+            # Metrics/RAGAS/debug snapshot only. Runtime state is loaded from
+            # Summary.session_context, not from Sessions.session_context.
             session_set["session_context"] = session_context
 
         sessions = get_collection("Sessions")

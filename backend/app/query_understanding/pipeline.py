@@ -74,6 +74,49 @@ JSON_TRACE_FILES = {
 _JSON_TRACE_LOCK = threading.Lock()
 
 
+def _intent_terminal_trace_enabled() -> bool:
+    return os.getenv("QU_INTENT_TERMINAL_TRACE", "true").strip().lower() not in {
+        "0",
+        "false",
+        "no",
+        "off",
+    }
+
+
+def _format_terminal_value(value: Any, *, max_len: int = 160) -> str:
+    if isinstance(value, float):
+        text = f"{value:.1f}"
+    elif isinstance(value, (list, tuple, set)):
+        text = "[" + ", ".join(_format_terminal_value(item, max_len=40) for item in value) + "]"
+    elif isinstance(value, dict):
+        text = json.dumps(value, ensure_ascii=False, default=str)
+    else:
+        text = str(value)
+    text = " ".join(text.split())
+    if len(text) > max_len:
+        return text[: max_len - 1] + "…"
+    return text
+
+
+def _log_intent_terminal(stage: str, **fields: Any) -> None:
+    """Write concise Query Understanding stage logs to terminal.
+
+    JSON traces remain the source of truth for full payloads; this log is only
+    for quick realtime debugging while running the backend locally.
+    """
+    if not _intent_terminal_trace_enabled():
+        return
+    details = "  ".join(
+        f"{key}={_format_terminal_value(value)}"
+        for key, value in fields.items()
+        if value not in (None, "", [], {})
+    )
+    line = f"[QU Intent] {stage}"
+    if details:
+        line = f"{line}  {details}"
+    print(line, flush=True)
+
+
 @dataclass(slots=True)
 class PipelineTrace:
     query: str
@@ -161,6 +204,19 @@ class QueryUnderstandingPipeline:
             stage="request_state_loaded",
         )
         recent_user_queries = self._recent_user_queries(conversation_history)
+        _log_intent_terminal(
+            "start",
+            user_id=user_profile.user_id,
+            query=query,
+            history_turns=len(conversation_history or []),
+            summary=bool(conversation_summary),
+            destination=user_profile.session_context.destination,
+            check_in=user_profile.session_context.check_in,
+            check_out=user_profile.session_context.check_out,
+            budget_min=user_profile.session_context.session_price_range.min,
+            budget_max=user_profile.session_context.session_price_range.max,
+            recent_user_queries=len(recent_user_queries),
+        )
         guardrail_start = time.perf_counter()
         guardrail_result = self.guardrail.classify(
             query,
@@ -169,6 +225,15 @@ class QueryUnderstandingPipeline:
             conversation_summary=conversation_summary,
         )
         timing["guardrail_ms"] = _elapsed_ms(guardrail_start)
+        _log_intent_terminal(
+            "guardrail",
+            allow=guardrail_result.allow,
+            category=guardrail_result.category,
+            reason=guardrail_result.reason,
+            ms=timing["guardrail_ms"],
+            path=(self.guardrail.last_trace or {}).get("path"),
+            cached_tokens=((self.guardrail.last_trace or {}).get("response_meta") or {}).get("cached_tokens"),
+        )
         _log_qu_json(
             "query_classification",
             "guardrail_classified",
@@ -180,20 +245,35 @@ class QueryUnderstandingPipeline:
             },
         )
 
-        is_assistant_capability = self.checker.is_assistant_capability_query(query)
-        capability_safe_categories = {"SAFE", "OUT_OF_SCOPE"}
-        if is_assistant_capability and guardrail_result.category in capability_safe_categories:
+        is_assistant_help = (
+            guardrail_result.category == "ASSISTANT_HELP"
+            or self.checker.is_assistant_capability_query(query)
+        )
+        if is_assistant_help:
             timing["total_pipeline_ms"] = _elapsed_ms(pipeline_start)
+            _log_intent_terminal(
+                "assistant_help",
+                route="answer_without_recommend",
+                guardrail_category=guardrail_result.category,
+                total_ms=timing["total_pipeline_ms"],
+            )
+            guardrail_payload = asdict(guardrail_result)
+            if guardrail_result.category != "ASSISTANT_HELP":
+                guardrail_payload = {
+                    "allow": False,
+                    "category": "ASSISTANT_HELP",
+                    "reason": "Detected assistant help/capability query.",
+                }
             _log_qu_json(
                 "query_classification",
                 "query_classified",
                 {
                     "user_id": user_profile.user_id,
                     "query": query,
-                    "classification": "assistant_capability",
+                    "classification": "assistant_help",
                     "can_build_plan": False,
-                    "guardrail": asdict(guardrail_result),
-                    "assistant_capability": True,
+                    "guardrail": guardrail_payload,
+                    "assistant_help": True,
                     "missing_fields": [],
                     "search_plan": {},
                     "router": {},
@@ -202,10 +282,11 @@ class QueryUnderstandingPipeline:
             return PipelineResult(
                 trace=PipelineTrace(
                     query=query,
-                    guardrail=asdict(guardrail_result),
+                    guardrail=guardrail_payload,
                     checker={
-                        "assistant_capability": True,
-                        "classification": "assistant_capability",
+                        "assistant_help": True,
+                        "assistant_capability": self.checker.is_assistant_capability_query(query),
+                        "classification": "assistant_help",
                     },
                     intent={},
                     llm_traces={
@@ -232,6 +313,12 @@ class QueryUnderstandingPipeline:
 
         if not guardrail_result.allow:
             timing["total_pipeline_ms"] = _elapsed_ms(pipeline_start)
+            _log_intent_terminal(
+                "blocked",
+                category=guardrail_result.category,
+                reason=guardrail_result.reason,
+                total_ms=timing["total_pipeline_ms"],
+            )
             _log_qu_json(
                 "query_classification",
                 "query_classified",
@@ -280,12 +367,25 @@ class QueryUnderstandingPipeline:
         plan_readiness = self.checker.check_plan_readiness(query=query, current_profile=user_profile)
         timing["initial_plan_readiness_ms"] = _elapsed_ms(initial_plan_readiness_start)
         initial_plan_readiness = plan_readiness
+        _log_intent_terminal(
+            "plan_readiness_initial",
+            requires_recommendation=plan_readiness.requires_recommendation,
+            can_build_plan=plan_readiness.can_build_plan,
+            missing_fields=getattr(plan_readiness, "missing_fields", []),
+            profile_complete=initial_profile_check.is_complete,
+            ms=timing["initial_plan_readiness_ms"],
+        )
         precheck_intent_result = None
         precheck_session_update = None
         precheck_active_profile = None
         post_extract_plan_readiness = None
 
         if plan_readiness.requires_recommendation and not plan_readiness.can_build_plan:
+            _log_intent_terminal(
+                "precheck_extract_start",
+                reason="recommendation_missing_fields",
+                missing_fields=getattr(plan_readiness, "missing_fields", []),
+            )
             precheck_extract_start = time.perf_counter()
             (
                 precheck_intent_result,
@@ -307,9 +407,21 @@ class QueryUnderstandingPipeline:
             timing["post_extract_plan_readiness_ms"] = _elapsed_ms(post_extract_plan_readiness_start)
             timing["post_extract_plan_readiness_reused_requires_recommendation"] = True
             plan_readiness = post_extract_plan_readiness
+            _log_intent_terminal(
+                "precheck_extract_done",
+                can_build_plan=plan_readiness.can_build_plan,
+                missing_fields=getattr(plan_readiness, "missing_fields", []),
+                extract_ms=timing["precheck_extract_merge_ms"],
+                readiness_ms=timing["post_extract_plan_readiness_ms"],
+            )
 
         if not plan_readiness.can_build_plan:
             timing["total_pipeline_ms"] = _elapsed_ms(pipeline_start)
+            _log_intent_terminal(
+                "clarification_needed",
+                missing_fields=getattr(plan_readiness, "missing_fields", []),
+                total_ms=timing["total_pipeline_ms"],
+            )
             _log_qu_json(
                 "query_classification",
                 "query_classified",
@@ -388,6 +500,7 @@ class QueryUnderstandingPipeline:
             active_profile = precheck_active_profile
         else:
             parallel_start = time.perf_counter()
+            _log_intent_terminal("parallel_start", branches="search_plan+extract_merge")
             search_plan_future = self._parallel_executor.submit(
                 self._timed_search_plan_run,
                 query,
@@ -407,6 +520,12 @@ class QueryUnderstandingPipeline:
             timing["search_plan_ms"] = search_plan_ms
             timing["extract_merge_ms"] = extract_merge_ms
             timing["extract_merge_detail"] = extract_merge_detail
+            _log_intent_terminal(
+                "parallel_done",
+                total_ms=timing["parallel_execution_ms"],
+                search_plan_ms=search_plan_ms,
+                extract_merge_ms=extract_merge_ms,
+            )
 
         router_start = time.perf_counter()
         router_result = self.router.run(
@@ -419,6 +538,15 @@ class QueryUnderstandingPipeline:
         )
         timing["router_ms"] = _elapsed_ms(router_start)
         timing["total_pipeline_ms"] = _elapsed_ms(pipeline_start)
+        _log_intent_terminal(
+            "router",
+            recommendation_steps=len(router_result.recommendation_plan),
+            rag_steps=len(router_result.rag_plan),
+            router_ms=timing["router_ms"],
+            total_ms=timing["total_pipeline_ms"],
+            rec_intents=[str(step.intent_type) for step in router_result.recommendation_plan],
+            rag_intents=[str(step.intent_type) for step in router_result.rag_plan],
+        )
         _log_qu_json(
             "query_classification",
             "query_classified",
@@ -501,6 +629,14 @@ class QueryUnderstandingPipeline:
         extractor_executor = ThreadPoolExecutor(max_workers=2)
         hidden_intent_result = HiddenIntentResult()
         hidden_extractor = self._new_hidden_intent_extractor()
+        _log_intent_terminal(
+            "extract_start",
+            explicit_model=getattr(self.intent_extractor, "model", None),
+            hidden_model=getattr(hidden_extractor, "model", None),
+            hidden_enabled=getattr(hidden_extractor, "enabled", None),
+            hidden_timeout_seconds=hidden_timeout_seconds,
+            history_turns=len(conversation_history or []),
+        )
         try:
             intent_future = extractor_executor.submit(
                 self.intent_extractor.extract,
@@ -540,6 +676,19 @@ class QueryUnderstandingPipeline:
         intent_extract_ms = _elapsed_ms(extract_parallel_start)
         hidden_intent_trace = dict(getattr(hidden_extractor, "last_trace", {}))
         self._last_hidden_intent_trace = hidden_intent_trace
+        _log_intent_terminal(
+            "extract_done",
+            ms=intent_extract_ms,
+            explicit_semantic_items=len(intent_result.semantic_preferences.items),
+            hidden_semantic_items=len(hidden_intent_result.semantic_preferences.items),
+            hidden_profile_signals=len(hidden_intent_result.profile_signals),
+            hidden_scalar_signals=len(hidden_intent_result.scalar_signals),
+            hidden_path=hidden_intent_trace.get("path"),
+            hidden_reason=hidden_intent_trace.get("reason"),
+            hidden_model=hidden_intent_trace.get("model"),
+            explicit_cached_tokens=((self.intent_extractor.last_trace or {}).get("response_meta") or {}).get("cached_tokens"),
+            hidden_cached_tokens=(hidden_intent_trace.get("response_meta") or {}).get("cached_tokens"),
+        )
         _log_qu_json(
             "hidden_intent",
             "hidden_intent_completed",
@@ -578,6 +727,18 @@ class QueryUnderstandingPipeline:
             semantic_mapping,
             hidden_semantic_mapping,
         )
+        _log_intent_terminal(
+            "semantic_mapping",
+            explicit_items=len(intent_result.semantic_preferences.items),
+            explicit_mapped=len(semantic_mapping.mapped_items),
+            explicit_ms=semantic_mapping_ms,
+            explicit_path=explicit_semantic_mapper_trace.get("path"),
+            hidden_items=len(hidden_intent_result.semantic_preferences.items),
+            hidden_mapped=len(hidden_semantic_mapping.mapped_items),
+            hidden_ms=hidden_semantic_mapping_ms,
+            hidden_path=hidden_semantic_mapper_trace.get("path"),
+            merged_mapped=len(merged_semantic_mapping.mapped_items),
+        )
         _log_qu_trace(
             "tag_mapping_completed",
             {
@@ -606,6 +767,16 @@ class QueryUnderstandingPipeline:
                 hidden_runtime_tag_expansion,
             )
         self._last_tag_graph_expansion_trace = explicit_tag_graph_expansion_trace
+        _log_intent_terminal(
+            "tag_expansion",
+            seed_items=len(graph_seed_items),
+            mapped_tags=len(runtime_tag_expansion.mapped_tags),
+            expanded_tags=len(runtime_tag_expansion.expanded_tags),
+            final_tags=len(runtime_tag_expansion.final_tags),
+            hidden_final_tags=len(hidden_runtime_tag_expansion.final_tags),
+            ms=tag_graph_expansion_ms,
+            path=explicit_tag_graph_expansion_trace.get("path"),
+        )
         _log_qu_trace(
             "tag_graph_expansion_completed",
             {
@@ -648,6 +819,17 @@ class QueryUnderstandingPipeline:
         )
         session_profile_update_ms = _elapsed_ms(session_update_start)
         self._apply_hidden_scalar_signals(user_profile, hidden_intent_result.scalar_signals)
+        _log_intent_terminal(
+            "session_update",
+            applied_updates=list(dict(session_update.applied_updates).keys()),
+            destination=user_profile.session_context.destination,
+            check_in=user_profile.session_context.check_in,
+            check_out=user_profile.session_context.check_out,
+            budget_min=user_profile.session_context.session_price_range.min,
+            budget_max=user_profile.session_context.session_price_range.max,
+            is_enough=user_profile.session_context.is_enough_recommend,
+            ms=session_profile_update_ms,
+        )
         _log_qu_trace(
             "session_context_updated",
             {
@@ -664,6 +846,13 @@ class QueryUnderstandingPipeline:
             hidden_profile_signals=hidden_intent_result.profile_signals,
         )
         active_profile_merge_ms = _elapsed_ms(active_profile_start)
+        _log_intent_terminal(
+            "active_profile_merge",
+            hidden_profile_signals=len(hidden_intent_result.profile_signals),
+            ms=active_profile_merge_ms,
+            traveler_type=list(asdict(active_profile).get("traveler_type", {}).keys()),
+            budget_levels=list(asdict(active_profile).get("long_term_budget_levels", {}).keys()),
+        )
         _log_qu_json(
             "profile_retention",
             "profile_retention_resolved",
@@ -713,6 +902,7 @@ class QueryUnderstandingPipeline:
             "active_profile_merge_ms": active_profile_merge_ms,
             "total_extract_merge_inner_ms": _elapsed_ms(detail_start),
         }
+        _log_intent_terminal("extract_merge_done", **detail)
         return (intent_result, session_update, active_profile), detail
 
     def _timed_search_plan_run(
@@ -946,6 +1136,7 @@ class QueryUnderstandingPipeline:
                     self._build_graph_seed_item(
                         tag=normalized_trip_type,
                         category="SUITABLE_FOR",
+                        target_field="session_trip_types",
                     )
                 )
         return seed_items

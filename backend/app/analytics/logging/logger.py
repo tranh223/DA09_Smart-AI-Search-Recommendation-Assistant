@@ -1,5 +1,6 @@
 import json
 import os
+from uuid import uuid4
 from datetime import datetime
 
 from dotenv import load_dotenv
@@ -246,6 +247,7 @@ def log_booking_for_graph(hotel_id, user_id, hotel_name):
     '''
     bookings_collection = get_collection('Booking')
     booking_data = {
+        "booking_id": str(uuid4()),
         "user_id": transform_id(user_id),
         "hotel_id": hotel_id,
         "hotel_name": hotel_name,

@@ -4,8 +4,8 @@ from enum import StrEnum
 
 class GuardrailReason(StrEnum):
     OTA_QUERY = "OTA_QUERY"
+    ASSISTANT_HELP = "ASSISTANT_HELP"
     OUT_OF_SCOPE = "OUT_OF_SCOPE"
-    UNSAFE_QUERY = "UNSAFE_QUERY"
 
 
 @dataclass(slots=True)

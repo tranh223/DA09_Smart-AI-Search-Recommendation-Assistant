@@ -78,8 +78,8 @@ def hard_filter(profile: dict[str, Any], hotel: dict[str, Any]) -> tuple[bool, s
     session = _session(profile)
     destination = session.get("destination")
     hotel_dest = hotel.get("destination")
-    if destination and hotel_dest and normalize_text(hotel_dest) != normalize_text(destination):
-        return False, "destination_mismatch"
+    # if destination and hotel_dest and normalize_text(hotel_dest) != normalize_text(destination):
+    #     return False, "destination_mismatch"
     if not bool(hotel.get("available")):
         return False, "not_available"
 
@@ -202,8 +202,11 @@ def location_score(profile: dict[str, Any], hotel: dict[str, Any]) -> float:
     session = _session(profile)
     nearby = session.get("nearby_place")
     score = 0.45
-    if nearby and nearby in set(hotel.get("nearby_places", [])):
-        score += 0.30
+    if nearby:
+        norm_nearby = normalize_text(nearby)
+        hotel_places = {normalize_text(p) for p in hotel.get("nearby_places", [])}
+        if norm_nearby in hotel_places:
+            score += 0.30
     return clamp(score)
 
 
@@ -250,15 +253,15 @@ def score_candidate(profile: dict[str, Any], hotel: dict[str, Any], trend_signal
     penalty = negative_penalty(profile, hotel)
     # weights used for transparency
     weights = {
-        "keyword": 0.12,
-        "budget": 0.09,
-        "amenity": 0.20,
-        "room_view": 0.09,
-        "review": 0.09,
-        "availability": 0.13,
-        "personalization": 0.11,
-        "location": 0.08,
-        "trend": 0.09,
+        "keyword": 0.2,          # base của ranking trước khi rerank (search_score)
+        "personalization": 0.2,   # mức độ ảnh hưởng của cá nhân hóa (session + long term)
+        "amenity": 0.07,          # trọng số tiện ích
+        "budget": 0.15,           # Khớp khoảng giá ngân sách
+        "availability": 0.03,     # Độ sẵn có của phòng trống
+        "review": 0.07,           # Điểm đánh giá thực tế từ khách
+        "room_view": 0.05,        # Hướng nhìn phòng
+        "location": 0.15,         # Vị trí lân cận điểm mong muốn
+        "trend": 0.08,            # Xu hướng booking hiện tại
     }
     contributions: dict[str, float] = {}
     for k, v in features.items():
