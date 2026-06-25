@@ -1,19 +1,22 @@
-"""
-RAG System - Main Entry Point
-Chỉ gồm: Planner -> (RAG, Graph, Hotel SQL) -> aggregate_information -> generate_response
-Short-term Memory và User Profile đã bị loại bỏ khỏi pipeline.
-"""
+"""RAG System - main entry point."""
 
 from __future__ import annotations
 
-from typing import Any, Optional, List, Dict
+from typing import Any, Dict, List, Optional
 import json
 
 from utils.logger import get_logger
-from utils.langsmith_tracer import tracer
+
+try:
+    from app.rag.utils.langsmith_tracer import tracer
+    from app.rag.trace_utils import rag_trace, rag_trace_error
+except Exception:  # pragma: no cover - standalone app/rag script mode
+    from utils.langsmith_tracer import tracer
+    from trace_utils import rag_trace, rag_trace_error
 
 from modules.planner import plan
-from modules.retrieval import retrieve_from_rag, retrieve_from_graph, retrieve_from_hotel_sql
+from modules.retrieval import retrieve_from_graph, retrieve_from_rag
+
 from modules.skill_agent import route_intent
 from modules.total_info import aggregate_information
 from modules.generation import generate_response
@@ -37,12 +40,17 @@ class chatbot:
         enable_rag: bool = True,
         enable_graph: bool = True,
         return_detailed: bool = False,
-    ) -> str:
+    ) -> str | dict[str, Any]:
         logger.info(f"Processing query: {query}")
 
         try:
-            original_query = query
-            retrieval_query = query
+            rag_trace(
+                step="rag_system:input",
+                input={"query": query, "enable_rag": enable_rag, "enable_graph": enable_graph},
+            )
+
+            original_query: str | dict[str, Any] = query
+            retrieval_query: str | dict[str, Any] = query
             structured_request = None
 
             if isinstance(query, dict):
@@ -60,81 +68,117 @@ class chatbot:
                 original_query = str(query)
                 retrieval_query = original_query
 
-            # Step 1: Planning
             logger.info("Step 1: Planning...")
             if structured_request is not None:
                 plan_result = build_structured_plan(structured_request)
             else:
-                plan_result = plan(original_query)
+                plan_result = plan(str(original_query))
+
+            rag_trace(
+                step="rag_system:planner",
+                input={"structured": structured_request is not None},
+                output=plan_result,
+            )
+
             try:
                 logger.info(f"Plan: {json.dumps(plan_result, ensure_ascii=False)}")
             except Exception:
                 logger.info("Plan: <unserializable>")
 
-            # Step 1.5: Skill agent routing (best-effort)
             try:
-                skill_result = route_intent(original_query)
+                skill_result = route_intent(str(original_query))
                 logger.info(f"Skill agent: {json.dumps(skill_result, ensure_ascii=False)}")
-            except Exception as e:
-                logger.warning(f"Skill agent failed, continue without routing: {e}")
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(f"Skill agent failed, continue without routing: {exc}")
+                rag_trace_error(
+                    step="rag_system:skill_agent",
+                    error=exc,
+                    input={"query": str(original_query)},
+                )
                 skill_result = {}
+            rag_trace(
+                step="rag_system:skill_agent",
+                input={"query": str(original_query)},
+                output=skill_result,
+            )
 
-            # Step 1.6: Auxiliary entity intent extraction (hotel names)
             try:
                 from modules.planner_intents_aux import parse_aux_intents
 
-                aux_intents = parse_aux_intents(retrieval_query)
+                aux_intents = parse_aux_intents(str(retrieval_query))
                 logger.info(
                     "Aux intents: "
                     f"{json.dumps(aux_intents, ensure_ascii=False) if isinstance(aux_intents, dict) else aux_intents}"
                 )
-            except Exception as e:
-                logger.warning(f"Aux intents extraction failed: {e}")
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(f"Aux intents extraction failed: {exc}")
+                rag_trace_error(
+                    step="rag_system:aux_intents",
+                    error=exc,
+                    input={"query": str(retrieval_query)},
+                )
                 aux_intents = {}
+            rag_trace(
+                step="rag_system:aux_intents",
+                input={"query": str(retrieval_query)},
+                output=aux_intents,
+            )
 
-            # Step 1.7: Standardize tool inputs for planner schema completeness
-            # Ensures planner output always contains tool_inputs even if planner LLM didn't.
             try:
                 from modules.planner_intent_toolschema import build_tool_inputs_from_context
 
                 std_tool_inputs = build_tool_inputs_from_context(
-                    query=retrieval_query,
+                    query=str(retrieval_query),
                     plan_result=plan_result,
                     aux_intents=aux_intents,
                 )
-                plan_result["tool_inputs"] = std_tool_inputs.get("tools", plan_result.get("tool_inputs", {}))
-            except Exception as e:
-                logger.warning(f"Failed to build standardized tool inputs: {e}")
+                if isinstance(plan_result, dict):
+                    plan_result["tool_inputs"] = std_tool_inputs.get(
+                        "tools",
+                        plan_result.get("tool_inputs", {}),
+                    )
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(f"Failed to build standardized tool inputs: {exc}")
+                rag_trace_error(
+                    step="rag_system:tool_inputs",
+                    error=exc,
+                    input={"query": str(retrieval_query)},
+                )
 
+            rag_trace(
+                step="rag_system:tool_inputs",
+                input={"query": str(retrieval_query)},
+                output=(plan_result.get("tool_inputs") if isinstance(plan_result, dict) else None),
+            )
 
-
-            # Step 2: Retrievals (RAG, Graph, Hotel SQL)
             logger.info("Step 2: Retrieving (RAG, Graph, Hotel SQL)...")
 
-            # Be robust to planner output missing/typoed keys.
             needs_rag = plan_result.get("needs_rag", True)
             needs_graph = plan_result.get("needs_graph", True)
             needs_hotel_sql = plan_result.get("needs_hotel_sql", True)
+
+            rag_trace(
+                step="rag_system:retrieval_plan_flags",
+                input={
+                    "needs_rag": needs_rag,
+                    "needs_graph": needs_graph,
+                    "needs_hotel_sql": needs_hotel_sql,
+                },
+                output={},
+            )
 
             logger.info(
                 "Planner needs flags: "
                 f"needs_rag={needs_rag}, needs_graph={needs_graph}, needs_hotel_sql={needs_hotel_sql}"
             )
 
-            rag_results = None
-            graph_results = None
-            hotel_sql_results = None
+            rag_results = {"success": False, "source": "rag", "results": [], "count": 0}
+            graph_results = {"success": False, "source": "graph", "results": [], "count": 0}
+            hotel_sql_results = {"success": False, "source": "hotel_sql", "results": None, "count": 0}
 
-            # Ensure aggregate_information receives dicts (avoid None type issues)
-            rag_results = rag_results if rag_results is not None else {"success": False, "source": "rag", "results": [], "count": 0}
-            graph_results = graph_results if graph_results is not None else {"success": False, "source": "graph", "results": [], "count": 0}
-            hotel_sql_results = hotel_sql_results if hotel_sql_results is not None else {"success": False, "source": "hotel_sql", "results": None, "count": 0}
 
-            # Build hotel_sql tool inputs from planner entities
-            # Tool input for Hotel SQL is driven by entities from planner/aux intent,
-            # not by raw query text as the primary selector.
             tool_inputs = plan_result.get("tool_inputs") if isinstance(plan_result, dict) else None
-            hotel_sql_entities = []
+            hotel_sql_entities: list[Any] = []
             hotel_sql_need = None
             if isinstance(tool_inputs, dict):
                 hsql = tool_inputs.get("hotel_sql")
@@ -142,8 +186,6 @@ class chatbot:
                     hotel_sql_entities = hsql.get("hotel_ids") or []
                     hotel_sql_need = hsql.get("need")
 
-            # Override `query` passed to hotel sql tool with entity ids when available.
-            # If no entities found, fallback to original query.
             hotel_sql_selector = ""
             if hotel_sql_entities:
                 hotel_sql_selector = "hotel_id=" + ",".join(str(x) for x in hotel_sql_entities)
@@ -153,33 +195,26 @@ class chatbot:
                     hotel_sql_selector = hotel_name
 
             if enable_rag and needs_rag:
-
-
                 logger.info("Retrieving from RAG...")
-                rag_results = retrieve_from_rag(retrieval_query)
+                rag_trace(step="rag_system:rag_retrieve:input", input={"query": str(retrieval_query)})
+                rag_results = retrieve_from_rag(str(retrieval_query))
+                rag_trace(step="rag_system:rag_retrieve:output", output=rag_results)
                 logger.info(f"rag_results: {rag_results}")
 
             if enable_graph and needs_graph:
                 logger.info("Retrieving from Graph...")
-                graph_results = retrieve_from_graph(retrieval_query)
+                rag_trace(step="rag_system:graph_retrieve:input", input={"query": str(retrieval_query)})
+                graph_results = retrieve_from_graph(str(retrieval_query))
+                rag_trace(step="rag_system:graph_retrieve:output", output=graph_results)
                 logger.info(f"graph_results: {graph_results}")
 
+            # Hotel Ask is handled via FAISS in RAG path.
+            # Hotel SQL tool is removed from backend/rag.
             if needs_hotel_sql:
-                logger.info("Retrieving from Hotel SQL...")
-
-                # Select hotel sql based on entity ids from planner/tool_inputs when available.
-                # If we found entities -> pass selector text to hotel_sql_utils best-effort extractor.
-                sql_query = retrieval_query
-                if hotel_sql_selector:
-                    sql_query = hotel_sql_selector
-
-                hotel_sql_results = retrieve_from_hotel_sql(sql_query, need=hotel_sql_need)
-                logger.info(f"hotel_sql_results: {hotel_sql_results}")
+                logger.info("Skipping Hotel SQL retrieval (removed). Hotel Ask uses FAISS vector search.")
 
 
-            # Step 2.5: Use extracted entities to refine context (if any)
             if isinstance(aux_intents, dict):
-                # Inject into aggregation plan_result context field
                 try:
                     plan_result.setdefault("context", "")
                     extra_ctx = aux_intents.get("hotel_entity_intent", {})
@@ -190,39 +225,59 @@ class chatbot:
                 except Exception:
                     pass
 
-            # Step 3: Information Aggregation
-
             logger.info("Step 3: Aggregating information...")
+            rag_trace(
+                step="rag_system:aggregate:input",
+                input={
+                    "rag_ok": bool(rag_results and rag_results.get("success")),
+                    "graph_ok": bool(graph_results and graph_results.get("success")),
+                    "hotel_sql_ok": bool(hotel_sql_results and hotel_sql_results.get("success")),
+                },
+                output={},
+            )
+
             aggregated_result = aggregate_information(
-                original_query,
+                str(original_query),
                 plan_result=plan_result,
                 rag_results=rag_results,
                 graph_results=graph_results,
-                user_profile_results=None,
-                short_term_memory_results=None,
-                hotel_sql_results=hotel_sql_results,
+                user_profile_results={},
+                short_term_memory_results={},
             )
             logger.info(f"Aggregation result: {aggregated_result}")
+            rag_trace(step="rag_system:aggregate:output", output=aggregated_result)
 
-            # Step 4: Response Generation
             logger.info("Step 4: Generating response...")
+            rag_trace(
+                step="rag_system:generation:input",
+                input={
+                    "query": str(original_query),
+                    "aggregated_info_len": len(str(aggregated_result.get("aggregated_info", ""))),
+                    "history_len": len(self.conversation_history),
+                },
+            )
             response = generate_response(
-                original_query,
+                str(original_query),
                 aggregated_result.get("aggregated_info", ""),
                 conversation_history=self.conversation_history,
             )
             logger.info("Response generated successfully")
+            rag_trace(
+                step="rag_system:generation:output",
+                output={"response": response, "response_len": len(response)},
+            )
 
-            self.conversation_history.append({"role": "user", "content": original_query})
+            self.conversation_history.append({"role": "user", "content": str(original_query)})
             self.conversation_history.append({"role": "assistant", "content": response})
 
             if return_detailed:
                 return {
-                    "query": original_query,
-                    "retrieval_query": retrieval_query,
+                    "query": str(original_query),
+                    "retrieval_query": str(retrieval_query),
                     "response": response,
                     "plan": plan_result,
                     "skill_agent": skill_result,
+                    "aux_intents": aux_intents,
                     "rag": rag_results,
                     "graph": graph_results,
                     "hotel_sql": hotel_sql_results,
@@ -231,25 +286,30 @@ class chatbot:
 
             return response
 
-        except Exception as e:
-            logger.error(f"Error processing query: {str(e)}", exc_info=True)
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"Error processing query: {str(exc)}", exc_info=True)
+            rag_trace_error(
+                step="rag_system:process",
+                error=exc,
+                input={"query": query, "return_detailed": return_detailed},
+            )
             if return_detailed:
                 return {
-                    "query": query,
-                    "response": f"Xin lỗi, có lỗi xảy ra: {str(e)}",
-                    "error": str(e),
+                    "query": str(query),
+                    "response": "",
+                    "error": str(exc),
+                    "error_type": type(exc).__name__,
                 }
-            return f"Xin lỗi, có lỗi xảy ra: {str(e)}"
+            return f"Xin loi, co loi xay ra: {str(exc)}"
 
     def chat(self, query: str) -> str:
-        return self.process(query, return_detailed=False)
+        return self.process(query, return_detailed=False)  # type: ignore[return-value]
 
     def clear_history(self) -> None:
         self.conversation_history = []
         logger.info("Conversation history cleared")
 
 
-# Global instance
 _chatbot_instance: Optional[chatbot] = None
 
 
@@ -258,4 +318,3 @@ def get_chatbot(user_id: str = "default_user") -> chatbot:
     if _chatbot_instance is None:
         _chatbot_instance = chatbot(user_id)
     return _chatbot_instance
-

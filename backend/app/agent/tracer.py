@@ -4,12 +4,16 @@ Flow-tracer cho OTA LangGraph workflow.
 Trách nhiệm:
   1. Cung cấp hàm `log_flow_start` / `log_flow_end` dùng bởi chat.py
      (hai hàm này nay delegate sang FlowTrace).
-  2. Cung cấp `extract_node_context` — trả dict chi tiết cho mỗi node,
-     dùng bởi `with_timing` trong latency.py để populate FlowTrace span.
+  2. Cung cấp `extract_node_input`  — snapshot input state TRƯỚC khi node chạy.
+  3. Cung cấp `extract_node_output` — snapshot output/patch SAU khi node chạy.
+  4. Cung cấp `extract_node_context` — context summary cho console + JSON trace.
 
-Mỗi extractor nhận (pre_state, post_result) và trả dict gồm hai loại:
-  • scalar fields  → hiển thị inline trên console (key=value)
-  • nested dict/list → chỉ vào JSON trace file, không xuất console
+Quy ước:
+  • input extractors  nhận (pre_state: dict) → dict
+  • output extractors nhận (pre_state: dict, post_result: dict) → dict
+  • context extractors nhận (pre_state, post_result) → dict gồm:
+      - scalar fields  → hiển thị inline trên console (key=value)
+      - nested dict/list → chỉ vào JSON trace file, không xuất console
 """
 from __future__ import annotations
 
@@ -21,6 +25,438 @@ from app.core.trace import FlowTrace, current_trace
 _RAG_INTENTS: frozenset[str] = frozenset({"information", "special_feature", "hotel_similar"})
 
 logger = logging.getLogger(__name__)
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# Per-node INPUT extractors
+# Signature: (pre_state: dict) → dict[str, Any]
+# Snapshot state fields BEFORE the node runs.
+# Keep objects small — avoid copying large lists verbatim.
+# ────────────────────────────────────────────────────────────────────────────
+
+def _in_session(s: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "session_id": s.get("session_id"),
+        "user_id": s.get("user_id"),
+        "raw_query": s.get("raw_query"),
+    }
+
+
+def _in_intent(s: dict[str, Any]) -> dict[str, Any]:
+    profile: dict[str, Any] = s.get("user_profile") or {}
+    sc = profile.get("session_context") if isinstance(profile, dict) else {}
+    sc = sc or {}
+    history = s.get("chat_history") or []
+    lt = profile.get("long_term_profile") if isinstance(profile, dict) else {}
+    return {
+        "raw_query": s.get("raw_query"),
+        "chat_history_turns": len(history),
+        "conversation_summary_chars": len(s.get("conversation_summary") or ""),
+        "session_context": {
+            "destination": sc.get("destination"),
+            "check_in": sc.get("check_in"),
+            "check_out": sc.get("check_out"),
+            "nearby_place": sc.get("nearby_place"),
+            "number_of_guests": sc.get("number_of_guests"),
+        },
+        "has_long_term_profile": bool(lt),
+    }
+
+
+def _in_slot_check(s: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "intent": s.get("intent"),
+        "slot_is_complete": s.get("slot_is_complete"),
+        "slots": s.get("slots") or {},
+        "needs_clarification": s.get("needs_clarification"),
+    }
+
+
+def _in_clarify(s: dict[str, Any]) -> dict[str, Any]:
+    guardrail = (s.get("qu_trace") or {}).get("guardrail") or {}
+    return {
+        "needs_clarification": s.get("needs_clarification"),
+        "clarification_question": s.get("clarification_question"),
+        "clarification_missing_fields": s.get("clarification_missing_fields") or [],
+        "guardrail_blocked": guardrail.get("allow") is False,
+        "guardrail_category": guardrail.get("category"),
+    }
+
+
+def _in_rewrite(s: dict[str, Any]) -> dict[str, Any]:
+    recommend_input = s.get("recommend_input")
+    return {
+        "raw_query": s.get("raw_query"),
+        "intent": s.get("intent"),
+        "slots": s.get("slots") or {},
+        "has_recommend_input": recommend_input is not None,
+    }
+
+
+def _in_rag(s: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "rewritten_query": s.get("rewritten_query") or s.get("raw_query"),
+        "intent": s.get("intent"),
+        "slots": s.get("slots") or {},
+        "chat_history_turns": len(s.get("chat_history") or []),
+    }
+
+
+def _in_recommend(s: dict[str, Any]) -> dict[str, Any]:
+    ri = s.get("recommend_input")
+    if ri is None:
+        return {"recommend_input": None, "candidate_limit_per_source": s.get("candidate_limit_per_source")}
+    try:
+        sc = ri.session_context if hasattr(ri, "session_context") else {}
+        profile = ri.profile if hasattr(ri, "profile") else {}
+        return {
+            "user_id": ri.user_id if hasattr(ri, "user_id") else None,
+            "original_query": ri.original_query if hasattr(ri, "original_query") else None,
+            "search_query_template": getattr(ri, "search_query_template", None),
+            "limit_per_source": ri.limit_per_source if hasattr(ri, "limit_per_source") else None,
+            "session_context": {
+                "destination": getattr(sc, "destination", None),
+                "check_in": getattr(sc, "check_in", None),
+                "check_out": getattr(sc, "check_out", None),
+                "nearby_place": getattr(sc, "nearby_place", None),
+                "number_of_guests": getattr(sc, "number_of_guests", None),
+                "has_pet": getattr(sc, "has_pet", None),
+                "has_children": getattr(sc, "has_children", None),
+                "price_range": getattr(sc, "session_price_range", None) and {
+                    "min": getattr(sc.session_price_range, "min", None),
+                    "max": getattr(sc.session_price_range, "max", None),
+                    "currency": getattr(sc.session_price_range, "currency", None),
+                },
+            },
+            "profile_summary": {
+                "nationality": getattr(profile, "nationality", None),
+                "age_group": getattr(profile, "age_group", None),
+                "trip_types": list(getattr(profile, "long_term_trip_types", {}).keys())[:5],
+                "preference_habits": list(getattr(profile, "long_term_preference_habits", {}).keys())[:5],
+                "amenities": list(getattr(profile, "long_term_amenities", {}).keys())[:5],
+            },
+        }
+    except Exception:  # noqa: BLE001
+        return {"recommend_input": "present", "parse_error": True}
+
+
+def _in_rerank(s: dict[str, Any]) -> dict[str, Any]:
+    merged = s.get("merged_candidates") or []
+    ri = s.get("recommend_input")
+    return {
+        "merged_candidates_count": len(merged),
+        "rerank_options": s.get("rerank_options") or {},
+        "session_destination": (
+            getattr(getattr(ri, "session_context", None), "destination", None)
+            if ri is not None else None
+        ),
+    }
+
+
+def _in_response_builder(s: dict[str, Any]) -> dict[str, Any]:
+    ranked = s.get("ranked_recommendations") or []
+    rag = s.get("rag_answer") or ""
+    return {
+        "ranked_count": len(ranked),
+        "rag_answer_chars": len(rag),
+        "intent": s.get("intent"),
+        "destination": (s.get("slots") or {}).get("destination"),
+        "top_hotels": [
+            {"hotel_id": r.get("hotel_id"), "name": r.get("hotel_name"), "score": r.get("score")}
+            for r in ranked[:5]
+        ],
+    }
+
+
+def _in_explain(s: dict[str, Any]) -> dict[str, Any]:
+    ranked = s.get("ranked_recommendations") or []
+    reasons = s.get("hotel_reasons") or {}
+    return {
+        "ranked_count": len(ranked),
+        "hotel_reasons_count": len(reasons),
+        "synthesized_answer_chars": len(s.get("synthesized_answer") or ""),
+    }
+
+
+def _in_format_response(s: dict[str, Any]) -> dict[str, Any]:
+    ranked = s.get("ranked_recommendations") or []
+    return {
+        "intent": s.get("intent"),
+        "ranked_count": len(ranked),
+        "synthesized_answer_chars": len(s.get("synthesized_answer") or ""),
+        "rag_docs_count": len(s.get("rag_docs") or []),
+        "needs_clarification": s.get("needs_clarification"),
+    }
+
+
+def _in_analytics(s: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "session_id": s.get("session_id"),
+        "intent": s.get("intent"),
+        "latency_trace": s.get("latency_trace") or {},
+    }
+
+
+_INPUT_EXTRACTORS: dict[str, Any] = {
+    "session": _in_session,
+    "intent": _in_intent,
+    "slot_check": _in_slot_check,
+    "clarify": _in_clarify,
+    "rewrite": _in_rewrite,
+    "rag": _in_rag,
+    "recommend": _in_recommend,
+    "rerank": _in_rerank,
+    "response_builder": _in_response_builder,
+    "explain": _in_explain,
+    "format_response": _in_format_response,
+    "analytics": _in_analytics,
+}
+
+
+def extract_node_input(node_name: str, state: dict[str, Any]) -> dict[str, Any]:
+    """Snapshot input state TRƯỚC khi node chạy."""
+    fn = _INPUT_EXTRACTORS.get(node_name)
+    if fn is None:
+        return {}
+    try:
+        return fn(state) or {}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# Per-node OUTPUT extractors
+# Signature: (pre_state: dict, post_result: dict) → dict[str, Any]
+# Snapshot what the node returned (the state delta).
+# ────────────────────────────────────────────────────────────────────────────
+
+def _out_session(s: dict, r: dict) -> dict:
+    history = r.get("chat_history") or []
+    profile = r.get("user_profile") or {}
+    sc = profile.get("session_context") if isinstance(profile, dict) else {}
+    sc = sc or {}
+    return {
+        "chat_history_turns": len(history),
+        "conversation_summary_chars": len(r.get("conversation_summary") or ""),
+        "session_context": {
+            "destination": sc.get("destination"),
+            "check_in": sc.get("check_in"),
+            "check_out": sc.get("check_out"),
+            "nearby_place": sc.get("nearby_place"),
+        },
+        "long_term_loaded": bool(
+            profile.get("long_term_profile") if isinstance(profile, dict) else None
+        ),
+    }
+
+
+def _out_intent(s: dict, r: dict) -> dict:
+    qu = r.get("qu_trace") or {}
+    timing = qu.get("timing") or {}
+    guardrail = qu.get("guardrail") or {}
+    checker = qu.get("checker") or {}
+    plan_r = checker.get("plan_readiness") or checker.get("initial_plan_readiness") or {}
+    router = qu.get("router") or {}
+    ri = r.get("recommend_input")
+    return {
+        "intent": r.get("intent"),
+        "slots": r.get("slots") or {},
+        "slot_is_complete": r.get("slot_is_complete"),
+        "needs_clarification": r.get("needs_clarification"),
+        "clarification_question": r.get("clarification_question") or "",
+        "clarification_missing_fields": r.get("clarification_missing_fields") or [],
+        "recommend_input_built": ri is not None,
+        "qu_pipeline": "fallback" if not qu else "qu_pipeline",
+        "guardrail": {
+            "allow": guardrail.get("allow"),
+            "category": guardrail.get("category"),
+            "reason": guardrail.get("reason"),
+        },
+        "plan_readiness": {
+            "can_build_plan": plan_r.get("can_build_plan"),
+            "missing_fields": plan_r.get("missing_fields") or [],
+        },
+        "router_tasks": {
+            "recommendation": [str(st.get("intent_type", "")) for st in (router.get("recommendation_plan") or [])],
+            "rag": [str(st.get("intent_type", "")) for st in (router.get("rag_plan") or [])],
+        },
+        "qu_timing_ms": {k: v for k, v in timing.items() if isinstance(v, (int, float))},
+    }
+
+
+def _out_slot_check(s: dict, r: dict) -> dict:
+    ok = r.get("slot_is_complete")
+    return {
+        "slot_is_complete": ok,
+        "route": "complete" if ok else "incomplete → clarify",
+    }
+
+
+def _out_clarify(s: dict, r: dict) -> dict:
+    fr = r.get("final_response") or {}
+    return {
+        "answer": (fr.get("answer") or "")[:300],
+        "needs_clarification": fr.get("needs_clarification"),
+        "missing_fields": fr.get("missing_fields") or [],
+        "next_suggestions": fr.get("next_suggestions") or [],
+    }
+
+
+def _out_rewrite(s: dict, r: dict) -> dict:
+    return {
+        "rewritten_query": r.get("rewritten_query") or "",
+        "search_query_template": r.get("search_query_template") or "",
+    }
+
+
+def _out_rag(s: dict, r: dict) -> dict:
+    docs = r.get("rag_docs") or []
+    answer = r.get("rag_answer") or ""
+    by_src: dict[str, int] = {}
+    for d in docs:
+        src = d.get("source", "?")
+        by_src[src] = by_src.get(src, 0) + 1
+    return {
+        "rag_docs_count": len(docs),
+        "rag_answer_chars": len(answer),
+        "rag_answer_preview": answer[:300],
+        "rag_confidence": r.get("rag_confidence", 0.0),
+        "docs_by_source": by_src,
+    }
+
+
+def _out_recommend(s: dict, r: dict) -> dict:
+    merged = r.get("merged_candidates") or []
+    raw_stats = r.get("_raw_source_stats") or {}
+    src_breakdown: dict[str, int] = {}
+    for m in merged:
+        for src in getattr(m, "sources", []):
+            src_breakdown[src] = src_breakdown.get(src, 0) + 1
+    return {
+        "merged_count": len(merged),
+        "raw_source_stats": raw_stats,
+        "merged_source_breakdown": src_breakdown,
+        "top_candidates": [
+            {
+                "hotel_id": getattr(m, "hotel_id", "?"),
+                "name": getattr(m, "hotel_name", "?"),
+                "pre_rank_score": round(getattr(m, "pre_rank_score", 0.0), 4),
+                "sources": getattr(m, "sources", []),
+            }
+            for m in merged[:10]
+        ],
+    }
+
+
+def _out_rerank(s: dict, r: dict) -> dict:
+    rr = r.get("rerank_result") or {}
+    ranked = rr.get("ranked_hotels") or []
+    debug = rr.get("debug") or {}
+    filtered = debug.get("filtered_items") or []
+    return {
+        "ranked_count": len(ranked),
+        "filtered_count": debug.get("filtered_count", len(filtered)),
+        "llm_used": bool(rr.get("llm_used") or debug.get("llm_used")),
+        "latency_breakdown_ms": rr.get("latency_breakdown") or {},
+        "top_ranked": [
+            {
+                "rank": h.get("rank"),
+                "hotel_id": h.get("hotel_id") or h.get("item_id"),
+                "name": h.get("name"),
+                "final_score": h.get("final_score"),
+                "base_score": h.get("base_score"),
+                "llm_score": h.get("llm_score"),
+                "reasons": (h.get("reasons") or [])[:3],
+            }
+            for h in ranked[:10]
+        ],
+        "filtered_items": [
+            {"hotel_id": f.get("item_id"), "name": f.get("name"), "reason": f.get("reason")}
+            for f in filtered[:5]
+        ],
+    }
+
+
+def _out_response_builder(s: dict, r: dict) -> dict:
+    answer = r.get("synthesized_answer") or ""
+    reasons = r.get("hotel_reasons") or {}
+    sugg = r.get("next_suggestions") or []
+    return {
+        "synthesized_answer_chars": len(answer),
+        "synthesized_answer_preview": answer[:400],
+        "hotel_reasons_count": len(reasons),
+        "hotel_reasons": {
+            hid: (reason[:200] if isinstance(reason, str) else reason)
+            for hid, reason in list(reasons.items())[:10]
+        },
+        "next_suggestions": sugg,
+    }
+
+
+def _out_explain(s: dict, r: dict) -> dict:
+    recs = r.get("ranked_recommendations") or []
+    with_reason = sum(1 for rc in recs if rc.get("ai_reason"))
+    return {
+        "ranked_recommendations_count": len(recs),
+        "with_ai_reason": with_reason,
+        "explanation": r.get("explanation") or "",
+    }
+
+
+def _out_format_response(s: dict, r: dict) -> dict:
+    fr = r.get("final_response") or {}
+    return {
+        "answer_chars": len(fr.get("answer") or ""),
+        "answer_preview": (fr.get("answer") or "")[:300],
+        "intent": fr.get("intent"),
+        "recommendations_count": len(fr.get("recommendations") or []),
+        "sources_count": len(fr.get("sources") or []),
+        "next_suggestions": fr.get("next_suggestions") or [],
+        "needs_clarification": fr.get("needs_clarification"),
+        "latency": fr.get("latency") or {},
+    }
+
+
+def _out_analytics(s: dict, r: dict) -> dict:
+    lat = r.get("latency_summary") or {}
+    return {
+        "total_ms": lat.get("total_ms"),
+        "critical_path_ms": lat.get("critical_path_ms"),
+        "bottleneck_stage": lat.get("bottleneck_stage"),
+        "bottleneck_ms": lat.get("bottleneck_ms"),
+        "per_stage_ms": lat.get("per_stage_ms") or {},
+    }
+
+
+_OUTPUT_EXTRACTORS: dict[str, Any] = {
+    "session": _out_session,
+    "intent": _out_intent,
+    "slot_check": _out_slot_check,
+    "clarify": _out_clarify,
+    "rewrite": _out_rewrite,
+    "rag": _out_rag,
+    "recommend": _out_recommend,
+    "rerank": _out_rerank,
+    "response_builder": _out_response_builder,
+    "explain": _out_explain,
+    "format_response": _out_format_response,
+    "analytics": _out_analytics,
+}
+
+
+def extract_node_output(
+    node_name: str,
+    state: dict[str, Any],
+    result: dict[str, Any],
+) -> dict[str, Any]:
+    """Snapshot output/patch SAU khi node chạy."""
+    fn = _OUTPUT_EXTRACTORS.get(node_name)
+    if fn is None:
+        return {}
+    try:
+        return fn(state, result) or {}
+    except Exception:  # noqa: BLE001
+        return {}
 
 
 # ── Per-node context extractors ───────────────────────────────────────────────

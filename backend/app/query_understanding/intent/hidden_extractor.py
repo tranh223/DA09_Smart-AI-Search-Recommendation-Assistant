@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from dataclasses import asdict, dataclass, field
 
 from query_understanding.intent.extractor import (
@@ -25,6 +26,56 @@ PROFILE_SIGNAL_GROUPS = {
     },
 }
 SCALAR_SIGNAL_FIELDS = {"nationality", "age_group", "current_workplace"}
+PROFILE_COMPACT_SCORE_MAP_FIELDS = (
+    "traveler_type",
+    "long_term_trip_types",
+    "long_term_budget_levels",
+    "long_term_preference_habits",
+    "long_term_hotel_types",
+    "long_term_room_views",
+    "long_term_amenities",
+)
+PROFILE_COMPACT_NEGATIVE_FIELDS = (
+    "avoid_hotel_types",
+    "avoid_amenities",
+    "avoid_preference_habits",
+    "avoid_nearby_places",
+    "avoid_locations",
+)
+CURRENT_QUERY_SIGNAL_PATTERNS = (
+    r"\bhotel\b",
+    r"\bresort\b",
+    r"\bhomestay\b",
+    r"\bhostel\b",
+    r"\bkhach\s+san\b",
+    r"\bdat\s+phong\b",
+    r"\bluu\s+tru\b",
+    r"\bphong\b",
+    r"\bgoi\s+y\b",
+    r"\btim\b",
+    r"\bnen\s+o\b",
+    r"\bphu\s+hop\b",
+    r"\bdiem\s+den\b",
+    r"\bngay\b",
+    r"\bcheck[\s-]?in\b",
+    r"\bcheck[\s-]?out\b",
+    r"\bngan\s+sach\b",
+    r"\bgia\b",
+    r"\btrieu\b",
+    r"\bvnd\b",
+    r"\bnguoi\b",
+    r"\bview\b",
+    r"\bhuong\b",
+    r"\bbien\b",
+    r"\btien\s+(nghi|ich)\b",
+    r"\bdich\s+vu\b",
+    r"\bsach\s+se\b",
+    r"\byen\s+tinh\b",
+    r"\brieng\s+tu\b",
+    r"\bcap\s+doi\b",
+    r"\bgia\s+dinh\b",
+    r"\bcong\s+tac\b",
+)
 
 
 @dataclass(slots=True)
@@ -242,6 +293,16 @@ class HiddenIntentInsightExtractor:
             }
             return HiddenIntentResult()
 
+        if not self._has_current_query_signal(query):
+            self.last_trace = {
+                "path": "skipped",
+                "enabled": True,
+                "model": self.model,
+                "reason": "current_query_has_no_hotel_or_constraint_signal",
+                "query": query,
+            }
+            return HiddenIntentResult()
+
         normalized_history = LLMIntentExtractor._normalize_history(conversation_history)
         normalized_session_context = LLMIntentExtractor._normalize_session_context(session_context)
         input_payload = {
@@ -360,15 +421,92 @@ class HiddenIntentInsightExtractor:
             scalar_signals=scalar_signals,
         )
 
-    @staticmethod
-    def _compact_profile(profile: dict[str, object] | None) -> dict[str, object]:
+    @classmethod
+    def _compact_profile(cls, profile: dict[str, object] | None) -> dict[str, object]:
         if not isinstance(profile, dict):
             return {}
-        return {
-            key: value
-            for key, value in profile.items()
-            if value not in (None, "", {}, [])
-        }
+        top_n = cls._profile_compact_top_n()
+        compact: dict[str, object] = {}
+
+        for field_name in SCALAR_SIGNAL_FIELDS | {"is_enough"}:
+            value = profile.get(field_name)
+            if value not in (None, "", {}, []):
+                compact[field_name] = value
+
+        price_range = profile.get("long_term_price_range")
+        if isinstance(price_range, dict):
+            compact_price = {
+                key: price_range.get(key)
+                for key in ("min", "max", "currency")
+                if price_range.get(key) not in (None, "", {}, [])
+            }
+            if compact_price:
+                compact["long_term_price_range"] = compact_price
+
+        for field_name in PROFILE_COMPACT_SCORE_MAP_FIELDS:
+            top_items = cls._compact_score_map(profile.get(field_name), top_n=top_n)
+            if top_items:
+                compact[field_name] = top_items
+
+        negative_preferences = profile.get("long_term_negative_preferences")
+        if isinstance(negative_preferences, dict):
+            compact_negative: dict[str, object] = {}
+            for field_name in PROFILE_COMPACT_NEGATIVE_FIELDS:
+                top_items = cls._compact_score_map(negative_preferences.get(field_name), top_n=top_n)
+                if top_items:
+                    compact_negative[field_name] = top_items
+            if compact_negative:
+                compact["long_term_negative_preferences"] = compact_negative
+
+        return compact
+
+    @staticmethod
+    def _profile_compact_top_n() -> int:
+        try:
+            return max(1, int(os.getenv("HIDDEN_INTENT_PROFILE_TOP_N", "5") or "5"))
+        except (TypeError, ValueError):
+            return 5
+
+    @classmethod
+    def _compact_score_map(cls, value: object, *, top_n: int) -> list[dict[str, object]]:
+        if not isinstance(value, dict):
+            return []
+        items: list[dict[str, object]] = []
+        for tag, raw_payload in value.items():
+            tag_text = str(tag).strip()
+            if not tag_text:
+                continue
+            if isinstance(raw_payload, dict):
+                item: dict[str, object] = {"tag": tag_text}
+                count = cls._coerce_count(raw_payload.get("count"))
+                if count is not None:
+                    item["count"] = count
+                last_interaction = raw_payload.get("last_interaction")
+                if last_interaction not in (None, "", {}, []):
+                    item["last_interaction"] = str(last_interaction)
+                for optional_key in ("score", "confidence"):
+                    optional_value = raw_payload.get(optional_key)
+                    if optional_value not in (None, "", {}, []):
+                        item[optional_key] = optional_value
+                items.append(item)
+            elif raw_payload not in (None, "", {}, []):
+                items.append({"tag": tag_text, "value": raw_payload})
+        items.sort(
+            key=lambda item: (
+                cls._coerce_count(item.get("count")) or 0,
+                str(item.get("last_interaction") or ""),
+                str(item.get("tag") or ""),
+            ),
+            reverse=True,
+        )
+        return items[:top_n]
+
+    @staticmethod
+    def _coerce_count(value: object) -> int | None:
+        try:
+            return int(value)  # type: ignore[arg-type]
+        except (TypeError, ValueError):
+            return None
 
     @staticmethod
     def _coerce_confidence(value: object) -> float:
@@ -376,3 +514,18 @@ class HiddenIntentInsightExtractor:
             return max(0.0, min(1.0, float(value)))
         except (TypeError, ValueError):
             return 0.0
+
+    @classmethod
+    def _has_current_query_signal(cls, query: str) -> bool:
+        normalized = cls._normalize_for_pattern_match(query)
+        if not normalized:
+            return False
+        return any(re.search(pattern, normalized, re.IGNORECASE) for pattern in CURRENT_QUERY_SIGNAL_PATTERNS)
+
+    @staticmethod
+    def _normalize_for_pattern_match(text: str) -> str:
+        import unicodedata
+
+        normalized = unicodedata.normalize("NFD", str(text or "").lower())
+        without_accents = "".join(char for char in normalized if unicodedata.category(char) != "Mn")
+        return " ".join(without_accents.split())

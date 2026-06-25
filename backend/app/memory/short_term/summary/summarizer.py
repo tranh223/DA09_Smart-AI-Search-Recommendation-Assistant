@@ -18,7 +18,7 @@ def summarize_chat(summary: str, history: list, user_id: str) -> tuple[str, list
     cần kiểm tra trước xem có cần summarize k, nếu summary thay đổi thì update summary trong mongodb
     output: new_summary, new_history
     '''
-    TRIGGER_THRESHOLD = 6
+    TRIGGER_THRESHOLD = 10
     RECENT_MESSAGES_TO_KEEP = 4
     if len(history) < TRIGGER_THRESHOLD:
         return summary, history    
@@ -72,7 +72,7 @@ def summarize_chat(summary: str, history: list, user_id: str) -> tuple[str, list
         print(f"❌ [summarize_chat] Lỗi khi gọi OpenAI API: {str(e)}")
         return summary, history
 
-def update_summary(summary: str, user_id: str or ObjectId) -> bool:
+def update_summary(summary: str, user_id: str | ObjectId) -> bool:
     '''
     khi update lưu kèm timestamp
     '''

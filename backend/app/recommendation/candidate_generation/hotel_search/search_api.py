@@ -1,9 +1,9 @@
-"""Hotel search adapter that calls the external search API."""
+"""Hotel search adapter that calls the external Search API."""
 
 from __future__ import annotations
 
-import logging
 import json
+import logging
 import os
 from typing import Any
 
@@ -24,79 +24,6 @@ DEFAULT_HOTEL_SEARCH_TIMEOUT_SECONDS = float(
 )
 
 
-def _build_query_text(slots: dict[str, Any]) -> str:
-    parts: list[str] = []
-
-    city = slots.get("city")
-    if city:
-        check_in = slots.get("check_in")
-        check_out = slots.get("check_out")
-        if check_in and check_out:
-            parts.append(f"Tôi sắp đi {city} từ ngày {check_in} đến ngày {check_out}.")
-        elif check_in:
-            parts.append(f"Tôi sắp đi {city} từ ngày {check_in}.")
-        else:
-            parts.append(f"Tôi sắp đi {city}.")
-
-    trip_type = slots.get("trip_type")
-    if trip_type:
-        parts.append(f"Tôi muốn khách sạn phù hợp cho {trip_type}.")
-
-    traveler_type = _normalize_text_items(slots.get("traveler_type"))
-    if traveler_type:
-        parts.append(f"Phong cách du lịch của tôi là {_join_items(traveler_type)}.")
-
-    budget_levels = _normalize_text_items(slots.get("budget_levels"))
-    if budget_levels:
-        parts.append(f"Mức ngân sách ưu tiên là {_join_items(budget_levels)}.")
-
-    hotel_types = _normalize_text_items(slots.get("hotel_types"))
-    if hotel_types:
-        parts.append(f"Tôi ưu tiên loại hình lưu trú như {_join_items(hotel_types)}.")
-
-    room_views = _normalize_text_items(slots.get("room_views"))
-    if room_views:
-        parts.append(f"Tôi muốn phòng có hướng nhìn như {_join_items(room_views)}.")
-
-    amenities = _normalize_text_items(slots.get("amenities"))
-    if amenities:
-        parts.append(f"Tôi muốn khách sạn có tiện ích như {_join_items(amenities)}.")
-
-    preference_habits = _normalize_text_items(slots.get("preference_habits"))
-    if preference_habits:
-        parts.append(f"Tôi muốn khách sạn có đặc điểm như {_join_items(preference_habits)}.")
-
-    profile_features = slots.get("profile_features") or []
-    if profile_features and not any((hotel_types, room_views, amenities, preference_habits)):
-        parts.append(
-            "Tôi muốn khách sạn có các tiện ích và đặc điểm như "
-            + _join_items(_normalize_text_items(profile_features)[:12])
-            + "."
-        )
-
-    return " ".join(parts).strip()
-
-
-def _normalize_text_items(values: Any, *, limit: int = 12) -> list[str]:
-    if not isinstance(values, list):
-        return []
-    normalized: list[str] = []
-    seen: set[str] = set()
-    for value in values:
-        text = str(value).strip()
-        if not text or text in seen:
-            continue
-        seen.add(text)
-        normalized.append(text)
-        if len(normalized) >= limit:
-            break
-    return normalized
-
-
-def _join_items(values: list[str]) -> str:
-    return ", ".join(values)
-
-
 def _search_hotels_via_api(
     *,
     query_text: str,
@@ -107,7 +34,7 @@ def _search_hotels_via_api(
         "filters": {},
         "top_k": top_k,
     }
-    logger.info("[EmbeddingSearch] Search API request payload=%s", payload)
+    logger.info("[TemplateSearchAPI] Search API request payload=%s", payload)
     raw_payload = json.dumps(payload, ensure_ascii=False)
     headers = {"Content-Type": "application/json"}
     with httpx.Client(timeout=DEFAULT_HOTEL_SEARCH_TIMEOUT_SECONDS) as client:
@@ -199,7 +126,11 @@ def _hits_to_candidates(hits: list[dict[str, Any]]) -> list[CandidateHotel]:
         if hotel_id is None:
             continue
 
-        tag_names = [str(t.get("tag_id", "")).split("::", 1)[-1] for t in _coerce_tags(hit) if isinstance(t, dict)]
+        tag_names = [
+            str(tag.get("tag_id", "")).split("::", 1)[-1]
+            for tag in _coerce_tags(hit)
+            if isinstance(tag, dict)
+        ]
         city_name = _coerce_city(hit)
         score = _coerce_score(hit)
 
@@ -207,7 +138,7 @@ def _hits_to_candidates(hits: list[dict[str, Any]]) -> list[CandidateHotel]:
             CandidateHotel(
                 hotel_id=hotel_id,
                 hotel_name=_coerce_hotel_name(hit),
-                source="embedding_search",
+                source="template_search_api",
                 score=score,
                 matched_paths=[f"Tag({name})" for name in tag_names[:5] if name],
                 reason=f"search_api match ({score:.3f}) | {city_name or ''}",
@@ -223,7 +154,7 @@ def _hits_to_candidates(hits: list[dict[str, Any]]) -> list[CandidateHotel]:
     return candidates
 
 
-def get_embedding_search_candidates(
+def get_template_search_api_candidates(
     inp: RecommendInput,
     trace: RecommendTrace | None = None,
 ) -> list[CandidateHotel]:
@@ -235,16 +166,28 @@ def get_embedding_search_candidates(
 
     if not city:
         if trace and trace.enabled:
-            trace.info("Missing city -> skip embedding_search")
-        logger.info("[EmbeddingSearch] No city -> skip.")
+            trace.info("Missing city -> skip template_search_api")
+        logger.info("[TemplateSearchAPI] No city -> skip.")
         return []
 
-    query_text = _build_query_text(slots)
+    query_text = (inp.search_query_template or "").strip()
     if not query_text:
         if trace and trace.enabled:
-            trace.info("Empty query template -> skip embedding_search")
-        logger.info("[EmbeddingSearch] Empty query template -> skip.")
+            trace.info("Missing query template from rewrite_node -> skip template_search_api")
+        logger.info("[TemplateSearchAPI] Missing query template -> skip.")
         return []
+
+    print(
+        "[TemplateSearchAPI] query_template="
+        f"{query_text!r} len={len(query_text)} top_k={inp.limit_per_source}",
+        flush=True,
+    )
+    logger.info(
+        "[TemplateSearchAPI] query_template=%r len=%d top_k=%d",
+        query_text,
+        len(query_text),
+        inp.limit_per_source,
+    )
 
     try:
         hits = _search_hotels_via_api(
@@ -262,14 +205,14 @@ def get_embedding_search_candidates(
                 },
             )
     except Exception as exc:  # noqa: BLE001
-        logger.warning("[EmbeddingSearch] Search API error: %s", exc)
+        logger.warning("[TemplateSearchAPI] Search API error: %s", exc)
         if trace and trace.enabled:
             trace.info(f"Search API error: {exc}")
         return []
 
     candidates = _hits_to_candidates(hits)
     logger.info(
-        "[EmbeddingSearch] Returned %d candidates at %s via search API.",
+        "[TemplateSearchAPI] Returned %d candidates at %s via search API.",
         len(candidates),
         city,
     )

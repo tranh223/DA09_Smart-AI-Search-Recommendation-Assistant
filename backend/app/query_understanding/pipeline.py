@@ -179,6 +179,57 @@ class QueryUnderstandingPipeline:
                 "guardrail_trace": dict(self.guardrail.last_trace),
             },
         )
+
+        is_assistant_capability = self.checker.is_assistant_capability_query(query)
+        capability_safe_categories = {"SAFE", "OUT_OF_SCOPE"}
+        if is_assistant_capability and guardrail_result.category in capability_safe_categories:
+            timing["total_pipeline_ms"] = _elapsed_ms(pipeline_start)
+            _log_qu_json(
+                "query_classification",
+                "query_classified",
+                {
+                    "user_id": user_profile.user_id,
+                    "query": query,
+                    "classification": "assistant_capability",
+                    "can_build_plan": False,
+                    "guardrail": asdict(guardrail_result),
+                    "assistant_capability": True,
+                    "missing_fields": [],
+                    "search_plan": {},
+                    "router": {},
+                },
+            )
+            return PipelineResult(
+                trace=PipelineTrace(
+                    query=query,
+                    guardrail=asdict(guardrail_result),
+                    checker={
+                        "assistant_capability": True,
+                        "classification": "assistant_capability",
+                    },
+                    intent={},
+                    llm_traces={
+                        "guardrail": dict(self.guardrail.last_trace),
+                        "intent": {},
+                        "hidden_intent": {
+                            "path": "skipped",
+                            "reason": "assistant_capability_query",
+                        },
+                        "semantic_mapping": {},
+                        "tag_graph_expansion": {},
+                    },
+                    user_profile=asdict(user_profile),
+                    session_profile_update={},
+                    active_profile={},
+                    search_plan={},
+                    router={},
+                    timing=timing,
+                ),
+                router_result=None,
+                updated_user_profile=user_profile,
+                active_profile=None,
+            )
+
         if not guardrail_result.allow:
             timing["total_pipeline_ms"] = _elapsed_ms(pipeline_start)
             _log_qu_json(
@@ -709,12 +760,12 @@ class QueryUnderstandingPipeline:
         *,
         query: str,
     ) -> SessionProfileUpdateResult:
-        del query  # Kept for backward-compatible call sites and tests.
         return SessionProfileUpdater(score_threshold=self.semantic_mapper.score_threshold).apply(
             user_profile=user_profile,
             intent_result=intent_result,
             semantic_mapping=semantic_mapping,
             runtime_tag_expansion=runtime_tag_expansion,
+            query=query,
         )
 
     def _new_hidden_intent_extractor(self) -> Any:

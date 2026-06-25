@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 AGGREGATION_SYSTEM_PROMPT = """Bạn là chuyên gia tổng hợp thông tin. Khi nhận được:
 - Query gốc
 - Phân tích của Planner
-- Kết quả từ RAG, Graph, Short-term Memory, và Hotel SQL
+- Kết quả từ RAG, Graph, và Short-term Memory
 hãy:
 1) Đọc mục tiêu chính và các bước xử lý do Planner đề xuất.
 2) Lọc và chỉ giữ phần thông tin liên quan nhất để trả lời query.
@@ -53,7 +53,6 @@ def aggregate_information(
     graph_results: dict = None,
     user_profile_results: dict = None,
     short_term_memory_results: dict = None,
-    hotel_sql_results: dict = None,
 ) -> dict:
     """Tổng hợp thông tin từ các nguồn khác nhau."""
 
@@ -83,9 +82,6 @@ def aggregate_information(
         sources_info.append(
             f"Short-term Memory: {short_term_memory_results.get('results', [])}"
         )
-
-    if hotel_sql_results and hotel_sql_results.get("success"):
-        sources_info.append(f"Hotel SQL: {hotel_sql_results.get('results', None)}")
 
     if not sources_info:
         logger.warning("No information from any source")

@@ -8,7 +8,6 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from rag_input import build_retrieval_query, build_structured_plan, parse_rag_request
-from tools import rag_tool
 
 
 CASES = [
@@ -121,17 +120,17 @@ CASES = [
 EXPECTED_ROUTES = {
     "HOTEL_FEATURE_QA": {
         "needs_graph": False,
-        "rag_sections": ["description", "activities"],
+        "rag_sections": ["description", "overview", "semantic_profile", "faq"],
         "hotel_sql_needs": ["detail", "activities"],
     },
     "HOTEL_POLICY_QA": {
         "needs_graph": False,
-        "rag_sections": ["policy"],
+        "rag_sections": ["faq", "description", "semantic_profile"],
         "hotel_sql_needs": ["policies"],
     },
     "HOTEL_COMPARISON_QA": {
         "needs_graph": True,
-        "rag_sections": ["description", "policy", "activities"],
+        "rag_sections": ["description", "overview", "semantic_profile", "faq"],
         "hotel_sql_needs": ["detail", "policies", "activities"],
     },
 }
@@ -174,32 +173,12 @@ def _test_case(case: dict) -> None:
             assert value in retrieval_query, f"{case['name']}: missing {value}"
 
 
-def _test_rag_metadata_helpers() -> None:
-    rag_tool._META = {
-        "0": {
-            "hotel_id": 123,
-            "hotel_name": "InterContinental Danang Sun Peninsula Resort",
-            "section": "description",
-        }
-    }
-    assert rag_tool._resolve_hotel_ids("InterContinental Danang") == {123}
-    assert rag_tool._metadata_match(
-        {"section": "policy"},
-        {"section": ["policy", "activities"]},
-    )
-    assert not rag_tool._metadata_match(
-        {"section": "description"},
-        {"section": ["policy"]},
-    )
-
-
 def main() -> int:
     assert len(CASES) == 10
     for case in CASES:
         _test_case(case)
         print(f"PASS: {case['name']}")
 
-    _test_rag_metadata_helpers()
     print("Structured RAG input smoke test passed: 10/10 cases")
     return 0
 

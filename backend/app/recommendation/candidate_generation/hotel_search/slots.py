@@ -15,6 +15,7 @@ def extract_slots(inp: RecommendInput) -> dict[str, Any]:
     city = sc.destination or ""
     check_in = sc.check_in
     check_out = sc.check_out
+    price_range = getattr(sc, "session_price_range", None)
     trip_type = _pick_top_tag(ap.long_term_trip_types)
     traveler_type = _collect_profile_group(_get_profile_group(ap, "traveler_type"))
     budget_levels = _collect_profile_group(_get_profile_group(ap, "long_term_budget_levels"))
@@ -28,6 +29,8 @@ def extract_slots(inp: RecommendInput) -> dict[str, Any]:
         "city": city,
         "check_in": check_in,
         "check_out": check_out,
+        "budget_min": _get_price_value(price_range, "min"),
+        "budget_max": _get_price_value(price_range, "max"),
         "trip_type": trip_type,
         "traveler_type": traveler_type,
         "budget_levels": budget_levels,
@@ -43,6 +46,18 @@ def extract_slots(inp: RecommendInput) -> dict[str, Any]:
 def _pick_top_tag(values: dict[str, Any]) -> str | None:
     ranked = _sort_tag_items(values)
     return ranked[0][0] if ranked else None
+
+
+def _get_price_value(price_range: Any, field_name: str) -> float | None:
+    if price_range is None:
+        return None
+    value = price_range.get(field_name) if isinstance(price_range, dict) else getattr(price_range, field_name, None)
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def _collect_profile_features(inp: RecommendInput) -> list[str]:

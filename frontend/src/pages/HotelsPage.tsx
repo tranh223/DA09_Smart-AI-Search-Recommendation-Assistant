@@ -5,7 +5,7 @@ import { CHAT_DOCK_WIDTH } from '../components/chat/ChatBot';
 import { HotelCard, HotelSkeletonCard } from '../components/product_card/HotelCard';
 import { HotelDetailModal } from '../components/product_card/HotelDetailModal';
 import { useHotels } from '../hooks/useHotels';
-import { type Hotel, type HotelListParams, type RecoQuery } from '../services/hotels';
+import { getHotel, type Hotel, type HotelListParams, type RecoQuery } from '../services/hotels';
 import { t } from '../styles/theme';
 
 const PAGE_SIZE = 12;
@@ -68,9 +68,21 @@ function filterRecommendedHotels(hotels: Hotel[], filters: HotelListParams): Hot
   return result;
 }
 
-export function HotelsPage({ onNavigate, chatOpen = false, recoQuery = null }: { onNavigate?: (route: Route) => void; chatOpen?: boolean; recoQuery?: RecoQuery | null }) {
+export function HotelsPage({
+  onNavigate,
+  chatOpen = false,
+  recoQuery = null,
+  initialFilters = null,
+}: {
+  onNavigate?: (route: Route) => void;
+  chatOpen?: boolean;
+  recoQuery?: RecoQuery | null;
+  initialFilters?: HotelListParams | null;
+}) {
   const [selected, setSelected] = useState<Hotel | null>(null);
   const [mode, setMode] = useState<Mode>('all');
+  const [hydratedRecoHotels, setHydratedRecoHotels] = useState<Hotel[] | null>(null);
+  const [hydratingReco, setHydratingReco] = useState(false);
 
   // Bộ lọc người dùng tự đặt (áp dụng chồng lên gợi ý)
   const [filters, setFilters] = useState<HotelListParams>({ sort_by: 'review_score:desc' });
@@ -79,12 +91,58 @@ export function HotelsPage({ onNavigate, chatOpen = false, recoQuery = null }: {
   // Giá trị nhập tạm (chỉ áp dụng khi bấm "Tìm")
   const [cityDraft, setCityDraft] = useState('');
   const [starDraft, setStarDraft] = useState('');
+  const recoHotelIds = recoQuery?.hotels?.map((hotel) => hotel.id).join(',') ?? '';
 
   // Có gợi ý mới → chuyển sang chế độ gợi ý; mất gợi ý → quay về tất cả.
   useEffect(() => {
     setMode(recoQuery ? 'reco' : 'all');
     setPage(1);
   }, [recoQuery]);
+
+  useEffect(() => {
+    if (!recoQuery?.hotels?.length) {
+      setHydratedRecoHotels(null);
+      setHydratingReco(false);
+      return;
+    }
+
+    let alive = true;
+    setHydratingReco(true);
+    setHydratedRecoHotels(recoQuery.hotels);
+
+    Promise.all(
+      recoQuery.hotels.map((hotel) =>
+        getHotel(hotel.id)
+          .then((detail) => ({ ...hotel, ...detail }))
+          .catch(() => hotel),
+      ),
+    )
+      .then((hotels) => {
+        if (alive) setHydratedRecoHotels(hotels);
+      })
+      .finally(() => {
+        if (alive) setHydratingReco(false);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [recoHotelIds]);
+
+  useEffect(() => {
+    if (!initialFilters) return;
+    setMode('all');
+    setPage(1);
+    setFilters((current) => ({
+      ...current,
+      ...initialFilters,
+      city: initialFilters.city || undefined,
+      star_rating_min: initialFilters.star_rating_min,
+      sort_by: initialFilters.sort_by ?? current.sort_by,
+    }));
+    setCityDraft(initialFilters.city ?? '');
+    setStarDraft(initialFilters.star_rating_min != null ? String(initialFilters.star_rating_min) : '');
+  }, [initialFilters]);
 
   // Bộ lọc người dùng đặt (chỉ lấy khoá có giá trị để không ghi đè gợi ý)
   const userFilters: HotelListParams = {
@@ -95,13 +153,13 @@ export function HotelsPage({ onNavigate, chatOpen = false, recoQuery = null }: {
   const base = mode === 'reco' && recoQuery ? recoQuery.params : {};
   const query: HotelListParams = { ...base, ...userFilters, page, limit: PAGE_SIZE };
 
-  const directRecoHotels = mode === 'reco' && recoQuery?.hotels?.length ? recoQuery.hotels : null;
+  const directRecoHotels = mode === 'reco' && recoQuery?.hotels?.length ? (hydratedRecoHotels ?? recoQuery.hotels) : null;
   const directFilteredHotels = directRecoHotels ? filterRecommendedHotels(directRecoHotels, userFilters) : null;
   const directPageHotels = directFilteredHotels?.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) ?? null;
   const hotelState = useHotels(query, !directRecoHotels);
   const hotels = directPageHotels ?? hotelState.hotels;
   const total = directFilteredHotels?.length ?? hotelState.total;
-  const loading = directRecoHotels ? false : hotelState.loading;
+  const loading = directRecoHotels ? hydratingReco : hotelState.loading;
   const error = directRecoHotels ? null : hotelState.error;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 

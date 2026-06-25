@@ -1,20 +1,4 @@
-"""planner_intent_toolschema
-
-Một tiện ích để chuẩn hoá "tool inputs" trong context output của planner.
-
-Yêu cầu từ task: planner schema cần chứa:
-- list các entities cần phân tích
-- input đầu vào của các tool (RAG/Graph/Hotel SQL)
-
-Hiện tại pipeline đã có:
-- modules/planner.py: LLM planner (needs_rag/needs_graph/needs_hotel_sql...)
-- modules/planner_intents_aux.py + hotel_entity_intent_planner: extract hotel entities
-
-Module này cung cấp hàm:
-  build_tool_inputs_from_context(query, plan_result, aux_intents)
-
-trả về dict chuẩn hóa có thể được gắn vào plan_result['tool_inputs']
-"""
+"""Normalize planner tool inputs for the RAG pipeline."""
 
 from __future__ import annotations
 
@@ -47,9 +31,8 @@ def build_tool_inputs_from_context(
     {
       "entities": {"hotels": [{hotel_id, hotel_name, confidence, matched_text}, ...]},
       "tools": {
-        "rag": {"query": query, "top_k": 3},
-        "graph": {"query": query, "top_k": 3},
-        "hotel_sql": {"query": query, "need": ["detail","policies","activities"], "hotel_ids": [...]} 
+        "rag": {"query": query, "top_k": 3, "hotel_ids": [...], "sections": [...]},
+        "graph": {"query": query, "top_k": 3}
       }
     }
     """
@@ -59,18 +42,12 @@ def build_tool_inputs_from_context(
 
     hotel_ids = _uniq_ints([e.get("hotel_id") for e in hotel_entities if isinstance(e, dict)])
 
-    # tool top_k: lấy từ planner if provided, otherwise default
-    # (hiện pipeline retrieval.py hardcodes top_k=3; đây là context để sau này nâng cấp)
     rag_top_k = plan_result.get("rag_top_k", 3)
     graph_top_k = plan_result.get("graph_top_k", 3)
 
-    # hotel_sql need: keep same default
-    need = plan_result.get(
-        "hotel_sql_needs",
-        plan_result.get("hotel_sql_need", ["detail", "policies", "activities"]),
-    )
-    if not isinstance(need, list) or not need:
-        need = ["detail", "policies", "activities"]
+    sections = plan_result.get("rag_sections", [])
+    if not isinstance(sections, list):
+        sections = []
 
     return {
         "entities": {
@@ -81,15 +58,12 @@ def build_tool_inputs_from_context(
             "rag": {
                 "query": query,
                 "top_k": int(rag_top_k) if rag_top_k is not None else 3,
+                "hotel_ids": hotel_ids,
+                "sections": sections,
             },
             "graph": {
                 "query": query,
                 "top_k": int(graph_top_k) if graph_top_k is not None else 3,
-            },
-            "hotel_sql": {
-                "query": query,
-                "need": need,
-                "hotel_ids": hotel_ids,
             },
         },
     }

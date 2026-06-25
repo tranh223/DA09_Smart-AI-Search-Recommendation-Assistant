@@ -2,7 +2,7 @@ import json
 import os
 import time
 import hashlib
-from typing import Any
+from typing import Any, Generator
 from urllib import error, request
 try:
     from dotenv import load_dotenv
@@ -124,6 +124,64 @@ class OpenAIResponsesClient:
             return json.loads(text_output)
         except json.JSONDecodeError as exc:
             raise RuntimeError(f"Model returned non-JSON structured output: {text_output}") from exc
+
+    def stream_text(
+        self,
+        *,
+        model: str,
+        instructions: str,
+        input_text: str,
+    ) -> Generator[str, None, None]:
+        """Gọi OpenAI Responses API với stream=True, yield từng text delta.
+
+        Dùng cho streaming answer — không dùng JSON schema, trả plain text.
+        Caller nhận từng mảnh text khi LLM generate.
+        """
+        payload: dict[str, Any] = {
+            "model": model,
+            "instructions": instructions,
+            "input": [
+                {
+                    "role": "user",
+                    "content": [{"type": "input_text", "text": input_text}],
+                }
+            ],
+            "stream": True,
+        }
+        body = json.dumps(payload).encode("utf-8")
+        http_req = request.Request(
+            self.base_url,
+            data=body,
+            method="POST",
+            headers={
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+            },
+        )
+        try:
+            with request.urlopen(http_req, timeout=self.timeout_seconds) as response:
+                for raw_line in response:
+                    line = raw_line.decode("utf-8").strip()
+                    if not line.startswith("data: "):
+                        continue
+                    data_str = line[6:]
+                    if data_str == "[DONE]":
+                        return
+                    try:
+                        event = json.loads(data_str)
+                    except json.JSONDecodeError:
+                        continue
+                    if event.get("type") == "response.output_text.delta":
+                        delta = event.get("delta", "")
+                        if delta:
+                            yield delta
+        except error.HTTPError as exc:
+            details = exc.read().decode("utf-8", errors="replace")
+            raise RuntimeError(
+                f"OpenAI stream request failed: {exc.code} {details}"
+            ) from exc
+        except (error.URLError, TimeoutError, ConnectionResetError, OSError) as exc:
+            raise RuntimeError(f"OpenAI stream connection failed: {exc}") from exc
 
     def build_prompt_cache_settings(
         self,

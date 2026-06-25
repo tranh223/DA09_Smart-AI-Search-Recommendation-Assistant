@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { t } from '../../styles/theme';
-import { sendChatMessage, type BackendChatData } from '../../services/backendApi';
+import { sendChatMessageStream, type BackendChatData } from '../../services/backendApi';
 import { type Hotel, type RecoQuery, extractImages } from '../../services/hotels';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -14,6 +15,8 @@ interface BotMsg {
   kind: 'bot';
   text: string;
   chips?: string[];
+  /** true khi bubble đang hiển thị status pipeline, false/undefined khi là answer thật */
+  isStatus?: boolean;
 }
 
 interface UserMsg {
@@ -87,7 +90,7 @@ function backendRecommendationToHotel(item: Record<string, unknown>): Hotel | nu
     accommodation_type: firstString(item.accommodation_type, item.hotel_type, metadata.accommodation_type, metadata.hotel_type),
     star_rating: toNumber(item.star_rating ?? metadata.star_rating),
     is_luxury: Boolean(item.is_luxury ?? metadata.is_luxury),
-    review_score: toNumber(item.review_score ?? metadata.review_score ?? item.score),
+    review_score: toNumber(item.review_score ?? metadata.review_score),
     review_count: toNumber(item.review_count ?? metadata.review_count),
     address: firstString(item.address, metadata.address),
     city: firstString(item.city, item.destination, metadata.city, metadata.destination),
@@ -169,9 +172,66 @@ function QuickReplyChips({ chips, onChip, disabled }: { chips: string[]; onChip:
   );
 }
 
+// ── Status stage helpers ──────────────────────────────────────────────────────
+
+function getStatusIcon(message: string): string {
+  if (message.includes('phân tích')) return '🔍';
+  if (message.includes('tìm kiếm')) return '🏨';
+  if (message.includes('xử lý') || message.includes('xếp hạng')) return '⚙️';
+  if (message.includes('tổng hợp')) return '✨';
+  return '⏳';
+}
+
+function StatusBubble({ msg }: { msg: BotMsg }) {
+  const icon = getStatusIcon(msg.text);
+  return (
+    <div style={{
+      display: 'flex', gap: '8px', alignItems: 'flex-start',
+      marginBottom: '14px', animation: 'vinbot-msg-in .35s ease both',
+    }}>
+      {/* Avatar với pulse ring */}
+      <div style={{ flexShrink: 0, marginTop: '2px', position: 'relative' }}>
+        <BotAvatar size={32} />
+        <span style={{
+          position: 'absolute', inset: '-3px', borderRadius: '50%',
+          border: `2px solid ${t.accent}`,
+          animation: 'vinbot-pulse-ring 1.8s ease-out infinite',
+        }} />
+      </div>
+
+      {/* Bubble status */}
+      <div style={{
+        background: t.accentSoft,
+        border: `1px solid rgba(14,110,99,0.28)`,
+        borderRadius: '4px 14px 14px 14px',
+        padding: '10px 16px',
+        fontFamily: t.font, fontSize: '13px',
+        color: t.ink2, lineHeight: 1.5,
+        display: 'flex', alignItems: 'center', gap: '8px',
+        boxShadow: t.shadowSoft,
+        maxWidth: '90%',
+      }}>
+        <span style={{ fontSize: '16px', flexShrink: 0 }}>{icon}</span>
+        <span style={{ fontStyle: 'italic' }}>{msg.text}</span>
+        {/* Animated dots inline */}
+        <div style={{ display: 'flex', gap: '3px', alignItems: 'center', marginLeft: '4px', flexShrink: 0 }}>
+          {[0, 1, 2].map(i => (
+            <span key={i} style={{
+              width: '4px', height: '4px', borderRadius: '50%',
+              background: t.accent, display: 'inline-block', opacity: 0.7,
+              animation: `vinbot-bounce 1.1s ${i * 0.18}s ease-in-out infinite`,
+            }} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function BotBubble({
   msg, onChip, chipsDisabled,
 }: { msg: BotMsg; onChip: (c: string) => void; chipsDisabled: boolean }) {
+  if (msg.isStatus) return <StatusBubble msg={msg} />;
   return (
     <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginBottom: '14px', animation: 'vinbot-msg-in .35s ease both' }}>
       <div style={{ flexShrink: 0, marginTop: '2px' }}>
@@ -184,7 +244,18 @@ function BotBubble({
           fontFamily: t.font, fontSize: '14px',
           color: t.ink, lineHeight: 1.6, boxShadow: t.shadowSoft,
         }}>
-          {msg.text}
+          <ReactMarkdown
+            components={{
+              p: ({ children }) => <p style={{ margin: '0 0 8px' }}>{children}</p>,
+              ul: ({ children }) => <ul style={{ margin: '6px 0 8px', paddingLeft: '20px' }}>{children}</ul>,
+              ol: ({ children }) => <ol style={{ margin: '6px 0 8px', paddingLeft: '20px' }}>{children}</ol>,
+              li: ({ children }) => <li style={{ marginBottom: '4px' }}>{children}</li>,
+              h2: ({ children }) => <h2 style={{ margin: '0 0 8px', fontSize: '15px', lineHeight: 1.4 }}>{children}</h2>,
+              strong: ({ children }) => <strong style={{ fontWeight: 700 }}>{children}</strong>,
+            }}
+          >
+            {msg.text}
+          </ReactMarkdown>
         </div>
         {msg.chips && (
           <QuickReplyChips chips={msg.chips} onChip={onChip} disabled={chipsDisabled} />
@@ -272,37 +343,138 @@ export function ChatBot({ isOpen, onOpen, onClose, onRecommend, onClearRecommend
 
   const sendBackendQuery = async (txt: string) => {
     setIsTyping(true);
+
+    // ID cố định cho bot message — dùng để cập nhật text in-place khi stream
+    const botMsgId = `${Date.now()}-bot-stream`;
+    let msgCreated = false;
+    let hasAnswerStarted = false;
+
     try {
-      const data = await sendChatMessage({
-        session_id: sessionId.current,
-        query: txt,
-        rerank_options: { top_k: 5 },
-      }, token);
+      await sendChatMessageStream(
+        {
+          session_id: sessionId.current,
+          query: txt,
+          rerank_options: { top_k: 5 },
+        },
+        token,
+        {
+          onStatus(message) {
+            if (!message || hasAnswerStarted) return;
+            if (!msgCreated) {
+              // Tạo status bubble lần đầu, ẩn TypingDots
+              msgCreated = true;
+              setIsTyping(false);
+              setMessages(prev => [
+                ...prev,
+                { id: botMsgId, kind: 'bot' as const, text: message, isStatus: true },
+              ]);
+            } else {
+              // Cập nhật nội dung status (giữ isStatus: true, icon đổi theo stage)
+              setMessages(prev =>
+                prev.map(m =>
+                  m.id === botMsgId && m.kind === 'bot'
+                    ? { ...m, text: message, isStatus: true }
+                    : m,
+                ),
+              );
+            }
+          },
+          onDelta(text) {
+            if (!msgCreated) {
+              // Delta đến trước status — tạo answer bubble luôn
+              msgCreated = true;
+              hasAnswerStarted = true;
+              setIsTyping(false);
+              setMessages(prev => [
+                ...prev,
+                { id: botMsgId, kind: 'bot' as const, text, isStatus: false },
+              ]);
+            } else if (!hasAnswerStarted) {
+              // Delta đầu tiên — chuyển status bubble thành answer bubble
+              hasAnswerStarted = true;
+              setMessages(prev =>
+                prev.map(m =>
+                  m.id === botMsgId && m.kind === 'bot'
+                    ? { ...m, text, isStatus: false }
+                    : m,
+                ),
+              );
+            } else {
+              // Append token vào answer đang stream
+              setMessages(prev =>
+                prev.map(m =>
+                  m.id === botMsgId && m.kind === 'bot'
+                    ? { ...m, text: m.text + text }
+                    : m,
+                ),
+              );
+            }
+          },
+          onMetadata(data) {
+            // Gắn suggestion chips sau khi answer hoàn tất
+            const chips = suggestionChips(data);
+            if (chips) {
+              setMessages(prev =>
+                prev.map(m =>
+                  m.id === botMsgId && m.kind === 'bot' ? { ...m, chips } : m,
+                ),
+              );
+            }
+            // Cập nhật danh sách khách sạn bên trái
+            const hotels = hotelsFromBackend(data);
+            if (hotels.length > 0) {
+              onRecommend({ label: `VinBot · ${txt}`, params: {}, hotels });
+            }
+            setStep(3);
+          },
+          onDone() {
+            setIsTyping(false);
+            // Fallback nếu không nhận được delta nào (ví dụ pipeline trống)
+            if (!msgCreated) {
+              addBotMsg({
+                kind: 'bot',
+                text: 'Mình chưa tìm thấy câu trả lời phù hợp. Bạn có thể nói rõ hơn về điểm đến, ngày đi hoặc ngân sách không?',
+              });
+            } else if (!hasAnswerStarted) {
+              setMessages(prev =>
+                prev.map(m =>
+                  m.id === botMsgId && m.kind === 'bot'
+                    ? {
+                        ...m,
+                        text: 'Mình chưa tìm thấy câu trả lời phù hợp. Bạn có thể nói rõ hơn về điểm đến, ngày đi hoặc ngân sách không?',
+                      }
+                    : m,
+                ),
+              );
+            }
+          },
+          onError(err) {
+            setIsTyping(false);
+            if (!msgCreated) {
+              addBotMsg({
+                kind: 'bot',
+                text: err.message.startsWith('HTTP')
+                  ? `Lỗi kết nối backend (${err.message}). Vui lòng thử lại.`
+                  : `Mình chưa kết nối được backend: ${err.message}`,
+                chips: STEP1_MSG.chips,
+              });
+              setStep(1);
+            }
+          },
+        },
+      );
+    } catch (err) {
       setIsTyping(false);
-      addBotMsg({
-        kind: 'bot',
-        text: formatBackendReply(data),
-        chips: suggestionChips(data),
-      });
-      const recommendedHotels = hotelsFromBackend(data);
-      if (recommendedHotels.length > 0) {
-        onRecommend({
-          label: `VinBot · ${txt}`,
-          params: {},
-          hotels: recommendedHotels,
+      if (!msgCreated) {
+        addBotMsg({
+          kind: 'bot',
+          text: err instanceof Error
+            ? `Mình chưa kết nối được backend: ${err.message}`
+            : 'Mình chưa kết nối được backend. Vui lòng thử lại sau.',
+          chips: STEP1_MSG.chips,
         });
+        setStep(1);
       }
-      setStep(3);
-    } catch (error) {
-      setIsTyping(false);
-      addBotMsg({
-        kind: 'bot',
-        text: error instanceof Error
-          ? `Mình chưa kết nối được backend: ${error.message}`
-          : 'Mình chưa kết nối được backend. Vui lòng thử lại sau.',
-        chips: STEP1_MSG.chips,
-      });
-      setStep(1);
     }
   };
 

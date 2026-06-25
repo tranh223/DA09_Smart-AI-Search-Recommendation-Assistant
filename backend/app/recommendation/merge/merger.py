@@ -9,7 +9,7 @@ Nguyên tắc:
 
 Trọng số nguồn mặc định (có thể tune):
   personalization   : 0.50
-  embedding_search  : 0.50
+  template_search_api : 0.50
 
 Bonus đa nguồn:
   2 nguồn → +0.10
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 # ── Weights ────────────────────────────────────────────────────────────────────
 SOURCE_WEIGHTS: dict[str, float] = {
     "personalization": 0.50,
-    "embedding_search": 0.50,
+    "template_search_api": 0.50,
 }
 
 MULTI_SOURCE_BONUS: dict[int, float] = {

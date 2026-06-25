@@ -1,18 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { HomePage } from './pages/HomePage';
 import { HotelsPage } from './pages/HotelsPage';
 import { AdminPage } from './pages/AdminPage';
 import { AuthPage } from './pages/AuthPage';
+import { Dashboard } from './pages/Dashboard';
 import { ChatBot } from './components/chat/ChatBot';
-import { type RecoQuery } from './services/hotels';
+import { type HotelListParams, type RecoQuery } from './services/hotels';
 import { type Route } from './components/layout/NavBar';
 import { useAuth } from './hooks/useAuth';
 
 export default function App() {
   const { user, role } = useAuth();
+  const [path, setPath] = useState<string>(() => (typeof window !== 'undefined' ? window.location.pathname : '/'));
+  useEffect(() => {
+    const handler = () => setPath(window.location.pathname);
+    window.addEventListener('popstate', handler);
+    return () => window.removeEventListener('popstate', handler);
+  }, []);
   const [route, setRoute] = useState<Route>('home');
   const [chatOpen, setChatOpen] = useState(false);
   const [recoQuery, setRecoQuery] = useState<RecoQuery | null>(null);
+  const [hotelSearch, setHotelSearch] = useState<HotelListParams | null>(null);
 
   // ── Authentication Check ───────────────────────────────────────────────────
   // Nếu chưa đăng nhập, chỉ cho phép xem trang Đăng nhập / Đăng ký.
@@ -26,8 +34,17 @@ export default function App() {
     setChatOpen(true);
   };
 
-  // ── Admin role → trang quản trị ─────────────────────────────────────────────
+  const searchHotels = (params: HotelListParams) => {
+    setRecoQuery(null);
+    setHotelSearch(params);
+    setRoute('hotels');
+  };
+
+  // ── Admin role → trang quản trị or dashboard ─────────────────────────────
   if (role === 'admin') {
+    if (path.startsWith('/dashboard')) {
+      return <Dashboard />;
+    }
     return <AdminPage onNavigate={setRoute} />;
   }
 
@@ -35,8 +52,8 @@ export default function App() {
   return (
     <>
       {route === 'hotels'
-        ? <HotelsPage onNavigate={setRoute} chatOpen={chatOpen} recoQuery={recoQuery} />
-        : <HomePage onNavigate={setRoute} onOpenChat={openChat} chatOpen={chatOpen} />}
+        ? <HotelsPage onNavigate={setRoute} chatOpen={chatOpen} recoQuery={recoQuery} initialFilters={hotelSearch} />
+        : <HomePage onNavigate={setRoute} onOpenChat={openChat} onSearchHotels={searchHotels} chatOpen={chatOpen} />}
       <ChatBot
         isOpen={chatOpen}
         onOpen={openChat}
