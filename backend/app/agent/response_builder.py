@@ -82,7 +82,7 @@ _RESPONSE_SCHEMA: dict[str, Any] = {
         },
         "next_suggestions": {
             "type": "array",
-            "description": "2-3 câu hỏi gợi ý ngắn để người dùng tinh chỉnh",
+            "description": "Hãy sinh các gợi ý tiếp theo được cá nhân hóa cho người dùng dựa trên intent hiện tại, lịch sử tương tác, sở thích, ngữ cảnh phiên làm việc và mục tiêu tiềm ẩn; ưu tiên các gợi ý có khả năng giúp người dùng đạt mục tiêu nhanh nhất.(không phải là câu hỏi)",
             "items": {"type": "string"},
         },
     },
