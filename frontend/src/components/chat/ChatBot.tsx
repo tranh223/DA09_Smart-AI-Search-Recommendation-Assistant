@@ -193,8 +193,6 @@ function QuickReplyChips({ chips, onChip, disabled }: { chips: string[]; onChip:
 
 function getStatusIcon(message: string): string {
   if (message.includes('phân tích')) return '🔍';
-  if (message.includes('tìm kiếm')) return '🏨';
-  if (message.includes('xử lý') || message.includes('xếp hạng')) return '⚙️';
   if (message.includes('tổng hợp')) return '✨';
   return '⏳';
 }

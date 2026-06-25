@@ -323,8 +323,6 @@ async def chat_stream(
             )
 
             _status_queue = [
-                "Đang tìm kiếm khách sạn phù hợp...",
-                "Đang xử lý và xếp hạng kết quả...",
                 "Đang tổng hợp câu trả lời...",
             ]
             for _msg in _status_queue:
