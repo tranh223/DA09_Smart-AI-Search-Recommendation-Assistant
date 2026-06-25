@@ -47,8 +47,7 @@ function budgetToPrice(budget: string): Pick<HotelListParams, 'price_min' | 'pri
 const STEP1_MSG: BotMsg = {
   id: 'step1',
   kind: 'bot',
-  text: 'Xin chào! Mình là VinBot — trợ lý du lịch thông minh của VinJourney. Bạn muốn đi dạng nào?',
-  chips: ['Biển', 'Núi', 'Phố cổ', 'Vui chơi'],
+  text: 'Xin chào! Mình là VinBot — trợ lý du lịch thông minh từ VinJourney. Bạn đang tìm kiếm một kỳ nghỉ dưỡng thư giãn, một chuyến phiêu lưu khám phá, hay cần mình lên một lịch trình cụ thể?',
 };
 
 function createSessionId(): string {
