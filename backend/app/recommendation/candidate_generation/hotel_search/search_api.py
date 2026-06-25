@@ -1,9 +1,9 @@
-"""Hotel search adapter that calls the external search API."""
+"""Hotel search adapter that calls the external Search API."""
 
 from __future__ import annotations
 
-import logging
 import json
+import logging
 import os
 from typing import Any
 
@@ -22,117 +22,6 @@ DEFAULT_HOTEL_SEARCH_API_URL = os.getenv(
 DEFAULT_HOTEL_SEARCH_TIMEOUT_SECONDS = float(
     os.getenv("HOTEL_SEARCH_API_TIMEOUT_SECONDS", "20") or "20"
 )
-
-
-def _build_query_text(slots: dict[str, Any]) -> str:
-    parts: list[str] = []
-
-    city = slots.get("city")
-    if city:
-        check_in = slots.get("check_in")
-        check_out = slots.get("check_out")
-        if check_in and check_out:
-            parts.append(f"Tôi sắp đi {city} từ ngày {check_in} đến ngày {check_out}.")
-        elif check_in:
-            parts.append(f"Tôi sắp đi {city} từ ngày {check_in}.")
-        else:
-            parts.append(f"Tôi sắp đi {city}.")
-
-    trip_type = slots.get("trip_type")
-    if trip_type:
-        parts.append(f"Tôi muốn khách sạn phù hợp cho {trip_type}.")
-
-    traveler_type = _normalize_text_items(slots.get("traveler_type"))
-    if traveler_type:
-        parts.append(f"Phong cách du lịch của tôi là {_join_items(traveler_type)}.")
-
-    budget_levels = _normalize_text_items(slots.get("budget_levels"))
-    if budget_levels:
-        parts.append(f"Mức ngân sách ưu tiên là {_join_items(budget_levels)}.")
-
-    budget_text = _format_budget_range(slots.get("budget_min"), slots.get("budget_max"))
-    if budget_text:
-        parts.append(f"Tôi muốn phòng có giá khoảng {budget_text}.")
-
-    hotel_types = _normalize_text_items(slots.get("hotel_types"))
-    if hotel_types:
-        parts.append(f"Tôi ưu tiên loại hình lưu trú như {_join_items(hotel_types)}.")
-
-    room_views = _normalize_text_items(slots.get("room_views"))
-    if room_views:
-        parts.append(f"Tôi muốn phòng có hướng nhìn như {_join_items(room_views)}.")
-
-    amenities = _normalize_text_items(slots.get("amenities"))
-    if amenities:
-        parts.append(f"Tôi muốn khách sạn có tiện ích như {_join_items(amenities)}.")
-
-    preference_habits = _normalize_text_items(slots.get("preference_habits"))
-    if preference_habits:
-        parts.append(f"Tôi muốn khách sạn có đặc điểm như {_join_items(preference_habits)}.")
-
-    profile_features = slots.get("profile_features") or []
-    if profile_features and not any((hotel_types, room_views, amenities, preference_habits)):
-        parts.append(
-            "Tôi muốn khách sạn có các tiện ích và đặc điểm như "
-            + _join_items(_normalize_text_items(profile_features)[:12])
-            + "."
-        )
-
-    return " ".join(parts).strip()
-
-
-def _normalize_text_items(values: Any, *, limit: int = 12) -> list[str]:
-    if not isinstance(values, list):
-        return []
-    normalized: list[str] = []
-    seen: set[str] = set()
-    for value in values:
-        text = str(value).strip()
-        if not text or text in seen:
-            continue
-        seen.add(text)
-        normalized.append(text)
-        if len(normalized) >= limit:
-            break
-    return normalized
-
-
-def _join_items(values: list[str]) -> str:
-    return ", ".join(values)
-
-
-def _format_budget_range(budget_min: Any, budget_max: Any) -> str:
-    min_text = _format_vnd_million(budget_min)
-    max_text = _format_vnd_million(budget_max)
-    if min_text and max_text:
-        if min_text == max_text:
-            return f"{min_text} triệu"
-        return f"{min_text} triệu đến {max_text} triệu"
-    if max_text:
-        return f"tối đa {max_text} triệu"
-    if min_text:
-        return f"từ {min_text} triệu"
-    return ""
-
-
-def _format_vnd_million(value: Any) -> str:
-    if value is None:
-        return ""
-    try:
-        million_value = float(value) / 1_000_000
-    except (TypeError, ValueError):
-        return ""
-    if million_value <= 0:
-        return ""
-    rounded = round(million_value, 2)
-    if rounded.is_integer():
-        return str(int(rounded))
-    return f"{rounded:.2f}".rstrip("0").rstrip(".")
-
-
-def build_search_query_template(inp: RecommendInput) -> str:
-    """Build the external search API query template from current recommendation state."""
-    return _build_query_text(extract_slots(inp))
 
 
 def _search_hotels_via_api(
@@ -237,7 +126,11 @@ def _hits_to_candidates(hits: list[dict[str, Any]]) -> list[CandidateHotel]:
         if hotel_id is None:
             continue
 
-        tag_names = [str(t.get("tag_id", "")).split("::", 1)[-1] for t in _coerce_tags(hit) if isinstance(t, dict)]
+        tag_names = [
+            str(tag.get("tag_id", "")).split("::", 1)[-1]
+            for tag in _coerce_tags(hit)
+            if isinstance(tag, dict)
+        ]
         city_name = _coerce_city(hit)
         score = _coerce_score(hit)
 
@@ -279,12 +172,22 @@ def get_template_search_api_candidates(
 
     query_text = (inp.search_query_template or "").strip()
     if not query_text:
-        query_text = _build_query_text(slots)
-    if not query_text:
         if trace and trace.enabled:
-            trace.info("Empty query template -> skip template_search_api")
-        logger.info("[TemplateSearchAPI] Empty query template -> skip.")
+            trace.info("Missing query template from rewrite_node -> skip template_search_api")
+        logger.info("[TemplateSearchAPI] Missing query template -> skip.")
         return []
+
+    print(
+        "[TemplateSearchAPI] query_template="
+        f"{query_text!r} len={len(query_text)} top_k={inp.limit_per_source}",
+        flush=True,
+    )
+    logger.info(
+        "[TemplateSearchAPI] query_template=%r len=%d top_k=%d",
+        query_text,
+        len(query_text),
+        inp.limit_per_source,
+    )
 
     try:
         hits = _search_hotels_via_api(

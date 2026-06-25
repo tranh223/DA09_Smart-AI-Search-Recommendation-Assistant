@@ -148,6 +148,9 @@ _TASK_TO_INTENT: dict[str, str] = {
 
 
 def _derive_intent(pipeline_result: PipelineResult) -> str:
+    checker = pipeline_result.trace.checker or {}
+    if checker.get("assistant_capability"):
+        return "assistant_capability"
     rr = pipeline_result.router_result
     if rr is None:
         return "clarification_needed"
@@ -181,9 +184,20 @@ _GUARDRAIL_MESSAGES: dict[str, str] = {
     ),
 }
 
+_ASSISTANT_CAPABILITY_MESSAGE = (
+    "Mình có thể giúp bạn tìm kiếm và gợi ý khách sạn theo điểm đến, "
+    "ngày nhận/trả phòng, ngân sách, số khách và các tiêu chí như view, "
+    "tiện nghi, vị trí, loại chuyến đi hoặc mức độ phù hợp với bạn. "
+    "Nếu bạn đã có kế hoạch, hãy cho mình biết điểm đến và thời gian đi."
+)
+
 
 def _build_clarification(trace: PipelineTrace) -> tuple[str, list[str]]:
     """Trả về (câu hỏi làm rõ, danh sách field còn thiếu) từ pipeline trace."""
+    checker: dict[str, Any] = trace.checker
+    if checker.get("assistant_capability"):
+        return _ASSISTANT_CAPABILITY_MESSAGE, []
+
     # Guardrail chặn — đọc trực tiếp từ PipelineTrace dataclass
     guardrail: dict[str, Any] = trace.guardrail
     if not guardrail.get("allow", True):
@@ -191,7 +205,6 @@ def _build_clarification(trace: PipelineTrace) -> tuple[str, list[str]]:
         return _GUARDRAIL_MESSAGES.get(category, "Câu hỏi không hợp lệ."), []
 
     # Thiếu thông tin recommend
-    checker: dict[str, Any] = trace.checker
     plan_readiness: dict[str, Any] = checker.get("plan_readiness") or {}
     missing: list[str] = plan_readiness.get("missing_fields") or []
     if missing:
