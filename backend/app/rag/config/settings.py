@@ -30,9 +30,6 @@ class Settings(BaseSettings):
     LANGSMITH_TRACING: bool = False
     LANGSMITH_ENDPOINT: str = "https://api.smith.langchain.com"
 
-    # ── Qdrant ────────────────────────────────────────────────────────────────
-    VECTOR_DB_URL: str = "localhost:6333"
-
     # ── Neo4j HTTP API (port 7474) — used by RAG graph_tool ──────────────────
     GRAPH_DB_URL: str = "http://localhost:7474"
 

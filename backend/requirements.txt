@@ -24,13 +24,10 @@ langgraph>=0.2,<1.0
 langsmith>=0.1,<1.0
 mcp[cli]>=1.0,<2.0
 
-# Retrieval, embeddings, and ranking
+# Retrieval and ranking
 numpy>=1.26,<3.0
 faiss-cpu>=1.8,<2.0
-rank-bm25>=0.2.2,<1.0
 rapidfuzz>=3.9,<4.0
-sentence-transformers>=3.0,<6.0
-torch>=2.2,<3.0
 
 # Authentication
 bcrypt>=4.0,<6.0
