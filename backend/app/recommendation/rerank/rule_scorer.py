@@ -253,12 +253,12 @@ def score_candidate(profile: dict[str, Any], hotel: dict[str, Any], trend_signal
     penalty = negative_penalty(profile, hotel)
     # weights used for transparency
     weights = {
-        "keyword": 0.20,          # base của ranking trước khi rerank (search_score)
+        "keyword": 0.2,          # base của ranking trước khi rerank (search_score)
         "personalization": 0.2,   # mức độ ảnh hưởng của cá nhân hóa (session + long term)
         "amenity": 0.07,          # trọng số tiện ích
         "budget": 0.15,           # Khớp khoảng giá ngân sách
         "availability": 0.03,     # Độ sẵn có của phòng trống
-        "review": 0.7,           # Điểm đánh giá thực tế từ khách
+        "review": 0.07,           # Điểm đánh giá thực tế từ khách
         "room_view": 0.05,        # Hướng nhìn phòng
         "location": 0.15,         # Vị trí lân cận điểm mong muốn
         "trend": 0.08,            # Xu hướng booking hiện tại
