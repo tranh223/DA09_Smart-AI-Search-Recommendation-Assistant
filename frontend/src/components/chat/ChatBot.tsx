@@ -107,7 +107,7 @@ function backendRecommendationToHotel(item: Record<string, unknown>): Hotel | nu
     accommodation_type: firstString(item.accommodation_type, item.hotel_type, metadata.accommodation_type, metadata.hotel_type),
     star_rating: toNumber(item.star_rating ?? metadata.star_rating),
     is_luxury: Boolean(item.is_luxury ?? metadata.is_luxury),
-    review_score: toNumber(item.review_score ?? metadata.review_score ?? item.score),
+    review_score: toNumber(item.review_score ?? metadata.review_score),
     review_count: toNumber(item.review_count ?? metadata.review_count),
     address: firstString(item.address, metadata.address),
     city: firstString(item.city, item.destination, metadata.city, metadata.destination),
