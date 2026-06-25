@@ -78,8 +78,8 @@ def hard_filter(profile: dict[str, Any], hotel: dict[str, Any]) -> tuple[bool, s
     session = _session(profile)
     destination = session.get("destination")
     hotel_dest = hotel.get("destination")
-    if destination and hotel_dest and normalize_text(hotel_dest) != normalize_text(destination):
-        return False, "destination_mismatch"
+    # if destination and hotel_dest and normalize_text(hotel_dest) != normalize_text(destination):
+    #     return False, "destination_mismatch"
     if not bool(hotel.get("available")):
         return False, "not_available"
 
