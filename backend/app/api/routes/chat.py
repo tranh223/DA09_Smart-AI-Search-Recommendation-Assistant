@@ -252,6 +252,17 @@ def _sse(event: dict) -> str:
     return f"data: {_json.dumps(event, ensure_ascii=False)}\n\n"
 
 
+def _iter_answer_chunks(answer: str, *, chunk_size: int = 80):
+    """Yield deterministic text chunks from the graph-built final answer.
+
+    The graph already ran the correct response path. Re-streaming through a
+    second LLM call can drift from guardrail/clarification decisions.
+    """
+    text = answer or ""
+    for start in range(0, len(text), chunk_size):
+        yield text[start : start + chunk_size]
+
+
 # ── /chat/stream endpoint ─────────────────────────────────────────────────────
 
 @router.post(
@@ -355,47 +366,13 @@ async def chat_stream(
         final_response: dict[str, Any] = result.get("final_response") or {}
         data = _build_chat_data(final_response)
 
-        # ── Bước 2: stream answer từng token từ LLM ──────────────────────────
-        # Dùng build_response_stream_with_llm() để gọi OpenAI streaming thật.
-        # Chạy sync generator trong thread riêng để không block event loop.
-        from app.agent.response_builder import build_response_stream_with_llm  # noqa: PLC0415
-
-        rag_answer: str = result.get("rag_answer") or ""
-        intent: str = data.intent or ""
-        destination: str = (
-            (result.get("user_profile") or {})
-            .get("session_context", {})
-            .get("destination", "")
-            or ""
-        )
-        ranked_recs: list[dict[str, Any]] = data.recommendations or []
-
-        token_queue: asyncio.Queue = asyncio.Queue()
-        _SENTINEL = object()
-
-        def _produce_tokens() -> None:
-            try:
-                for token in build_response_stream_with_llm(
-                    query=req.query,
-                    intent=intent,
-                    destination=destination,
-                    rag_answer=rag_answer,
-                    ranked_recommendations=ranked_recs,
-                ):
-                    loop.call_soon_threadsafe(token_queue.put_nowait, token)
-            except Exception as _exc:
-                logger.warning("[%s] stream token producer error: %s", req_id, _exc)
-            finally:
-                loop.call_soon_threadsafe(token_queue.put_nowait, _SENTINEL)
-
-        loop = asyncio.get_running_loop()
-        loop.run_in_executor(None, _produce_tokens)
-
-        while True:
-            token = await token_queue.get()
-            if token is _SENTINEL:
-                break
-            yield _sse({"type": "delta", "text": token})
+        # ── Bước 2: stream answer từ final_response của graph ────────────────
+        # Không gọi LLM lần hai ở đây. Với guardrail/clarify, graph đã tạo
+        # đúng answer; gọi lại response_builder có thể drift sang recommend.
+        for chunk in _iter_answer_chunks(data.answer):
+            if chunk:
+                yield _sse({"type": "delta", "text": chunk})
+                await asyncio.sleep(0)
 
         # ── Bước 3: metadata đầy đủ ──────────────────────────────────────────
         yield _sse({
