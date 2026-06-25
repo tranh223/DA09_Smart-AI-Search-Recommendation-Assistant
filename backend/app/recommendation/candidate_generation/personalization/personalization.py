@@ -3,14 +3,24 @@ PERSONALIZATION Candidate Generator
 Input : RecommendInput  (user_id + session_context.destination)
 Output: list[CandidateHotel]  source = "personalization"
 
-Dùng một Cypher template thống nhất kết hợp 3 yếu tố:
-  - Demographic Similarity  (UserFeature, weight 0.3)
-  - Cosine Interest         (INTERESTED_IN × HAS_TAG, weight 0.4)
-  - Collaborative Filtering (BOOKED overlap, weight 0.3)
+Chiến lược hai tầng — chọn tự động theo lịch sử booking của user:
+
+  Tầng 1 — User-first Collaborative Filtering (user có booking history):
+    - Tìm user tương đồng qua booking overlap + UserFeature Jaccard
+    - Lấy hotel các user tương đồng đã đặt, loại hotel user hiện tại đã biết
+    - Boost thêm bằng interest (INTERESTED_IN × HAS_TAG) của user hiện tại
+    - Điểm cuối: 0.70 * collaborativeScore + 0.20 * interestFit + 0.10 * reviewScore
+
+  Tầng 2 — Demographic Fallback (user chưa có booking hoặc ít booking):
+    - Tìm user cùng phân khúc UserFeature trong city
+    - Lấy hotel mà nhóm user đó đã đặt
+    - Điểm cuối: 0.60 * demographicScore + 0.30 * interestFit + 0.10 * reviewScore
 """
 
 from __future__ import annotations
+
 import logging
+from typing import Any
 
 from neo4j_client import run_read_query  # neo4j_client lives at backend/ root in sys.path
 from app.recommendation.models import RecommendInput, CandidateHotel
@@ -18,118 +28,288 @@ from app.recommendation.trace import RecommendTrace
 
 logger = logging.getLogger(__name__)
 
-# ── Unified Cypher Template ───────────────────────────────────────────────────
+# Số booking tối thiểu để dùng collaborative, dưới ngưỡng này fallback demographic
+_MIN_BOOKING_COUNT_FOR_COLLABORATIVE = 1
 
-_CYPHER_PERSONALIZATION = """
-// 1. Lấy thông tin user, các phân khúc (UserFeature) và top sở thích (decayed Tag)
+# ── Tầng 1: User-first Collaborative Filtering ────────────────────────────────
+#
+# Luồng: User → shared BOOKED hotels → similar users → their other BOOKEDs → target hotels
+#        Boost target hotel score bằng interest fit của user hiện tại.
+#
+# user-user similarity = 0.65 * bookingOverlapScore + 0.35 * featureJaccardScore
+# finalScore           = 0.70 * collaborativeScore  + 0.20 * interestFit + 0.10 * reviewScore
+
+_CYPHER_COLLABORATIVE = """
+// Bước 0: Kiểm tra user tồn tại
 MATCH (u:User {user_id: $user_id})
-OPTIONAL MATCH (u)-[:HAS_FEATURES]->(f:UserFeature)
-WITH u, collect(distinct f.name) AS userFeatures
-OPTIONAL MATCH (u)-[i:INTERESTED_IN]->(t:Tag)
-WITH u, userFeatures, t,
-     i.count * exp(-0.05 * duration.inDays(date(i.last_interaction), date()).days) AS decayedScore
-ORDER BY decayedScore DESC
-WITH u, userFeatures, collect({tag: t.name, score: decayedScore}) AS userInterests
 
-// 2. Duyệt qua các khách sạn trong city để tính toán 3 yếu tố gợi ý
-MATCH (hotel:Hotel)
-WHERE toLower(hotel.city) CONTAINS toLower($city)
+// Bước 1: Thu thập danh sách hotel user đã đặt (dùng để loại trừ)
+OPTIONAL MATCH (u)-[:BOOKED]->(alreadyBooked:Hotel)
+WITH u, collect(DISTINCT alreadyBooked.hotel_id) AS bookedHotelIds
 
-// --- Yếu tố 1: Demographic Similarity (Nhân khẩu học) ---
-OPTIONAL MATCH (other:User)-[:BOOKED]->(hotel)
+// Bước 2: Interest vector của user hiện tại (time-decay lambda=0.05)
+OPTIONAL MATCH (u)-[iRel:INTERESTED_IN]->(iTag:Tag)
+WITH u, bookedHotelIds,
+     collect({
+       name:     iTag.name,
+       category: iTag.category,
+       score:    coalesce(iRel.count, 1) *
+                 exp(-0.05 * duration.inDays(
+                   date(coalesce(iRel.last_interaction, toString(date()))),
+                   date()
+                 ).days)
+     }) AS userInterests
+
+// Bước 3: Feature set của user hiện tại
+OPTIONAL MATCH (u)-[:HAS_FEATURES]->(uf:UserFeature)
+WITH u, bookedHotelIds, userInterests,
+     collect(DISTINCT uf.name) AS userFeatureNames,
+     count(DISTINCT uf)        AS userFeatureCount
+
+// Bước 4: Tìm similar users qua booking overlap
+MATCH (u)-[:BOOKED]->(sharedHotel:Hotel)<-[:BOOKED]-(other:User)
 WHERE other <> u
-OPTIONAL MATCH (other)-[:HAS_FEATURES]->(f:UserFeature)
-WHERE f.name IN userFeatures
-WITH u, userFeatures, userInterests, hotel,
-     count(distinct f) AS sharedFeaturesCount,
-     count(distinct other) AS otherUsersCount
+WITH u, bookedHotelIds, userInterests, userFeatureNames, userFeatureCount, other,
+     count(DISTINCT sharedHotel) AS bookingOverlap
 
-// --- Yếu tố 2: Cosine Interest Similarity (Độ tương đồng sở thích) ---
-OPTIONAL MATCH (t:Tag)<-[h:HAS_TAG]-(hotel)
-WITH u, userFeatures, userInterests, hotel, sharedFeaturesCount, otherUsersCount, t, h
-UNWIND userInterests AS ui
-WITH u, userFeatures, userInterests, hotel, sharedFeaturesCount, otherUsersCount, t, h, ui
-WHERE t.name = ui.tag
-WITH u, userFeatures, userInterests, hotel, sharedFeaturesCount, otherUsersCount,
-     sum(ui.score * h.weight) AS dotProduct,
-     sqrt(sum(ui.score * ui.score)) * sqrt(sum(h.weight * h.weight)) AS normInterest
+// Bước 5: Tính Jaccard similarity trên UserFeature
+OPTIONAL MATCH (other)-[:HAS_FEATURES]->(of:UserFeature)
+WITH u, bookedHotelIds, userInterests, userFeatureNames, userFeatureCount,
+     other, bookingOverlap,
+     count(DISTINCT of)                                                         AS otherFeatureCount,
+     count(DISTINCT CASE WHEN of.name IN userFeatureNames THEN of END)         AS sharedFeatureCount
 
-// --- Yếu tố 3: Collaborative Filtering (Lịch sử đặt phòng trùng lặp) ---
-OPTIONAL MATCH (u)-[:BOOKED]->(sharedHotel:Hotel)<-[:BOOKED]-(otherCollaborative:User)-[:BOOKED]->(hotel)
-WHERE otherCollaborative <> u AND NOT (u)-[:BOOKED]->(hotel)
-WITH u, userFeatures, userInterests, hotel, sharedFeaturesCount, otherUsersCount,
-     dotProduct, normInterest,
-     count(distinct sharedHotel) AS bookingOverlapCount,
-     count(distinct otherCollaborative) AS otherUsersCollaborativeCount
+WITH u, bookedHotelIds, userInterests, other, bookingOverlap,
+     CASE
+       WHEN (userFeatureCount + otherFeatureCount - sharedFeatureCount) > 0
+       THEN 1.0 * sharedFeatureCount / (userFeatureCount + otherFeatureCount - sharedFeatureCount)
+       ELSE 0.0
+     END AS featureJaccard
 
-// 3. Chuẩn hóa và tổng hợp điểm số cuối cùng
-WITH u, userFeatures, userInterests, hotel,
-     1.0 * sharedFeaturesCount / (sharedFeaturesCount + 2.0) AS demoScore,
-     CASE WHEN normInterest > 0 THEN dotProduct / normInterest ELSE 0.0 END AS interestScore,
-     1.0 * bookingOverlapCount / (bookingOverlapCount + 2.0) AS collaborativeScore
-WITH u, userFeatures, userInterests, hotel, demoScore, interestScore, collaborativeScore,
-     (demoScore * 0.3 + interestScore * 0.4 + collaborativeScore * 0.3) AS finalScore
+// Bước 6: Tổng hợp user-user similarity score
+WITH u, bookedHotelIds, userInterests, other,
+     bookingOverlap,
+     featureJaccard,
+     (
+       0.65 * (1.0 * bookingOverlap / (bookingOverlap + 2.0)) +
+       0.35 * featureJaccard
+     ) AS userSimilarity
+WHERE userSimilarity > 0.0
+
+// Bước 7: Lấy hotel mà similar users đã đặt, lọc city và loại hotel user đã biết
+MATCH (other)-[:BOOKED]->(hotel:Hotel)
+WHERE toLower(hotel.city) CONTAINS toLower($city)
+  AND NOT hotel.hotel_id IN bookedHotelIds
+
+// Bước 8: Gom user signals về theo hotel TRƯỚC KHI join tags
+//   → other vẫn còn trong scope ở bước này, sau đây sẽ không cần nữa
+WITH hotel, userInterests,
+     sum(userSimilarity)   AS collaborativeScore,
+     max(userSimilarity)   AS bestSimilarUserScore,
+     count(DISTINCT other) AS similarUserCount
+
+// Bước 9: Tính interest fit từ hotel tags (join sau khi đã có collaborative aggregates)
+OPTIONAL MATCH (hotel)-[htRel:HAS_TAG]->(htTag:Tag)
+WITH hotel, collaborativeScore, bestSimilarUserScore, similarUserCount, userInterests,
+     htTag, htRel
+WITH hotel, collaborativeScore, bestSimilarUserScore, similarUserCount,
+     sum(
+       CASE
+         WHEN htTag IS NOT NULL
+              AND any(ui IN userInterests WHERE ui.name = htTag.name AND ui.category = htTag.category)
+         THEN coalesce(htRel.weight, 0.0) *
+              head([ui IN userInterests WHERE ui.name = htTag.name | ui.score])
+         ELSE 0.0
+       END
+     ) AS rawInterestFit,
+     collect(DISTINCT CASE WHEN htTag IS NOT NULL THEN htTag.name ELSE null END)[..8] AS matchedTags
+
+// Bước 10: Chuẩn hóa interestFit và tính finalScore
+WITH hotel, collaborativeScore, bestSimilarUserScore, similarUserCount, matchedTags,
+     CASE
+       WHEN rawInterestFit > 0 THEN rawInterestFit / (rawInterestFit + 5.0)
+       ELSE 0.0
+     END AS interestFit
+
+WITH hotel, collaborativeScore, bestSimilarUserScore, similarUserCount, interestFit, matchedTags,
+     (
+       0.70 * (collaborativeScore / (collaborativeScore + 3.0)) +
+       0.20 * interestFit +
+       0.10 * coalesce(hotel.review_score, 0.0) / 10.0
+     ) AS finalScore
 WHERE finalScore > 0
+
 RETURN
-  u.user_id          AS userId,
-  u.name             AS userName,
-  userFeatures       AS userSegments,
-  userInterests[..5] AS top5Interests,
-  hotel.hotel_id     AS hotelId,
-  hotel.name         AS hotelName,
-  hotel.city         AS city,
-  hotel.review_score AS reviewScore,
-  demoScore,
-  interestScore,
+  hotel.hotel_id          AS hotelId,
+  hotel.name              AS hotelName,
+  hotel.city              AS city,
+  hotel.review_score      AS reviewScore,
   collaborativeScore,
+  bestSimilarUserScore,
+  similarUserCount,
+  interestFit,
+  matchedTags,
   finalScore
-ORDER BY finalScore DESC
+ORDER BY finalScore DESC, reviewScore DESC
 LIMIT $limit
+"""
+
+# ── Tầng 2: Demographic Fallback ──────────────────────────────────────────────
+#
+# Luồng: User → shared UserFeature → similar segment users → their BOOKEDs → target hotels
+#        Boost thêm bằng interest fit để có độ cá nhân hóa tốt hơn.
+#
+# finalScore = 0.60 * demographicScore + 0.30 * interestFit + 0.10 * reviewScore
+
+_CYPHER_DEMOGRAPHIC_FALLBACK = """
+MATCH (u:User {user_id: $user_id})
+
+// Bước 1: Interest vector của user (time-decay)
+OPTIONAL MATCH (u)-[iRel:INTERESTED_IN]->(iTag:Tag)
+WITH u,
+     collect({
+       name:     iTag.name,
+       category: iTag.category,
+       score:    coalesce(iRel.count, 1) *
+                 exp(-0.05 * duration.inDays(
+                   date(coalesce(iRel.last_interaction, toString(date()))),
+                   date()
+                 ).days)
+     }) AS userInterests
+
+// Bước 2: Tìm user cùng phân khúc UserFeature và hotel họ đã đặt trong city
+MATCH (u)-[:HAS_FEATURES]->(f:UserFeature)<-[:HAS_FEATURES]-(other:User)
+WHERE other <> u
+MATCH (other)-[:BOOKED]->(hotel:Hotel)
+WHERE toLower(hotel.city) CONTAINS toLower($city)
+  AND NOT (u)-[:BOOKED]->(hotel)
+
+// Bước 3: Gom điểm theo hotel TRƯỚC KHI join tags
+WITH hotel, userInterests,
+     count(DISTINCT f)     AS sharedFeatureCount,
+     count(DISTINCT other) AS similarUserCount
+
+// Bước 4: Tính interest fit từ hotel tags
+OPTIONAL MATCH (hotel)-[htRel:HAS_TAG]->(htTag:Tag)
+WITH hotel, sharedFeatureCount, similarUserCount, userInterests,
+     htTag, htRel
+WITH hotel, sharedFeatureCount, similarUserCount,
+     sum(
+       CASE
+         WHEN htTag IS NOT NULL
+              AND any(ui IN userInterests WHERE ui.name = htTag.name AND ui.category = htTag.category)
+         THEN coalesce(htRel.weight, 0.0) *
+              head([ui IN userInterests WHERE ui.name = htTag.name | ui.score])
+         ELSE 0.0
+       END
+     ) AS rawInterestFit,
+     collect(DISTINCT CASE WHEN htTag IS NOT NULL THEN htTag.name ELSE null END)[..8] AS matchedTags
+
+WITH hotel, sharedFeatureCount, similarUserCount, matchedTags,
+     CASE
+       WHEN rawInterestFit > 0 THEN rawInterestFit / (rawInterestFit + 5.0)
+       ELSE 0.0
+     END AS interestFit
+
+// Bước 5: Tính finalScore
+WITH hotel, sharedFeatureCount, similarUserCount, interestFit, matchedTags,
+     (
+       0.60 * (1.0 * sharedFeatureCount / (sharedFeatureCount + 3.0)) +
+       0.30 * interestFit +
+       0.10 * coalesce(hotel.review_score, 0.0) / 10.0
+     ) AS finalScore
+WHERE finalScore > 0
+
+RETURN
+  hotel.hotel_id          AS hotelId,
+  hotel.name              AS hotelName,
+  hotel.city              AS city,
+  hotel.review_score      AS reviewScore,
+  sharedFeatureCount,
+  similarUserCount,
+  interestFit,
+  matchedTags,
+  0.0                     AS collaborativeScore,
+  0.0                     AS bestSimilarUserScore,
+  finalScore
+ORDER BY finalScore DESC, reviewScore DESC
+LIMIT $limit
+"""
+
+# ── Query kiểm tra booking count ──────────────────────────────────────────────
+
+_CYPHER_CHECK_BOOKING_COUNT = """
+MATCH (u:User {user_id: $user_id})-[:BOOKED]->(h:Hotel)
+RETURN count(h) AS bookingCount
 """
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _rows_to_candidates(rows: list[dict]) -> list[CandidateHotel]:
-    candidates = []
+def _get_booking_count(user_id: str) -> int:
+    """Lấy số lượng hotel user đã đặt. Trả 0 nếu lỗi."""
+    try:
+        rows = run_read_query(_CYPHER_CHECK_BOOKING_COUNT, {"user_id": user_id})
+        if rows:
+            return int(rows[0].get("bookingCount") or 0)
+    except Exception as exc:
+        logger.debug("[Personalization] Không đếm được booking của user %s: %s", user_id, exc)
+    return 0
+
+
+def _rows_to_candidates(rows: list[dict[str, Any]], strategy: str) -> list[CandidateHotel]:
+    candidates: list[CandidateHotel] = []
     for row in rows:
-        top_interests = row.get("top5Interests") or []
-        matched_tags = [
-            item["tag"] for item in top_interests
-            if isinstance(item, dict) and item.get("tag")
-        ]
-        paths = [f"Hotel -[:HAS_TAG]-> Tag({tag})" for tag in matched_tags]
+        hotel_id_raw = row.get("hotelId")
+        if hotel_id_raw is None:
+            continue
 
-        demo = row.get("demoScore") or 0.0
-        interest = row.get("interestScore") or 0.0
-        collab = row.get("collaborativeScore") or 0.0
+        try:
+            hotel_id = int(hotel_id_raw)
+        except (TypeError, ValueError):
+            logger.debug("[Personalization] Bỏ qua row có hotelId không hợp lệ: %r", hotel_id_raw)
+            continue
 
-        reason_parts = []
-        if demo > 0:
-            reason_parts.append(f"nhân khẩu học ({demo:.2f})")
-        if interest > 0:
-            tags_str = ", ".join(matched_tags[:3]) or "sở thích"
-            reason_parts.append(f"sở thích [{tags_str}] ({interest:.2f})")
-        if collab > 0:
-            reason_parts.append(f"cộng tác ({collab:.2f})")
+        final_score = float(row.get("finalScore") or 0.0)
+        review_score = row.get("reviewScore")
+        collab_score = float(row.get("collaborativeScore") or 0.0)
+        best_sim = float(row.get("bestSimilarUserScore") or 0.0)
+        similar_count = int(row.get("similarUserCount") or 0)
+        shared_features = int(row.get("sharedFeatureCount") or 0)
+        interest_fit = float(row.get("interestFit") or 0.0)
+        matched_tags: list[str] = row.get("matchedTags") or []
+
+        paths = [f"Hotel-[:HAS_TAG]->Tag({tag})" for tag in matched_tags[:5]]
+
+        reason_parts: list[str] = []
+        if collab_score > 0:
+            reason_parts.append(
+                f"cộng tác ({similar_count} user tương đồng, sim={best_sim:.2f})"
+            )
+        if shared_features > 0:
+            reason_parts.append(f"nhân khẩu học ({shared_features} đặc trưng chung)")
+        if interest_fit > 0:
+            tags_preview = ", ".join(matched_tags[:3]) or "sở thích"
+            reason_parts.append(f"sở thích [{tags_preview}] (fit={interest_fit:.2f})")
 
         candidates.append(
             CandidateHotel(
-                hotel_id=int(row["hotelId"]),
+                hotel_id=hotel_id,
                 hotel_name=row.get("hotelName"),
                 source="personalization",
-                score=float(row.get("finalScore") or 0.0),
+                score=final_score,
                 matched_paths=paths,
                 reason="Khớp " + " + ".join(reason_parts) if reason_parts else "personalization score",
                 metadata={
-                    "review_score": row.get("reviewScore"),
+                    "review_score": review_score,
                     "city": row.get("city"),
-                    "demo_score": demo,
-                    "interest_score": interest,
-                    "collaborative_score": collab,
-                    "user_segments": row.get("userSegments") or [],
-                    "top5_interests": top_interests,
-                    "strategy": "unified_personalization",
+                    "collaborative_score": collab_score,
+                    "best_similar_user_score": best_sim,
+                    "similar_user_count": similar_count,
+                    "shared_feature_count": shared_features,
+                    "interest_fit": interest_fit,
+                    "matched_tags": matched_tags,
+                    "strategy": strategy,
                 },
             )
         )
@@ -143,7 +323,11 @@ def get_personalization_candidates(
     trace: RecommendTrace | None = None,
 ) -> list[CandidateHotel]:
     """
-    Chạy unified Cypher template → trả về top-N CandidateHotel sorted by finalScore DESC.
+    Chọn strategy tự động:
+      - Nếu user có >= _MIN_BOOKING_COUNT_FOR_COLLABORATIVE bookings → Collaborative.
+      - Ngược lại → Demographic Fallback.
+
+    Cả 2 đều boost thêm interest fit từ INTERESTED_IN × HAS_TAG.
     """
     city = inp.session_context.destination
     if not city:
@@ -152,31 +336,61 @@ def get_personalization_candidates(
         logger.info("[Personalization] Không có destination → bỏ qua.")
         return []
 
-    params = {
+    # Xác định strategy
+    booking_count = _get_booking_count(inp.user_id)
+    use_collaborative = booking_count >= _MIN_BOOKING_COUNT_FOR_COLLABORATIVE
+
+    strategy = "collaborative" if use_collaborative else "demographic_fallback"
+    cypher = _CYPHER_COLLABORATIVE if use_collaborative else _CYPHER_DEMOGRAPHIC_FALLBACK
+
+    params: dict[str, Any] = {
         "user_id": inp.user_id,
         "city": city,
         "limit": inp.limit_per_source,
     }
 
     if trace and trace.enabled:
-        trace.step("Neo4j unified Cypher params", params)
-        trace.info("3 yếu tố: demographic(0.3) + interest(0.4) + collaborative(0.3)")
+        trace.step("Personalization params", {
+            "user_id": inp.user_id,
+            "city": city,
+            "limit": inp.limit_per_source,
+            "booking_count": booking_count,
+            "strategy": strategy,
+        })
+        if use_collaborative:
+            trace.info(
+                f"Strategy: COLLABORATIVE — user có {booking_count} booking(s). "
+                "Luồng: user-first → similar users → hotel họ đặt → boost interest"
+            )
+        else:
+            trace.info(
+                f"Strategy: DEMOGRAPHIC FALLBACK — user có {booking_count} booking(s). "
+                "Luồng: shared UserFeature → similar segment users → hotel họ đặt → boost interest"
+            )
 
     try:
-        rows = run_read_query(_CYPHER_PERSONALIZATION, params)
-        candidates = _rows_to_candidates(rows)
+        rows = run_read_query(cypher, params)
+        candidates = _rows_to_candidates(rows, strategy)
+
         if trace and trace.enabled and rows:
             top = rows[0]
             trace.info(
-                f"Top result: {top.get('hotelName')} | finalScore={top.get('finalScore'):.4f} | "
-                f"demo={top.get('demoScore'):.2f} interest={top.get('interestScore'):.2f} "
-                f"collab={top.get('collaborativeScore'):.2f}"
+                f"Top result: {top.get('hotelName')} | "
+                f"finalScore={top.get('finalScore', 0):.4f} | "
+                f"strategy={strategy} | "
+                f"interestFit={top.get('interestFit', 0):.3f} | "
+                f"collab={top.get('collaborativeScore', 0):.3f} | "
+                f"demo_features={top.get('sharedFeatureCount', 0)}"
             )
-        logger.info("[Personalization] Trả về %d candidates cho user=%s tại %s.",
-                    len(candidates), inp.user_id, city)
+
+        logger.info(
+            "[Personalization] strategy=%s | user=%s | city=%s | candidates=%d",
+            strategy, inp.user_id, city, len(candidates),
+        )
         return candidates
+
     except Exception as exc:
         if trace and trace.enabled:
-            trace.info(f"Lỗi: {exc}")
-        logger.warning("[Personalization] Lỗi truy vấn: %s", exc)
+            trace.info(f"Lỗi ({strategy}): {exc}")
+        logger.warning("[Personalization] Lỗi truy vấn strategy=%s: %s", strategy, exc)
         return []
