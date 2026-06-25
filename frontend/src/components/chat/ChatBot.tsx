@@ -130,13 +130,25 @@ function hotelsFromBackend(data: BackendChatData): Hotel[] {
 
 function BotAvatar({ size = 40 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
-      <circle cx="24" cy="24" r="23" fill={t.ink} />
-      {/* mắt trắng */}
-      <circle cx="18.5" cy="21.5" r="2.3" fill="#FFFFFF" />
-      <circle cx="29.5" cy="21.5" r="2.3" fill="#FFFFFF" />
-      {/* miệng cười trắng */}
-      <path d="M17.5 28 Q24 33.5 30.5 28" stroke="#FFFFFF" strokeWidth="2.6" strokeLinecap="round" fill="none" />
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-label="VinFuture">
+      <defs>
+        <linearGradient id="vin-soft-bg" x1="10" y1="7" x2="38" y2="41" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#FFFFFF" />
+          <stop offset="1" stopColor="#F4F0E8" />
+        </linearGradient>
+        <linearGradient id="vin-soft-mark" x1="14" y1="14" x2="34" y2="34" gradientUnits="userSpaceOnUse">
+          <stop stopColor={t.navy} />
+          <stop offset="1" stopColor={t.ink} />
+        </linearGradient>
+      </defs>
+      <circle cx="24" cy="24" r="23" fill={t.surface} />
+      <circle cx="24" cy="24" r="22" stroke={t.borderStrong} />
+      <circle cx="24" cy="24" r="18.5" fill="url(#vin-soft-bg)" stroke={t.border} />
+      <path
+        d="M15.2 15.2C18 15.2 19.8 16.7 20.9 19.7L24 28.2L27.1 19.7C28.2 16.7 30 15.2 32.8 15.2L26.4 33C25.6 35.2 22.4 35.2 21.6 33L15.2 15.2Z"
+        fill="url(#vin-soft-mark)"
+      />
+      <path d="M18.4 35.8C21.9 37.1 26.3 37.1 29.6 35.8" stroke={t.ink3} strokeWidth="1.4" strokeLinecap="round" opacity="0.65" />
     </svg>
   );
 }
@@ -628,12 +640,13 @@ export function ChatBot({ isOpen, onOpen, onClose, onRecommend, onClearRecommend
             animation: 'vinbot-pulse-ring 1.8s ease-out infinite',
           }} />
         )}
-        <svg width="28" height="28" viewBox="0 0 30 30" fill="none">
-          <rect x="3" y="3" width="24" height="18" rx="6" fill="#FFFFFF" />
-          <circle cx="10" cy="12" r="2" fill={t.navy} />
-          <circle cx="15" cy="12" r="2" fill={t.navy} />
-          <circle cx="20" cy="12" r="2" fill={t.navy} />
-          <path d="M10 21 L10 27 L16 21Z" fill="#FFFFFF" />
+        <svg width="31" height="31" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path
+            d="M6.5 7.5C6.5 5.8 7.8 4.5 9.5 4.5H22.5C24.2 4.5 25.5 5.8 25.5 7.5V17.8C25.5 19.5 24.2 20.8 22.5 20.8H16.4L10.2 26.2V20.8H9.5C7.8 20.8 6.5 19.5 6.5 17.8V7.5Z"
+            fill="#FFFFFF"
+          />
+          <path d="M11 11.2H21" stroke={t.navy} strokeWidth="2" strokeLinecap="round" />
+          <path d="M11 15.4H17.5" stroke={t.navy} strokeWidth="2" strokeLinecap="round" />
         </svg>
       </button>
 

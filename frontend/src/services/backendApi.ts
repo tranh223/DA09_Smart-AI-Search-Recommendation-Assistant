@@ -80,6 +80,38 @@ export class BackendApiError extends Error {
   }
 }
 
+export async function bookHotel(
+  payload: { hotel_id: number; hotel_name: string },
+  token?: string | null,
+): Promise<{ booking_id: string; hotel_id: number; hotel_name: string }> {
+  const headers: Record<string, string> = {
+    accept: 'application/json',
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${BACKEND_BASE_URL}/booking`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload),
+  });
+
+  const body = (await res.json().catch(() => null)) as BackendApiResponse<{
+    booking_id: string;
+    hotel_id: number;
+    hotel_name: string;
+  }> | null;
+
+  if (!res.ok || !body?.success || !body.data) {
+    const message = body?.error?.message || body?.error?.code || res.statusText || 'Booking failed';
+    throw new BackendApiError(res.status, message);
+  }
+
+  return body.data;
+}
+
 export async function sendChatMessage(
   payload: BackendChatRequest,
   token?: string | null,

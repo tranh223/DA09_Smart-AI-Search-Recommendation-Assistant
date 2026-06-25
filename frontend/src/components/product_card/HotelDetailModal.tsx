@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ImageWithFallback } from '../common/ImageWithFallback';
 import { RatingPill } from './HotelCard';
+import { bookHotel } from '../../services/backendApi';
+import { useAuth } from '../../hooks/useAuth';
 import {
   getHotel,
   getHotelImages,
@@ -30,11 +32,14 @@ function formatActivityPrice(value?: number): string | null {
 }
 
 export function HotelDetailModal({ hotelId, fallback, onClose }: Props) {
+  const { token } = useAuth();
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [images, setImages] = useState<HotelImage[]>([]);
   const [active, setActive] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [bookingState, setBookingState] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [bookingError, setBookingError] = useState<string | null>(null);
 
   useEffect(() => {
     if (hotelId == null) return;
@@ -44,6 +49,8 @@ export function HotelDetailModal({ hotelId, fallback, onClose }: Props) {
     setActive(0);
     setLoading(true);
     setError(null);
+    setBookingState('idle');
+    setBookingError(null);
 
     Promise.all([getHotel(hotelId), getHotelImages(hotelId).catch(() => [])])
       .then(([detail, imgs]) => {
@@ -77,6 +84,19 @@ export function HotelDetailModal({ hotelId, fallback, onClose }: Props) {
 
   const cover = images[active]?.url;
   const location = [hotel?.area, hotel?.city, hotel?.country].filter(Boolean).join(', ');
+
+  async function handleBook() {
+    if (!hotel) return;
+    setBookingState('saving');
+    setBookingError(null);
+    try {
+      await bookHotel({ hotel_id: hotel.id, hotel_name: hotel.name }, token);
+      setBookingState('saved');
+    } catch (err) {
+      setBookingState('idle');
+      setBookingError(err instanceof Error ? err.message : 'Không lưu được booking');
+    }
+  }
 
   return (
     <div
@@ -204,6 +224,35 @@ export function HotelDetailModal({ hotelId, fallback, onClose }: Props) {
                 {formatPrice(hotel?.min_price)}
               </span>
               {hotel?.min_price ? <span style={{ fontSize: '13px', color: t.ink3 }}>/ đêm</span> : null}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px', flexWrap: 'wrap' }}>
+              <button
+                onClick={handleBook}
+                disabled={!hotel || bookingState === 'saving' || bookingState === 'saved'}
+                style={{
+                  background: bookingState === 'saved' ? t.accent : t.navy,
+                  color: t.onNavy,
+                  fontFamily: t.font,
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  padding: '11px 22px',
+                  borderRadius: t.rPill,
+                  border: 'none',
+                  cursor: !hotel || bookingState !== 'idle' ? 'default' : 'pointer',
+                  opacity: !hotel ? 0.6 : 1,
+                  transition: 'background .15s',
+                }}
+                onMouseEnter={(e) => {
+                  if (bookingState === 'idle') e.currentTarget.style.background = t.navyHover;
+                }}
+                onMouseLeave={(e) => {
+                  if (bookingState === 'idle') e.currentTarget.style.background = t.navy;
+                }}
+              >
+                {bookingState === 'saving' ? 'Đang book...' : bookingState === 'saved' ? 'Đã book' : 'Book ngay'}
+              </button>
+              {bookingError && <span style={{ fontSize: '13px', color: '#c0392b' }}>{bookingError}</span>}
             </div>
 
             {hotel?.address && (
