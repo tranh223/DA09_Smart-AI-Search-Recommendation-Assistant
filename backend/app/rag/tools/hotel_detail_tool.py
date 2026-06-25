@@ -44,10 +44,7 @@ def fetch_hotel_description(
         or DEFAULT_MAX_DESCRIPTION_CHARS
     )
 
-    url = _build_hotel_detail_url(parsed_hotel_id)
-    response = requests.get(url, headers=_build_headers(), timeout=timeout)
-    response.raise_for_status()
-    payload = response.json()
+    payload = fetch_hotel_detail_payload(parsed_hotel_id, timeout_seconds=timeout)
 
     description = _extract_description(payload)
     if not description:
@@ -70,6 +67,31 @@ def fetch_hotel_description(
         "description": description,
         "description_chars": len(description),
     }
+
+
+def fetch_hotel_detail_payload(
+    hotel_id: int,
+    *,
+    timeout_seconds: float | None = None,
+) -> dict[str, Any]:
+    """Fetch one hotel's raw detail payload for UI cards and internal tools."""
+
+    parsed_hotel_id = int(hotel_id)
+    timeout = timeout_seconds or float(
+        os.getenv("HOTEL_DETAIL_TIMEOUT_SECONDS", str(DEFAULT_TIMEOUT_SECONDS))
+        or DEFAULT_TIMEOUT_SECONDS
+    )
+    url = _build_hotel_detail_url(parsed_hotel_id)
+    response = requests.get(url, headers=_build_headers(), timeout=timeout)
+    response.raise_for_status()
+    payload = response.json()
+    if isinstance(payload, Mapping):
+        for key in ("data", "hotel", "result"):
+            nested = payload.get(key)
+            if isinstance(nested, Mapping):
+                return dict(nested)
+        return dict(payload)
+    return {}
 
 
 def fetch_hotel_descriptions(hotel_ids: Sequence[Any], *, limit: int = 3) -> dict[str, Any]:

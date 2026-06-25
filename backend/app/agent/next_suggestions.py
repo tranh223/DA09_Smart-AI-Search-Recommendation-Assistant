@@ -15,6 +15,7 @@ import logging
 import os
 import re
 import threading
+import unicodedata
 from typing import Any, Literal
 
 logger = logging.getLogger(__name__)
@@ -90,10 +91,10 @@ _BUDGET_SUGGESTIONS_BY_LEVEL = {
 }
 
 _RELATED_INFO_FALLBACKS = [
-    "So sánh các lựa chọn",
-    "Có nơi yên tĩnh hơn không?",
-    "Gần biển hơn không?",
-    "Có hồ bơi không?",
+    "Giá phòng khoảng bao nhiêu?",
+    "Có những loại phòng nào?",
+    "Gần điểm tham quan nào?",
+    "Chính sách nhận trả phòng?",
 ]
 
 _QUESTION_PREFIXES = (
@@ -160,19 +161,22 @@ def build_next_suggestions(
         if suggestion_type == "related_info"
         else []
     )
-    fallback_source = fallback_items
-    if suggestion_type == "related_info":
-        fallback_source = _fallback_for_related_recommendations(local_related_info) or fallback_items
-    fallback = _validate_items(
-        fallback_source or _fallback_for_type(suggestion_type),
-        suggestion_type=suggestion_type,
-        allow_fill=True,
-    )
     related_info = list(graph_related_info or [])
     if suggestion_type == "related_info":
         related_info = local_related_info + related_info
         if graph_related_info is None and len(local_related_info) < 2:
             related_info.extend(retrieve_graph_related_info(ranked_recommendations or []))
+        return _validate_items(
+            _post_answer_suggestions(llm_answer, related_info),
+            suggestion_type=suggestion_type,
+            allow_fill=True,
+        )
+
+    fallback = _validate_items(
+        fallback_items or _fallback_for_type(suggestion_type),
+        suggestion_type=suggestion_type,
+        allow_fill=True,
+    )
 
     if client is None:
         client = _get_llm_client()
@@ -424,6 +428,181 @@ def _is_question_like(item: str) -> bool:
     return item.endswith("?") or any(lowered.startswith(prefix) for prefix in _QUESTION_PREFIXES)
 
 
+def _hotel_detail_followup_suggestions(answer: str) -> list[str]:
+    if not answer or not answer.strip():
+        return []
+    hotel_name = _extract_focus_hotel_name(answer)
+    if not hotel_name:
+        return []
+
+    normalized = _normalize_text_for_matching(answer)
+    detail_markers = (
+        "thong tin chi tiet",
+        "thong tin ve khach san",
+        "kham pha",
+        "gioi thieu",
+        "ma khach san",
+        "dia chi",
+        "tien nghi",
+        "nam xay dung",
+        "so phong",
+        "nhan phong",
+        "tra phong",
+    )
+    if not any(marker in normalized for marker in detail_markers):
+        return []
+
+    covered = {
+        "price": _contains_any(normalized, ("gia phong", "gia dao dong", "vnd", "usd", "muc gia", "chi phi")),
+        "room": _contains_any(normalized, ("loai phong", "phong nghi", "so phong", "dien tich", "giuong")),
+        "amenity": _contains_any(normalized, ("tien nghi", "ho boi", "be boi", "wifi", "spa", "gym", "dich vu")),
+        "location": _contains_any(normalized, ("vi tri", "dia chi", "gan", "trung tam", "diem tham quan")),
+        "policy": _contains_any(normalized, ("chinh sach", "nhan phong", "tra phong", "check-in", "check-out", "tre em")),
+        "review": _contains_any(normalized, ("danh gia", "review", "diem", "nhan xet", "khach luu tru")),
+        "food": _contains_any(normalized, ("bua sang", "nha hang", "am thuc", "an uong")),
+        "transport": _contains_any(normalized, ("san bay", "dua don", "taxi", "di chuyen", "xe dua don")),
+        "family": _contains_any(normalized, ("gia dinh", "tre em", "cap doi", "nhom ban")),
+    }
+
+    missing_first = [
+        ("price", "Giá phòng khoảng bao nhiêu?"),
+        ("room", "Có những loại phòng nào?"),
+        ("amenity", "Khách sạn có tiện nghi gì?"),
+        ("location", "Gần điểm tham quan nào?"),
+        ("policy", "Chính sách nhận trả phòng?"),
+        ("review", "Đánh giá khách lưu trú ra sao?"),
+        ("food", "Có bao gồm bữa sáng không?"),
+        ("transport", "Di chuyển từ sân bay thế nào?"),
+        ("family", "Có phù hợp gia đình không?"),
+    ]
+    deeper_followups = [
+        "Phòng nào đáng chọn nhất?",
+        "Có phụ thu trẻ em không?",
+        "Có hồ bơi hoặc bãi biển không?",
+        "Khu vực xung quanh có gì?",
+        "Có chính sách hủy phòng không?",
+        "Có dịch vụ đưa đón không?",
+    ]
+
+    suggestions: list[str] = []
+    for aspect, suggestion in missing_first:
+        if not covered[aspect]:
+            suggestions.append(suggestion)
+        if len(suggestions) >= SUGGESTION_COUNT:
+            return suggestions
+
+    for suggestion in deeper_followups:
+        suggestions.append(suggestion)
+        if len(suggestions) >= SUGGESTION_COUNT:
+            return suggestions
+    return suggestions[:SUGGESTION_COUNT]
+
+
+def _post_answer_suggestions(answer: str, related_info: list[dict[str, Any]]) -> list[str]:
+    return [
+        "Tôi muốn đặt phòng",
+        "So sánh với khách sạn khác",
+        "Tôi muốn tham khảo thêm khách sạn khác",
+        _dynamic_hotel_followup_question(answer, related_info),
+    ]
+
+
+def _dynamic_hotel_followup_question(answer: str, related_info: list[dict[str, Any]]) -> str:
+    normalized_answer = _normalize_text_for_matching(answer)
+    all_tags = {
+        _normalize_text_for_matching(_fact_value(tag))
+        for row in related_info
+        for tag in (row.get("tags") or [])
+        if _fact_value(tag)
+    }
+    all_nearby = {
+        _normalize_text_for_matching(_fact_value(place))
+        for row in related_info
+        for place in (row.get("nearby") or row.get("nearby_places") or [])
+        if _fact_value(place)
+    }
+    all_suitable = {
+        _normalize_text_for_matching(_fact_value(item))
+        for row in related_info
+        for item in (row.get("suitable_for") or [])
+        if _fact_value(item)
+    }
+
+    has_pool_fact = any("ho boi" in tag or "be boi" in tag or "pool" in tag for tag in all_tags)
+    has_beach_fact = any("bien" in item or "beach" in item for item in all_tags | all_nearby)
+    has_family_fact = any("gia dinh" in item or "tre" in item or "family" in item for item in all_suitable | all_tags)
+    has_center_fact = any("trung tam" in item or "center" in item for item in all_tags | all_nearby)
+
+    answer_mentions_price = _contains_any(normalized_answer, ("gia phong", "gia dao dong", "vnd", "usd", "chi phi"))
+    answer_mentions_room = _contains_any(normalized_answer, ("loai phong", "phong nghi", "giuong", "dien tich"))
+    answer_mentions_amenity = _contains_any(normalized_answer, ("tien nghi", "ho boi", "be boi", "wifi", "spa", "gym"))
+    answer_mentions_location = _contains_any(normalized_answer, ("vi tri", "dia chi", "gan", "trung tam", "diem tham quan"))
+    answer_mentions_policy = _contains_any(normalized_answer, ("chinh sach", "nhan phong", "tra phong", "check in", "check out", "tre em"))
+    answer_mentions_review = _contains_any(normalized_answer, ("danh gia", "review", "nhan xet", "diem so", "khach luu tru"))
+
+    if has_pool_fact and "ho boi" not in normalized_answer and "be boi" not in normalized_answer:
+        return "Khách sạn này có hồ bơi không?"
+    if has_beach_fact and "bien" not in normalized_answer:
+        return "Khách sạn này cách biển bao xa?"
+    if has_family_fact and "gia dinh" not in normalized_answer:
+        return "Khách sạn này có phù hợp gia đình không?"
+    if has_center_fact and "trung tam" not in normalized_answer:
+        return "Di chuyển vào trung tâm thế nào?"
+    if all_nearby and not answer_mentions_location:
+        return "Khách sạn này gần điểm tham quan nào?"
+    if not answer_mentions_price:
+        return "Giá phòng khách sạn này bao nhiêu?"
+    if not answer_mentions_room:
+        return "Khách sạn này có những loại phòng nào?"
+    if not answer_mentions_policy:
+        return "Chính sách nhận trả phòng thế nào?"
+    if not answer_mentions_review:
+        return "Đánh giá khách lưu trú ra sao?"
+    if not answer_mentions_amenity:
+        return "Khách sạn này có tiện nghi gì nổi bật?"
+    return "Tôi muốn biết thêm về khách sạn này"
+
+
+def _extract_focus_hotel_name(answer: str) -> str | None:
+    patterns = (
+        r"#+\s*(?:thông tin(?: chi tiết)?(?: về)?|giới thiệu|khám phá)\s+(?:khách sạn\s+)?\*\*([^*\n]{3,90})\*\*",
+        r"#+\s*(?:thông tin(?: chi tiết)?(?: về)?|giới thiệu|khám phá)\s+(?:khách sạn\s+)?([^\n]{3,90})",
+        r"(?:thông tin(?: chi tiết)?(?: về)?|giới thiệu|khám phá)\s+(?:khách sạn\s+)?\*\*([^*\n]{3,90})\*\*",
+        r"(?:tên khách sạn|khách sạn)\s*:\s*\*\*?([^*\n]{3,90})\*\*?",
+        r"\*\*((?=[^*\n]*(?:Hotel|Resort|Villa|Homestay|Khách sạn|Hội An|Hà Nội|Quy Nhơn))[^*\n]{3,90})\*\*",
+    )
+    for pattern in patterns:
+        match = re.search(pattern, answer, flags=re.IGNORECASE)
+        if not match:
+            continue
+        candidate = _clean_hotel_name(match.group(1))
+        if candidate:
+            return candidate
+    return None
+
+
+def _clean_hotel_name(name: str) -> str:
+    name = re.sub(r"\s+", " ", str(name or "")).strip(" :-–—*`")
+    name = re.sub(r"^(khách sạn|hotel)\s+", "", name, flags=re.IGNORECASE).strip()
+    if len(name) < 3:
+        return ""
+    if _normalize_text_for_matching(name) in {"tai ha noi", "tai hoi an", "tai quy nhon"}:
+        return ""
+    return name[:80]
+
+
+def _contains_any(text: str, markers: tuple[str, ...]) -> bool:
+    return any(marker in text for marker in markers)
+
+
+def _normalize_text_for_matching(value: str) -> str:
+    text = unicodedata.normalize("NFD", str(value or "").casefold())
+    text = "".join(ch for ch in text if unicodedata.category(ch) != "Mn")
+    text = text.replace("đ", "d")
+    text = re.sub(r"[^a-z0-9\s-]", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
 def _looks_like_clarification(answer: str) -> bool:
     text = answer.casefold()
     if "?" not in text:
@@ -634,15 +813,15 @@ def _fallback_for_related_recommendations(related_info: list[dict[str, Any]]) ->
         if _fact_value(item)
     }
 
-    suggestions = ["So sánh các lựa chọn"]
+    suggestions = ["Giá phòng khoảng bao nhiêu?"]
     if any("biển" in tag or "beach" in tag for tag in all_tags | all_nearby):
-        suggestions.append("Khách sạn nào gần biển nhất?")
+        suggestions.append("Khách sạn gần biển đến đâu?")
     if any("hồ bơi" in tag or "bể bơi" in tag or "pool" in tag for tag in all_tags):
-        suggestions.append("Lọc nơi có hồ bơi")
+        suggestions.append("Hồ bơi có phù hợp trẻ em không?")
     if any("gia đình" in item or "trẻ" in item or "family" in item for item in all_suitable | all_tags):
-        suggestions.append("Nơi nào hợp gia đình nhất?")
+        suggestions.append("Có phù hợp gia đình không?")
     if any("trung tâm" in tag or "center" in tag for tag in all_tags | all_nearby):
-        suggestions.append("Có nơi gần trung tâm hơn không?")
+        suggestions.append("Di chuyển vào trung tâm thế nào?")
     if len(suggestions) < SUGGESTION_COUNT:
         suggestions.extend(_RELATED_INFO_FALLBACKS)
     return suggestions
