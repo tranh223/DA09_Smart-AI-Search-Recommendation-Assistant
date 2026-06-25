@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from app.agent.latency import build_latency_summary
+from app.agent.next_suggestions import build_next_suggestions, determine_suggestion_type
 from app.agent.qu_adapter import pipeline_result_to_state
 from app.agent.response_builder import build_guardrail_response_with_llm, build_response_with_llm
 from app.agent.state import AgentState
@@ -703,7 +704,18 @@ def clarify_node(state: AgentState) -> dict[str, Any]:
             chat_history=state.get("chat_history") or [],
         )
         answer = guardrail_response.get("answer") or question
-        next_suggestions = guardrail_response.get("next_suggestions") or []
+        suggestion_type = determine_suggestion_type(
+            user_profile=state.get("user_profile") or {},
+            llm_answer=answer,
+            ranked_recommendations=[],
+        )
+        next_suggestions = build_next_suggestions(
+            client=None,
+            suggestion_type=suggestion_type,
+            llm_answer=answer,
+            user_profile=state.get("user_profile") or {},
+            ranked_recommendations=[],
+        )
         logger.debug(
             "[%s][clarify] guardrail_blocked category=%s answer=%.60s",
             req_id,
@@ -726,6 +738,14 @@ def clarify_node(state: AgentState) -> dict[str, Any]:
             },
         }
 
+    next_suggestions = build_next_suggestions(
+        client=None,
+        suggestion_type="missing_info",
+        llm_answer=question,
+        user_profile=state.get("user_profile") or {},
+        ranked_recommendations=[],
+    )
+
     logger.debug(
         "[%s][clarify] missing_fields=%s  question=%.60s",
         req_id, missing, question,
@@ -737,7 +757,7 @@ def clarify_node(state: AgentState) -> dict[str, Any]:
             "intent": intent,
             "recommendations": [],
             "sources": [],
-            "next_suggestions": [],
+            "next_suggestions": next_suggestions,
             "needs_clarification": True,
             "clarification_question": question,
             "missing_fields": missing,
@@ -870,32 +890,90 @@ def rerank_node(state: AgentState) -> dict[str, Any]:
                  req_id, len(ranked_hotels),
                  debug.get("filtered_count", "?"),
                  debug.get("llm_used", False))
-    ranked_recommendations = [
-        {
-            "hotel_id": item.get("hotel_id") or item.get("item_id"),
-            "item_id": item.get("item_id"),
-            "hotel_name": item.get("name"),
-            "rank": item.get("rank"),
-            "score": item.get("final_score"),
-            "base_score": item.get("base_score"),
-            "llm_score": item.get("llm_score"),
-            "sources": item.get("sources", []),
-            "reasons": item.get("reasons", []),
-            "warnings": item.get("warnings", []),
-            "primary_image": item.get("primary_image"),
-            "metadata": {
-                "destination": item.get("destination"),
-                "price_min": item.get("price_min"),
-                "price_max": item.get("price_max"),
-                "currency": item.get("currency"),
-                "feature_scores": item.get("feature_scores"),
-                "negative_penalty": item.get("negative_penalty"),
-                "primary_image": item.get("primary_image"),
-            },
-        }
-        for item in ranked_hotels
-    ]
+    ranked_recommendations = [_ranked_hotel_to_recommendation(item) for item in ranked_hotels]
     return {"rerank_result": rerank_result, "ranked_recommendations": ranked_recommendations}
+
+
+def _ranked_hotel_to_recommendation(item: dict[str, Any]) -> dict[str, Any]:
+    """Normalize updated recommendation output for API, UI, and suggestions."""
+    raw_hit = item.get("raw_hit") if isinstance(item.get("raw_hit"), dict) else {}
+    metadata_source = {**raw_hit, **item}
+
+    hotel_id = item.get("hotel_id") or item.get("item_id") or raw_hit.get("id")
+    hotel_name = item.get("name") or item.get("hotel_name") or raw_hit.get("name")
+    primary_image = (
+        item.get("primary_image")
+        or raw_hit.get("primary_image")
+        or _first_image_url(item.get("images") or raw_hit.get("images"))
+    )
+
+    selected_keys = (
+        "destination", "city", "city_id", "area", "country", "address",
+        "property_type", "accommodation_type", "hotel_type",
+        "star_rating", "is_luxury", "review_score", "review_count",
+        "price_min", "price_max", "min_price", "currency",
+        "amenities", "tags", "location_tags", "nearby_places", "room_views",
+        "preference_habits", "suitable_for", "policy", "images",
+        "feature_scores", "negative_penalty", "primary_image",
+    )
+    metadata = {
+        key: metadata_source.get(key)
+        for key in selected_keys
+        if metadata_source.get(key) not in (None, "", [], {})
+    }
+    description = metadata_source.get("description")
+    if isinstance(description, str) and description.strip():
+        metadata["description"] = description.strip()[:1200]
+    if primary_image:
+        metadata["primary_image"] = primary_image
+
+    return {
+        "hotel_id": hotel_id,
+        "item_id": item.get("item_id"),
+        "hotel_name": hotel_name,
+        "name": hotel_name,
+        "rank": item.get("rank"),
+        "score": item.get("final_score"),
+        "base_score": item.get("base_score"),
+        "llm_score": item.get("llm_score"),
+        "sources": item.get("sources", []),
+        "reasons": item.get("reasons", []),
+        "warnings": item.get("warnings", []),
+        "primary_image": primary_image,
+        "destination": metadata.get("destination") or metadata.get("city"),
+        "city": metadata.get("city") or metadata.get("destination"),
+        "area": metadata.get("area"),
+        "address": metadata.get("address"),
+        "property_type": metadata.get("property_type"),
+        "accommodation_type": metadata.get("accommodation_type"),
+        "hotel_type": metadata.get("hotel_type"),
+        "star_rating": metadata.get("star_rating"),
+        "review_score": metadata.get("review_score"),
+        "review_count": metadata.get("review_count"),
+        "price_min": metadata.get("price_min") or metadata.get("min_price"),
+        "price_max": metadata.get("price_max"),
+        "currency": metadata.get("currency"),
+        "amenities": metadata.get("amenities") or [],
+        "tags": metadata.get("tags") or [],
+        "location_tags": metadata.get("location_tags") or [],
+        "nearby_places": metadata.get("nearby_places") or [],
+        "room_views": metadata.get("room_views") or [],
+        "suitable_for": metadata.get("suitable_for") or [],
+        "description": metadata.get("description"),
+        "images": metadata.get("images") or [],
+        "metadata": metadata,
+    }
+
+
+def _first_image_url(images: Any) -> str | None:
+    if not isinstance(images, list):
+        return None
+    for image in images:
+        if isinstance(image, dict) and image.get("url"):
+            return str(image["url"])
+        if isinstance(image, str) and image:
+            return image
+    return None
 
 
 # ── Response Builder / Explain / Format / Analytics nodes ────────────────────
@@ -924,6 +1002,19 @@ def response_builder_node(state: AgentState) -> dict[str, Any]:
         destination=(state.get("slots") or {}).get("destination") or "",
         rag_answer=rag_answer,
         ranked_recommendations=ranked,
+    )
+    suggestion_type = determine_suggestion_type(
+        user_profile=state.get("user_profile") or {},
+        llm_answer=result.get("synthesized_answer") or "",
+        ranked_recommendations=ranked,
+    )
+    result["next_suggestions"] = build_next_suggestions(
+        client=None,
+        suggestion_type=suggestion_type,
+        llm_answer=result.get("synthesized_answer") or "",
+        user_profile=state.get("user_profile") or {},
+        ranked_recommendations=ranked,
+        fallback_items=result.get("next_suggestions") or [],
     )
     return result  # keys: synthesized_answer, hotel_reasons, next_suggestions
 
