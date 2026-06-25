@@ -364,13 +364,22 @@ async def chat_stream(
         final_response: dict[str, Any] = result.get("final_response") or {}
         data = _build_chat_data(final_response)
 
-        # ── Bước 2: stream answer từ final_response của graph ────────────────
-        # Không gọi LLM lần hai ở đây. Với guardrail/clarify, graph đã tạo
-        # đúng answer; gọi lại response_builder có thể drift sang recommend.
-        for chunk in _iter_answer_chunks(data.answer):
-            if chunk:
-                yield _sse({"type": "delta", "text": chunk})
-                await asyncio.sleep(0)
+        # ── Bước 2: stream answer từng word từ kết quả đã có ────────────────
+        # data.answer đã được sinh bởi response_builder_node trong graph (LLM call #1).
+        # Không gọi LLM lần 2 — stream trực tiếp để giảm latency.
+        # Delay nhỏ giữa các word để giữ trải nghiệm typing effect cho UI.
+        _STREAM_WORD_DELAY: float = float(
+            os.getenv("STREAM_WORD_DELAY_SECONDS", "0.018")
+        )
+        answer_text: str = data.answer or ""
+        if answer_text:
+            # Tách theo word (giữ whitespace) để giữ định dạng Markdown
+            chunks = _re.split(r"(\s+)", answer_text)
+            for chunk in chunks:
+                if chunk:
+                    yield _sse({"type": "delta", "text": chunk})
+                    if _STREAM_WORD_DELAY > 0:
+                        await asyncio.sleep(_STREAM_WORD_DELAY)
 
         # ── Bước 3: metadata đầy đủ ──────────────────────────────────────────
         yield _sse({
