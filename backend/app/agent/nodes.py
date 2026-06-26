@@ -12,7 +12,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from app.agent.latency import build_latency_summary
-from app.agent.next_suggestions import build_next_suggestions, determine_suggestion_type
 from app.agent.qu_adapter import pipeline_result_to_state
 from app.agent.response_builder import build_guardrail_response_with_llm, build_response_with_llm
 from app.agent.state import AgentState
@@ -807,18 +806,7 @@ def clarify_node(state: AgentState) -> dict[str, Any]:
             chat_history=state.get("chat_history") or [],
         )
         answer = guardrail_response.get("answer") or question
-        suggestion_type = determine_suggestion_type(
-            user_profile=state.get("user_profile") or {},
-            llm_answer=answer,
-            ranked_recommendations=[],
-        )
-        next_suggestions = build_next_suggestions(
-            client=None,
-            suggestion_type=suggestion_type,
-            llm_answer=answer,
-            user_profile=state.get("user_profile") or {},
-            ranked_recommendations=[],
-        )
+        next_suggestions = guardrail_response.get("next_suggestions") or []
         logger.debug(
             "[%s][clarify] guardrail_blocked category=%s answer=%.60s",
             req_id,
@@ -841,14 +829,6 @@ def clarify_node(state: AgentState) -> dict[str, Any]:
             },
         }
 
-    next_suggestions = build_next_suggestions(
-        client=None,
-        suggestion_type="missing_info",
-        llm_answer=question,
-        user_profile=state.get("user_profile") or {},
-        ranked_recommendations=[],
-    )
-
     logger.debug(
         "[%s][clarify] missing_fields=%s  question=%.60s",
         req_id, missing, question,
@@ -860,7 +840,7 @@ def clarify_node(state: AgentState) -> dict[str, Any]:
             "intent": intent,
             "recommendations": [],
             "sources": [],
-            "next_suggestions": next_suggestions,
+            "next_suggestions": [],
             "needs_clarification": True,
             "clarification_question": question,
             "missing_fields": missing,
@@ -1120,307 +1100,35 @@ def rerank_node(state: AgentState) -> dict[str, Any]:
                  req_id, len(ranked_hotels),
                  debug.get("filtered_count", "?"),
                  debug.get("llm_used", False))
-    ranked_recommendations = [_ranked_hotel_to_recommendation(item) for item in ranked_hotels]
+    ranked_recommendations = [
+        {
+            "hotel_id": item.get("hotel_id") or item.get("item_id"),
+            "item_id": item.get("item_id"),
+            "hotel_name": item.get("name"),
+            "rank": item.get("rank"),
+            "score": item.get("final_score"),
+            "base_score": item.get("base_score"),
+            "llm_score": item.get("llm_score"),
+            "sources": item.get("sources", []),
+            "reasons": item.get("reasons", []),
+            "warnings": item.get("warnings", []),
+            "primary_image": item.get("primary_image"),
+            "metadata": {
+                "destination": item.get("destination"),
+                "price_min": item.get("price_min"),
+                "price_max": item.get("price_max"),
+                "currency": item.get("currency"),
+                "feature_scores": item.get("feature_scores"),
+                "negative_penalty": item.get("negative_penalty"),
+                "primary_image": item.get("primary_image"),
+            },
+        }
+        for item in ranked_hotels
+    ]
     return {"rerank_result": rerank_result, "ranked_recommendations": ranked_recommendations}
 
 
-def _ranked_hotel_to_recommendation(item: dict[str, Any]) -> dict[str, Any]:
-    """Normalize updated recommendation output for API, UI, and suggestions."""
-    raw_hit = item.get("raw_hit") if isinstance(item.get("raw_hit"), dict) else {}
-    metadata_source = {**raw_hit, **item}
-
-    hotel_id = item.get("hotel_id") or item.get("item_id") or raw_hit.get("id")
-    hotel_name = item.get("name") or item.get("hotel_name") or raw_hit.get("name")
-    primary_image = (
-        item.get("primary_image")
-        or raw_hit.get("primary_image")
-        or _first_image_url(item.get("images") or raw_hit.get("images"))
-    )
-
-    selected_keys = (
-        "destination", "city", "city_id", "area", "country", "address",
-        "property_type", "accommodation_type", "hotel_type",
-        "star_rating", "is_luxury", "review_score", "review_count",
-        "price_min", "price_max", "min_price", "currency",
-        "amenities", "tags", "location_tags", "nearby_places", "room_views",
-        "preference_habits", "suitable_for", "policy", "images",
-        "feature_scores", "negative_penalty", "primary_image",
-    )
-    metadata = {
-        key: metadata_source.get(key)
-        for key in selected_keys
-        if metadata_source.get(key) not in (None, "", [], {})
-    }
-    description = metadata_source.get("description")
-    if isinstance(description, str) and description.strip():
-        metadata["description"] = description.strip()[:1200]
-    if primary_image:
-        metadata["primary_image"] = primary_image
-
-    return {
-        "hotel_id": hotel_id,
-        "item_id": item.get("item_id"),
-        "hotel_name": hotel_name,
-        "name": hotel_name,
-        "rank": item.get("rank"),
-        "score": item.get("final_score"),
-        "base_score": item.get("base_score"),
-        "llm_score": item.get("llm_score"),
-        "sources": item.get("sources", []),
-        "reasons": item.get("reasons", []),
-        "warnings": item.get("warnings", []),
-        "primary_image": primary_image,
-        "destination": metadata.get("destination") or metadata.get("city"),
-        "city": metadata.get("city") or metadata.get("destination"),
-        "area": metadata.get("area"),
-        "address": metadata.get("address"),
-        "property_type": metadata.get("property_type"),
-        "accommodation_type": metadata.get("accommodation_type"),
-        "hotel_type": metadata.get("hotel_type"),
-        "star_rating": metadata.get("star_rating"),
-        "review_score": metadata.get("review_score"),
-        "review_count": metadata.get("review_count"),
-        "price_min": metadata.get("price_min") or metadata.get("min_price"),
-        "price_max": metadata.get("price_max"),
-        "currency": metadata.get("currency"),
-        "amenities": metadata.get("amenities") or [],
-        "tags": metadata.get("tags") or [],
-        "location_tags": metadata.get("location_tags") or [],
-        "nearby_places": metadata.get("nearby_places") or [],
-        "room_views": metadata.get("room_views") or [],
-        "suitable_for": metadata.get("suitable_for") or [],
-        "description": metadata.get("description"),
-        "images": metadata.get("images") or [],
-        "metadata": metadata,
-    }
-
-
-def _first_image_url(images: Any) -> str | None:
-    if not isinstance(images, list):
-        return None
-    for image in images:
-        if isinstance(image, dict) and image.get("url"):
-            return str(image["url"])
-        if isinstance(image, str) and image:
-            return image
-    return None
-
-
 # ── Response Builder / Explain / Format / Analytics nodes ────────────────────
-
-def _is_booking_cta_query(query: str) -> bool:
-    normalized = " ".join(str(query or "").strip().casefold().split())
-    if not normalized:
-        return False
-    return normalized in {
-        "tôi muốn đặt phòng",
-        "toi muon dat phong",
-        "đặt phòng",
-        "dat phong",
-    } or bool(re.fullmatch(r".*\b(book|booking)\b.*", normalized))
-
-
-def _build_booking_cta_response(state: AgentState) -> dict[str, Any] | None:
-    if not _is_booking_cta_query(state.get("raw_query") or ""):
-        return None
-
-    target = _resolve_current_hotel_recommendation(state)
-    if not target:
-        return {
-            "synthesized_answer": (
-                "Mình chưa xác định được khách sạn bạn muốn đặt. "
-                "Bạn hãy nhắn lại tên khách sạn hoặc bấm vào một khách sạn ở danh sách bên trái."
-            ),
-            "hotel_reasons": {},
-            "next_suggestions": [
-                "Tìm lại khách sạn này",
-                "Tôi muốn tham khảo khách sạn khác",
-                "So sánh với khách sạn khác",
-                "Xem khách sạn phù hợp hơn",
-            ],
-        }
-
-    target_id = str(target.get("hotel_id") or target.get("item_id") or target.get("id") or "")
-    merged_recommendations = [target]
-    for rec in state.get("ranked_recommendations") or []:
-        rec_id = str(rec.get("hotel_id") or rec.get("item_id") or rec.get("id") or "")
-        if rec_id and rec_id == target_id:
-            continue
-        merged_recommendations.append(rec)
-
-    hotel_name = target.get("hotel_name") or target.get("name") or "khách sạn này"
-    return {
-        "synthesized_answer": (
-            f"Mình đã đưa **{hotel_name}** lên đầu danh sách khách sạn bên trái. "
-            "Bạn hãy click vào thẻ khách sạn đó ở bên trái, sau đó chọn nút **Đặt phòng** "
-            "hoặc **Book ngay** để tiếp tục đặt phòng."
-        ),
-        "hotel_reasons": {
-            target_id: "Khách sạn bạn đang hỏi và muốn đặt phòng."
-        } if target_id else {},
-        "ranked_recommendations": merged_recommendations,
-        "next_suggestions": [
-            "Xem giá phòng",
-            "Xem chính sách nhận trả phòng",
-            "So sánh với khách sạn khác",
-            "Tôi muốn tham khảo khách sạn khác",
-        ],
-    }
-
-
-def _resolve_current_hotel_recommendation(state: AgentState) -> dict[str, Any] | None:
-    hotel_id, hotel_name = _extract_current_hotel_reference(state)
-    if hotel_id is not None:
-        return _booking_recommendation_from_hotel_id(hotel_id, hotel_name)
-
-    if hotel_name:
-        resolved = _resolve_hotel_id_from_name(hotel_name)
-        if resolved:
-            resolved_id, resolved_name = resolved
-            return _booking_recommendation_from_hotel_id(resolved_id, resolved_name or hotel_name)
-
-    for rec in state.get("ranked_recommendations") or []:
-        rec_id = _as_int(rec.get("hotel_id") or rec.get("item_id") or rec.get("id"))
-        if rec_id is not None:
-            return _normalize_booking_recommendation(rec)
-    return None
-
-
-def _extract_current_hotel_reference(state: AgentState) -> tuple[int | None, str | None]:
-    texts: list[str] = []
-    for item in reversed(state.get("chat_history") or []):
-        if not isinstance(item, dict):
-            continue
-        role = str(item.get("role") or "").casefold()
-        if role and role != "assistant":
-            continue
-        content = item.get("content") or item.get("llm_answer") or item.get("answer")
-        if isinstance(content, str) and content.strip():
-            texts.append(content)
-
-    for key in ("synthesized_answer", "rag_answer", "conversation_summary"):
-        value = state.get(key)
-        if isinstance(value, str) and value.strip():
-            texts.append(value)
-
-    for text in texts:
-        hotel_id = _extract_hotel_id_from_text(text)
-        hotel_name = _extract_hotel_name_from_text(text)
-        if hotel_id is not None or hotel_name:
-            return hotel_id, hotel_name
-    return None, None
-
-
-def _extract_hotel_id_from_text(text: str) -> int | None:
-    patterns = (
-        r"(?:Mã khách sạn|Ma khach san|hotel[_\s-]*id|hotel id|ID|Mã)\s*[:#\-]?\s*(\d{4,})",
-        r"\bhotel_id\s*[:=]\s*(\d{4,})",
-    )
-    for pattern in patterns:
-        match = re.search(pattern, text or "", flags=re.IGNORECASE)
-        if match:
-            return _as_int(match.group(1))
-    return None
-
-
-def _extract_hotel_name_from_text(text: str) -> str | None:
-    patterns = (
-        r"Thông tin(?: chi tiết)?(?: về)?\s+(?:khách sạn\s+)?\*\*([^*\n]+)\*\*",
-        r"(?:Tên khách sạn|Ten khach san)\s*[:：\-]\s*\*\*?([^*\n]+)",
-        r"-\s*\*\*([^*\n]*(?:Hotel|Resort|Villa|Khách sạn|Khach san)[^*\n]*)\*\*",
-        r"\*\*([^*\n]*(?:Hotel|Resort|Villa|Khách sạn|Khach san)[^*\n]*)\*\*",
-    )
-    for pattern in patterns:
-        match = re.search(pattern, text or "", flags=re.IGNORECASE)
-        if match:
-            name = re.sub(r"\s+", " ", match.group(1)).strip(" -*:：")
-            if name:
-                return name
-    return None
-
-
-def _resolve_hotel_id_from_name(hotel_name: str) -> tuple[int, str] | None:
-    try:
-        from app.rag.modules.hotel_entity_intent_helper import extract_hotel_entities  # noqa: PLC0415
-
-        entities = extract_hotel_entities(hotel_name, max_entities=1)
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("[booking_cta] hotel name resolve failed: %s: %s", type(exc).__name__, exc)
-        return None
-
-    if not entities:
-        return None
-    entity = entities[0]
-    if getattr(entity, "confidence", 0.0) < 0.72:
-        return None
-    return int(entity.hotel_id), str(entity.hotel_name)
-
-
-def _booking_recommendation_from_hotel_id(
-    hotel_id: int,
-    fallback_name: str | None = None,
-) -> dict[str, Any] | None:
-    try:
-        from app.rag.tools.hotel_detail_tool import fetch_hotel_detail_payload  # noqa: PLC0415
-
-        payload = fetch_hotel_detail_payload(hotel_id)
-    except Exception as exc:  # noqa: BLE001
-        logger.warning(
-            "[booking_cta] hotel detail fetch failed hotel_id=%s: %s: %s",
-            hotel_id,
-            type(exc).__name__,
-            exc,
-        )
-        payload = {}
-
-    payload = payload if isinstance(payload, dict) else {}
-    name = (
-        payload.get("hotel_name")
-        or payload.get("name")
-        or payload.get("title")
-        or fallback_name
-        or f"Khách sạn #{hotel_id}"
-    )
-    rec = {
-        **payload,
-        "hotel_id": hotel_id,
-        "item_id": hotel_id,
-        "id": hotel_id,
-        "hotel_name": name,
-        "name": name,
-        "rank": 1,
-        "score": 1.0,
-        "final_score": 1.0,
-        "ai_reason": "Khách sạn bạn đang hỏi và muốn đặt phòng.",
-        "reasons": ["Khách sạn bạn đang hỏi và muốn đặt phòng."],
-    }
-    return _normalize_booking_recommendation(rec)
-
-
-def _normalize_booking_recommendation(item: dict[str, Any]) -> dict[str, Any] | None:
-    rec = _ranked_hotel_to_recommendation(item)
-    hotel_id = _as_int(rec.get("hotel_id") or rec.get("item_id") or rec.get("id"))
-    if hotel_id is None:
-        return None
-    name = rec.get("hotel_name") or rec.get("name") or item.get("hotel_name") or item.get("name")
-    if name:
-        rec["hotel_name"] = name
-        rec["name"] = name
-    rec["hotel_id"] = hotel_id
-    rec["item_id"] = rec.get("item_id") or hotel_id
-    rec["id"] = rec.get("id") or hotel_id
-    rec["rank"] = 1
-    rec["score"] = rec.get("score") or rec.get("final_score") or 1.0
-    rec["ai_reason"] = rec.get("ai_reason") or "Khách sạn bạn đang hỏi và muốn đặt phòng."
-    return rec
-
-
-def _as_int(value: Any) -> int | None:
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return None
-
 
 def response_builder_node(state: AgentState) -> dict[str, Any]:
     """Tổng hợp kết quả RAG + recommendation bằng LLM.
@@ -1436,11 +1144,6 @@ def response_builder_node(state: AgentState) -> dict[str, Any]:
     req_id = state.get("request_id") or state.get("session_id") or "-"
     ranked = state.get("ranked_recommendations") or []
     rag_answer = state.get("rag_answer") or ""
-    booking_cta_response = _build_booking_cta_response(state)
-    if booking_cta_response is not None:
-        logger.debug("[%s][response_builder] booking CTA response built", req_id)
-        return booking_cta_response
-
     logger.debug(
         "[%s][response_builder] building LLM response  ranked=%d  rag_answer=%s",
         req_id, len(ranked), bool(rag_answer),
@@ -1451,19 +1154,6 @@ def response_builder_node(state: AgentState) -> dict[str, Any]:
         destination=(state.get("slots") or {}).get("destination") or "",
         rag_answer=rag_answer,
         ranked_recommendations=ranked,
-    )
-    suggestion_type = determine_suggestion_type(
-        user_profile=state.get("user_profile") or {},
-        llm_answer=result.get("synthesized_answer") or "",
-        ranked_recommendations=ranked,
-    )
-    result["next_suggestions"] = build_next_suggestions(
-        client=None,
-        suggestion_type=suggestion_type,
-        llm_answer=result.get("synthesized_answer") or "",
-        user_profile=state.get("user_profile") or {},
-        ranked_recommendations=ranked,
-        fallback_items=result.get("next_suggestions") or [],
     )
     return result  # keys: synthesized_answer, hotel_reasons, next_suggestions
 

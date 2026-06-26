@@ -38,11 +38,7 @@ def retrieve_from_rag(
             hotel_ids=hotel_ids,
             sections=sections,
         )
-        # rerank first, then take top 3
-        from modules.retrieval_rerank_pipeline import llm_rerank
-        results = llm_rerank(query, candidates, top_n=3)
-
-        results = (results or [])[: max(int(top_k), 0)]
+        results = (candidates or [])[: max(int(top_k), 0)]
         logger.info(f"Retrieved {len(results)} items from RAG")
         return {
             "success": True,
