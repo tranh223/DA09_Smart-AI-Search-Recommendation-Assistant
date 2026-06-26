@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 import json
-import re
 
 from utils.logger import get_logger
 
@@ -179,19 +178,6 @@ class chatbot:
 
 
             tool_inputs = plan_result.get("tool_inputs") if isinstance(plan_result, dict) else None
-            rag_tool_input = {}
-            if isinstance(tool_inputs, dict) and isinstance(tool_inputs.get("rag"), dict):
-                rag_tool_input = tool_inputs["rag"]
-            rag_top_k = int(rag_tool_input.get("top_k") or 3)
-            rag_hotel_ids = rag_tool_input.get("hotel_ids") or []
-            rag_sections = rag_tool_input.get("sections") or []
-            is_hotel_detail_query = _should_fetch_hotel_detail(
-                query=str(original_query),
-                retrieval_query=str(retrieval_query),
-                plan_result=plan_result,
-                skill_result=skill_result,
-            )
-
             hotel_sql_entities: list[Any] = []
             hotel_sql_need = None
             if isinstance(tool_inputs, dict):
@@ -208,61 +194,10 @@ class chatbot:
                 if hotel_name:
                     hotel_sql_selector = hotel_name
 
-            if rag_hotel_ids and is_hotel_detail_query:
-                try:
-                    from tools.hotel_detail_tool import fetch_hotel_descriptions
-
-                    rag_trace(
-                        step="rag_system:hotel_detail:input",
-                        input={"hotel_ids": rag_hotel_ids[:1]},
-                    )
-                    hotel_sql_results = fetch_hotel_descriptions(rag_hotel_ids[:1], limit=1)
-                    rag_trace(step="rag_system:hotel_detail:output", output=hotel_sql_results)
-                    rag_results = _merge_hotel_detail_into_rag_results(
-                        rag_results,
-                        hotel_sql_results,
-                    )
-                    logger.info(
-                        "Hotel detail API results: count=%s errors=%s",
-                        hotel_sql_results.get("count"),
-                        hotel_sql_results.get("errors"),
-                    )
-                except Exception as exc:  # noqa: BLE001
-                    hotel_sql_results = {
-                        "success": False,
-                        "source": "hotel_detail_api",
-                        "results": [],
-                        "count": 0,
-                        "error": str(exc),
-                    }
-                    rag_trace_error(
-                        step="rag_system:hotel_detail",
-                        error=exc,
-                        input={"hotel_ids": rag_hotel_ids[:1]},
-                    )
-                    logger.warning("Hotel detail API retrieval failed: %s", exc)
-            elif needs_hotel_sql:
-                logger.info(
-                    "Hotel detail API skipped: no resolved hotel_id or query is not hotel-detail information."
-                )
-
-            if enable_rag and needs_rag and not (is_hotel_detail_query and hotel_sql_results.get("success")):
+            if enable_rag and needs_rag:
                 logger.info("Retrieving from RAG...")
-                rag_trace(
-                    step="rag_system:rag_retrieve:input",
-                    input={
-                        "query": str(retrieval_query),
-                        "hotel_ids": rag_hotel_ids,
-                        "sections": rag_sections,
-                        "top_k": rag_top_k,
-                    },
-                )
-                rag_results = retrieve_from_rag(
-                    str(retrieval_query),
-                    top_k=rag_top_k,
-                    hotel_ids=rag_hotel_ids,
-                    sections=rag_sections,
-                )
+                rag_trace(step="rag_system:rag_retrieve:input", input={"query": str(retrieval_query)})
+                rag_results = retrieve_from_rag(str(retrieval_query))
                 rag_trace(step="rag_system:rag_retrieve:output", output=rag_results)
                 logger.info(f"rag_results: {rag_results}")
 
@@ -273,39 +208,10 @@ class chatbot:
                 rag_trace(step="rag_system:graph_retrieve:output", output=graph_results)
                 logger.info(f"graph_results: {graph_results}")
 
-            if (not hotel_sql_results.get("success")) and rag_hotel_ids and is_hotel_detail_query:
-                try:
-                    from tools.hotel_detail_tool import fetch_hotel_descriptions
-
-                    rag_trace(
-                        step="rag_system:hotel_detail:input",
-                        input={"hotel_ids": rag_hotel_ids[:1]},
-                    )
-                    hotel_sql_results = fetch_hotel_descriptions(rag_hotel_ids[:1], limit=1)
-                    rag_trace(step="rag_system:hotel_detail:output", output=hotel_sql_results)
-                    rag_results = _merge_hotel_detail_into_rag_results(
-                        rag_results,
-                        hotel_sql_results,
-                    )
-                    logger.info(
-                        "Hotel detail API results: count=%s errors=%s",
-                        hotel_sql_results.get("count"),
-                        hotel_sql_results.get("errors"),
-                    )
-                except Exception as exc:  # noqa: BLE001
-                    hotel_sql_results = {
-                        "success": False,
-                        "source": "hotel_detail_api",
-                        "results": [],
-                        "count": 0,
-                        "error": str(exc),
-                    }
-                    rag_trace_error(
-                        step="rag_system:hotel_detail",
-                        error=exc,
-                        input={"hotel_ids": rag_hotel_ids[:1]},
-                    )
-                    logger.warning("Hotel detail API retrieval failed: %s", exc)
+            # Hotel Ask is handled via FAISS in RAG path.
+            # Hotel SQL tool is removed from backend/rag.
+            if needs_hotel_sql:
+                logger.info("Skipping Hotel SQL retrieval (removed). Hotel Ask uses FAISS vector search.")
 
 
             if isinstance(aux_intents, dict):
@@ -412,109 +318,3 @@ def get_chatbot(user_id: str = "default_user") -> chatbot:
     if _chatbot_instance is None:
         _chatbot_instance = chatbot(user_id)
     return _chatbot_instance
-
-
-def _should_fetch_hotel_detail(
-    *,
-    query: str,
-    retrieval_query: str,
-    plan_result: dict[str, Any] | None,
-    skill_result: dict[str, Any] | None,
-) -> bool:
-    text_parts = [query, retrieval_query]
-    if isinstance(plan_result, dict):
-        text_parts.extend(
-            [
-                str(plan_result.get("query_type") or ""),
-                str(plan_result.get("main_object") or ""),
-                str(plan_result.get("sub_objects") or ""),
-                str(plan_result.get("required_steps") or ""),
-                str(plan_result.get("context") or ""),
-            ]
-        )
-    if isinstance(skill_result, dict):
-        text_parts.append(str(skill_result.get("intent_type") or ""))
-
-    text = _normalize_for_detail_intent(" ".join(text_parts))
-    if "information" in text or "hotel_feature_qa" in text or "hotel_policy_qa" in text:
-        return True
-
-    detail_markers = (
-        "thong tin",
-        "chi tiet",
-        "mo ta",
-        "gioi thieu",
-        "tong quan",
-        "tien nghi",
-        "dich vu",
-        "loai nao",
-        "nam o dau",
-        "dia chi",
-        "khach san nay",
-    )
-    return any(marker in text for marker in detail_markers)
-
-
-def _merge_hotel_detail_into_rag_results(
-    rag_results: dict[str, Any],
-    hotel_detail_results: dict[str, Any],
-) -> dict[str, Any]:
-    detail_items = hotel_detail_results.get("results") if isinstance(hotel_detail_results, dict) else []
-    if not isinstance(detail_items, list) or not detail_items:
-        return rag_results
-
-    current_results = []
-    if isinstance(rag_results, dict) and isinstance(rag_results.get("results"), list):
-        current_results = list(rag_results.get("results") or [])
-
-    detail_chunks: list[dict[str, Any]] = []
-    for item in detail_items:
-        if not isinstance(item, dict):
-            continue
-        description = str(item.get("description") or "").strip()
-        if not description:
-            continue
-        hotel_id = item.get("hotel_id")
-        detail_chunks.append(
-            {
-                "score": 1.0,
-                "chunk_id": f"hotel_detail_description:{hotel_id}",
-                "section": "description",
-                "content": description,
-                "metadata": {
-                    "hotel_id": hotel_id,
-                    "source": "hotel_detail_api",
-                    "source_type": "hotel_detail",
-                },
-            }
-        )
-
-    merged_results = detail_chunks + current_results
-    return {
-        "success": bool(merged_results),
-        "source": "rag+hotel_detail_api",
-        "results": merged_results,
-        "count": len(merged_results),
-    }
-
-
-def _normalize_for_detail_intent(value: str) -> str:
-    text = (value or "").lower()
-    replacements = {
-        "đ": "d",
-        "á": "a", "à": "a", "ả": "a", "ã": "a", "ạ": "a",
-        "ă": "a", "ắ": "a", "ằ": "a", "ẳ": "a", "ẵ": "a", "ặ": "a",
-        "â": "a", "ấ": "a", "ầ": "a", "ẩ": "a", "ẫ": "a", "ậ": "a",
-        "é": "e", "è": "e", "ẻ": "e", "ẽ": "e", "ẹ": "e",
-        "ê": "e", "ế": "e", "ề": "e", "ể": "e", "ễ": "e", "ệ": "e",
-        "í": "i", "ì": "i", "ỉ": "i", "ĩ": "i", "ị": "i",
-        "ó": "o", "ò": "o", "ỏ": "o", "õ": "o", "ọ": "o",
-        "ô": "o", "ố": "o", "ồ": "o", "ổ": "o", "ỗ": "o", "ộ": "o",
-        "ơ": "o", "ớ": "o", "ờ": "o", "ở": "o", "ỡ": "o", "ợ": "o",
-        "ú": "u", "ù": "u", "ủ": "u", "ũ": "u", "ụ": "u",
-        "ư": "u", "ứ": "u", "ừ": "u", "ử": "u", "ữ": "u", "ự": "u",
-        "ý": "y", "ỳ": "y", "ỷ": "y", "ỹ": "y", "ỵ": "y",
-    }
-    for source, target in replacements.items():
-        text = text.replace(source, target)
-    return re.sub(r"\s+", " ", text).strip()

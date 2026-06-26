@@ -2,7 +2,7 @@
 Response Builder — tổng hợp kết quả RAG + recommendation bằng LLM.
 
 Nhận: rag_answer, ranked_recommendations, intent, slots, raw_query
-Trả: synthesized_answer, hotel_reasons
+Trả: synthesized_answer, hotel_reasons, next_suggestions
 
 Dùng cùng OpenAIResponsesClient với query_understanding để tận dụng
 retry logic và structured-output schema đã có sẵn.
@@ -80,8 +80,13 @@ _RESPONSE_SCHEMA: dict[str, Any] = {
                 "additionalProperties": False,
             },
         },
+        "next_suggestions": {
+            "type": "array",
+            "description": "Hãy sinh các gợi ý tiếp theo được cá nhân hóa cho người dùng dựa trên intent hiện tại, lịch sử tương tác, sở thích, ngữ cảnh phiên làm việc và mục tiêu tiềm ẩn; ưu tiên các gợi ý có khả năng giúp người dùng đạt mục tiêu nhanh nhất.(phần này sẽ là phần user sẽ có thể chat với bot)",
+            "items": {"type": "string"},
+        },
     },
-    "required": ["answer", "hotel_reasons"],
+    "required": ["answer", "hotel_reasons", "next_suggestions"],
     "additionalProperties": False,
 }
 
@@ -97,15 +102,24 @@ _GUARDRAIL_RESPONSE_SCHEMA: dict[str, Any] = {
                 "to complete the sentence."
             ),
         },
+        "next_suggestions": {
+            "type": "array",
+            "description": (
+                "Optional short follow-up chips only. These must not replace required content "
+                "inside answer."
+            ),
+            "items": {"type": "string"},
+        },
     },
-    "required": ["answer"],
+    "required": ["answer", "next_suggestions"],
     "additionalProperties": False,
 }
 
 _SYSTEM_INSTRUCTIONS = (
     "Bạn là trợ lý AI của nền tảng đặt phòng OTA tại Việt Nam. "
     "Nhiệm vụ: tổng hợp kết quả tìm kiếm thành câu trả lời thân thiện, "
-    "và giải thích lý do gợi ý cụ thể cho từng khách sạn. "
+    "giải thích lý do gợi ý cụ thể cho từng khách sạn và đề xuất câu hỏi "
+    "tiếp theo giúp người dùng tinh chỉnh. "
     "Viết bằng tiếng Việt, ngắn gọn và thực tế. "
     "Lý do phải cụ thể: đề cập giá, tiện nghi nổi bật, vị trí hoặc điểm đặc trưng.\n\n"
     "QUAN TRỌNG — Định dạng trường 'answer' bằng Markdown:\n"
@@ -220,10 +234,27 @@ def _guardrail_fallback_response(
             "Mình **chưa thấy đủ thông tin** trong ngữ cảnh hiện tại để trả lời chắc chắn. "
             "Bạn có thể nhắc lại điểm đến hoặc kế hoạch khách sạn của mình không?"
         )
+    if category == "OUT_OF_SCOPE":
+        next_suggestions = [
+            "Tìm khách sạn theo điểm đến và ngày đi",
+            "Gợi ý khách sạn theo ngân sách",
+            "Tìm khách sạn có tiện nghi hoặc view mong muốn",
+        ]
+    elif category == "ASSISTANT_HELP":
+        next_suggestions = [
+            "Bạn muốn mình nhắc lại kế hoạch chuyến đi đã lưu không?",
+            "Bạn muốn tìm khách sạn theo kế hoạch này không?",
+            "Bạn muốn bổ sung ngân sách, ngày đi hoặc tiện ích mong muốn không?",
+        ]
+    else:
+        next_suggestions = [
+            "Bạn muốn mình tiếp tục gợi ý khách sạn theo kế hoạch này không?",
+            "Bạn muốn bổ sung ngân sách, ngày đi hoặc tiện ích mong muốn không?",
+        ]
 
     return {
         "answer": answer,
-        "next_suggestions": [],
+        "next_suggestions": next_suggestions,
     }
 
 
@@ -275,7 +306,11 @@ def build_guardrail_response_with_llm(
         )
         return {
             "answer": str(raw.get("answer") or "").strip(),
-            "next_suggestions": [],
+            "next_suggestions": [
+                str(item).strip()
+                for item in (raw.get("next_suggestions") or [])
+                if str(item).strip()
+            ],
         }
     except Exception as exc:  # noqa: BLE001
         logger.warning(
@@ -359,7 +394,11 @@ def _fallback_response(
     return {
         "synthesized_answer": answer,
         "hotel_reasons": {},
-        "next_suggestions": [],
+        "next_suggestions": [
+            "Bạn muốn lọc thêm theo mức giá không?",
+            "Bạn có yêu cầu đặc biệt về tiện nghi không?",
+            "Bạn cần phòng cho bao nhiêu người?",
+        ],
     }
 
 def build_response_with_llm(
@@ -376,7 +415,7 @@ def build_response_with_llm(
         Dict với 3 key:
         - synthesized_answer (str): câu trả lời tổng hợp
         - hotel_reasons (dict[str, str]): {hotel_id → lý do}
-        - next_suggestions (list[str]): luôn để trống, được sinh bởi next_suggestions.py ở nodes.py
+        - next_suggestions (list[str]): gợi ý câu hỏi tiếp theo
     """
     client = _get_llm_client()
     if client is None:
@@ -406,7 +445,9 @@ def build_response_with_llm(
         return {
             "synthesized_answer": raw.get("answer") or "",
             "hotel_reasons": hotel_reasons,
-            "next_suggestions": [],
+            "next_suggestions": [
+                str(s) for s in (raw.get("next_suggestions") or []) if s
+            ],
         }
     except Exception as exc:  # noqa: BLE001
         logger.warning(
