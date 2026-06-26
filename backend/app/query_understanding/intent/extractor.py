@@ -90,12 +90,18 @@ INTENT_SCHEMA = {
                     "type": ["string", "null"],
                     "enum": [None, "hotel_price", "trip_total"],
                 },
+                "budget_type": {
+                    "type": ["string", "null"],
+                    "enum": [None, "total", "per_night"],
+                },
                 "trip_type": {
                     "type": ["string", "null"],
                     "enum": [None, *TRIP_TYPE_ENUM],
                 },
                 "nearby_place": {"type": ["string", "null"]},
                 "number_of_guests": {"type": ["integer", "null"]},
+                "number_of_days": {"type": ["integer", "null"]},
+                "number_of_nights": {"type": ["integer", "null"]},
                 "check_in": {"type": ["string", "null"]},
                 "check_out": {"type": ["string", "null"]},
             },
@@ -159,12 +165,15 @@ STRUCTURED FACT RULES
 - For `dưới X`, `không quá X`, `tối đa X`, extract only budget_max=`X`.
 - For `trên X`, `từ X trở lên`, `ít nhất X`, extract only budget_min=`X`.
 - For `khoảng X`, `tầm X`, `xấp xỉ X`, extract budget_min=`X` and budget_max=`X` so downstream logic can expand a symmetric budget window.
+- Extract budget_type as `per_night` only when the user explicitly says per night, per room night, each night, one night, per đêm, một đêm, mỗi đêm, or room price per night.
+- Extract budget_type as `total` when the user says total trip/stay budget, budget for the whole trip/stay, tổng ngân sách, cho cả chuyến, cho chuyến đi, or when money is mentioned but budget_type is unclear.
 - Extract constraints.budget_level as `low`, `medium`, or `high` when the query gives a hotel budget amount or clear budget wording.
 - Use `low` for budget-sensitive, cheap, affordable, low-cost, or clearly low hotel price requests. Use `high` for luxury, premium, high-end, expensive requests. Use `medium` for middle-range neutral budgets. Use null only when budget information is absent or insufficient.
 - Extract constraints.note_amenities as `max` when the user explicitly asks for broad amenity completeness such as many amenities, full amenities, maximum amenities, or fully equipped hotel amenities.
 - If constraints.note_amenities is `max`, do not create a semantic_preferences item for that generic amenity-completeness request. Only create semantic amenity items for concrete amenities such as BBQ, pool, breakfast, spa, wifi, language support, balcony, or kids club.
 - Do not set constraints.note_amenities=`max` for concrete amenities such as BBQ, outdoor cooking, pool, breakfast, spa, wifi, language support, balcony, or kids club.
-- Keep budget_min, budget_max, budget_scope, trip_type, and number_of_guests only under entities. Do not duplicate those fields under constraints.
+- Extract number_of_days and number_of_nights when explicit, for example `3 ngày 2 đêm` -> number_of_days=3 and number_of_nights=2.
+- Keep budget_min, budget_max, budget_scope, budget_type, trip_type, number_of_guests, number_of_days, and number_of_nights only under entities. Do not duplicate those fields under constraints.
 - constraints must contain only budget_level, location_hint, and note_amenities.
 - Set budget_scope to:
   - hotel_price: hotel price, room price, hotel budget, price per night
@@ -349,9 +358,12 @@ class LLMIntentExtractor:
             budget_min=entities_payload.get("budget_min"),
             budget_max=entities_payload.get("budget_max"),
             budget_scope=entities_payload.get("budget_scope"),
+            budget_type=entities_payload.get("budget_type"),
             trip_type=entities_payload.get("trip_type"),
             nearby_place=entities_payload.get("nearby_place"),
             number_of_guests=entities_payload.get("number_of_guests"),
+            number_of_days=entities_payload.get("number_of_days"),
+            number_of_nights=entities_payload.get("number_of_nights"),
             check_in=entities_payload.get("check_in"),
             check_out=entities_payload.get("check_out"),
         )
@@ -507,9 +519,14 @@ class LLMIntentExtractor:
             "check_out",
             "nearby_place",
             "number_of_guests",
+            "number_of_days",
+            "number_of_nights",
             "has_pet",
             "has_children",
             "session_price_range",
+            "budget_type",
+            "raw_budget_min",
+            "raw_budget_max",
             "note_amenities",
         )
         return {
