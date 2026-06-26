@@ -862,6 +862,7 @@ class QueryUnderstandingPipeline:
         active_profile = self._build_active_profile(
             user_profile,
             query=query,
+            applied_updates=dict(session_update.applied_updates),
             hidden_profile_signals=hidden_intent_result.profile_signals,
         )
         active_profile_merge_ms = _elapsed_ms(active_profile_start)
@@ -1105,6 +1106,7 @@ class QueryUnderstandingPipeline:
         user_profile: UserProfile,
         *,
         query: str = "",
+        applied_updates: dict[str, Any] | None = None,
         hidden_profile_signals: list[Any] | None = None,
     ) -> ActiveProfile:
         merger = getattr(self, "current_profile_merger", None) or CurrentProfileMerger()
@@ -1112,6 +1114,7 @@ class QueryUnderstandingPipeline:
             return merger.merge_into_user_profile(
                 user_profile,
                 query=query,
+                applied_updates=applied_updates,
                 hidden_profile_signals=hidden_profile_signals,
             )
         return merger.merge(user_profile, hidden_profile_signals=hidden_profile_signals)

@@ -227,6 +227,18 @@ class SessionProfileUpdater:
             room_views=routed_tags.room_views,
             amenities=mapped_amenities,
         )
+        direct_runtime_tags = list(session.runtime_tag_expansion.mapped_tags)
+        if not direct_runtime_tags:
+            direct_runtime_tags = runtime_tags_from_semantic_mapping(
+                semantic_mapping,
+                score_threshold=self.score_threshold,
+            )
+        self._apply_direct_tag_updates(
+            applied_updates=applied_updates,
+            direct_routed_tags=self.tag_router.route(direct_runtime_tags),
+            entity_amenity_tags=entity_update.amenity_tags,
+            has_explicit_trip_type=bool(intent_result.entities.trip_type),
+        )
 
         return SessionProfileUpdateResult(
             session_context=session,
@@ -289,6 +301,30 @@ class SessionProfileUpdater:
         if added_amenities:
             applied_updates["session_amenities"] = added_amenities
 
+    @staticmethod
+    def _apply_direct_tag_updates(
+        *,
+        applied_updates: dict[str, list[str] | str | None],
+        direct_routed_tags: RoutedTags,
+        entity_amenity_tags: list[str],
+        has_explicit_trip_type: bool,
+    ) -> None:
+        direct_updates = {
+            "session_preference_habits": direct_routed_tags.preference_tags,
+            "session_hotel_types": direct_routed_tags.hotel_types,
+            "session_room_views": direct_routed_tags.room_views,
+            "session_amenities": list(direct_routed_tags.amenities) + list(entity_amenity_tags),
+        }
+        if not has_explicit_trip_type:
+            direct_updates["session_trip_types"] = direct_routed_tags.trip_types
+
+        for field_name, values in direct_updates.items():
+            deduped_values = _dedupe_values(values)
+            if deduped_values:
+                applied_updates[field_name] = deduped_values
+            else:
+                applied_updates.pop(field_name, None)
+
 
 def runtime_tags_from_semantic_mapping(
     semantic_mapping: SemanticMappingResult,
@@ -312,20 +348,37 @@ def runtime_tags_from_semantic_mapping(
     return tags
 
 
+def _dedupe_values(values: list[str]) -> list[str]:
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for raw_value in values:
+        value = str(raw_value).strip()
+        if not value or value in seen:
+            continue
+        seen.add(value)
+        deduped.append(value)
+    return deduped
+
+
 def merge_score_map_values(
     target: dict[str, CountInteractionValue],
     values: list[str],
     default_weight: int = 1,
 ) -> list[str]:
-    added: list[str] = []
-    for value in values:
+    touched: list[str] = []
+    seen: set[str] = set()
+    for raw_value in values:
+        value = str(raw_value).strip()
+        if not value or value in seen:
+            continue
+        seen.add(value)
+        touched.append(value)
         if value not in target:
             target[value] = build_count_interaction_value(default_weight)
-            added.append(value)
             continue
         current = target[value]
         target[value] = build_count_interaction_value(current.count + default_weight)
-    return added
+    return touched
 
 
 def build_count_interaction_value(count: int) -> CountInteractionValue:
