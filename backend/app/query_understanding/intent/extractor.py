@@ -147,18 +147,22 @@ CONTEXT
 STRICT OUTPUT POLICY
 - Do not output normalized hotel tags, normalized amenities, or normalized hotel types.
 - Do not decide search intent, planner task, router branch, retrieval source, or execution plan.
-- Only return values directly supported by the current query, except structured trip facts carried over from session_context or conversation_history for a clear follow-up.
-- When the current query is a follow-up that adds budget, preferences, traveler type, dates, or constraints, preserve prior structured trip facts from session_context first, then conversation_history, such as destination, check_in, check_out, number_of_guests, and nearby_place unless the current query contradicts them.
+- Only return values directly supported by the current query, except non-destination structured trip facts carried over from session_context or conversation_history for a clear follow-up.
+- Never carry over destination into entities.destination from session_context, conversation_history, assistant answers, hotel names, or previous recommendations. If current_query does not explicitly mention a destination, leave entities.destination null/omitted so downstream session logic can preserve the current session destination.
+- When the current query is a follow-up that adds budget, preferences, traveler type, dates, or constraints, preserve prior non-destination structured trip facts from session_context first, then conversation_history, such as check_in, check_out, number_of_guests, and nearby_place unless the current query contradicts them.
 - If uncertain, omit the field instead of guessing.
 - Use sparse output inside entities and constraints: include only fields that have non-null values.
 - Still return the top-level groups `entities`, `constraints`, and `semantic_preferences`.
 
 STRUCTURED FACT RULES
-- Extract destination when the city, area, or place is explicit.
-- If destination was explicit in session_context or conversation_history and the current query is a follow-up, carry it over.
+- Extract destination only when the city, area, or place is explicitly mentioned in the current_query itself.
+- Normalize common Vietnamese destination abbreviations to canonical names when they are clearly used as destinations: `HN` -> `Hà Nội`, `HCM`/`SG`/`Sài Gòn` -> `Hồ Chí Minh`, `DN` -> `Đà Nẵng`, `HP` -> `Hải Phòng`, `NT` -> `Nha Trang`, `ĐL`/`DL` -> `Đà Lạt`. Only normalize when the abbreviation is unambiguous in travel/hotel context.
+- Do not carry destination from session_context or conversation_history into entities.destination. For follow-up queries like `3 ngày 2 đêm`, `thêm view đẹp`, or `yên tĩnh hơn`, leave destination null/omitted unless that same current_query names the destination.
+- Do not infer destination from hotel names mentioned in conversation_history or from previous assistant recommendations.
 - Extract hotel_name only when a specific property is referenced.
 - Extract nearby_place only when the location anchor is explicit and concrete enough to use directly.
 - Extract number_of_guests when explicit.
+- If the current query explicitly asks for a couple trip, such as `cặp đôi`, `đi đôi`, `hai vợ chồng`, `2 vợ chồng`, `người yêu`, or `honeymoon`, set trip_type=`Cặp đôi` and number_of_guests=2 unless the current query explicitly gives a different guest count.
 - Extract check_in and check_out in YYYY-MM-DD format only.
 - If check_in/check_out were explicit in session_context or conversation_history and the current query is a follow-up, carry them over.
 - Extract budget_min and budget_max as VND numbers when money is clearly mentioned.
