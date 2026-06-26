@@ -57,6 +57,11 @@ def normalize_profile(profile: dict[str, Any] | None) -> dict[str, Any]:
             "number_of_guests": session.get("number_of_guests"),
             "has_children": session.get("has_children"),
             "price_range": as_dict(session.get("session_price_range") or session.get("price_range")),
+            "budget_type": session.get("budget_type"),
+            "raw_budget_min": session.get("raw_budget_min"),
+            "raw_budget_max": session.get("raw_budget_max"),
+            "number_of_days": session.get("number_of_days"),
+            "number_of_nights": session.get("number_of_nights"),
             "trip_types": normalize_count_group(
                 session.get("session_trip_types")
                 or session.get("suitable_for")

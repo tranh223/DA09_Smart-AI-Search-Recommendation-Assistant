@@ -133,12 +133,6 @@ class ModelChecker:
         missing_fields: list[str] = []
         if not session.destination:
             missing_fields.append("destination")
-        if not session.check_in:
-            missing_fields.append("check_in")
-        if not session.check_out:
-            missing_fields.append("check_out")
-        if not cls._has_budget_context(session):
-            missing_fields.append("budget_level")
         return missing_fields
 
     def _requires_recommendation(self, query: str, user_id: str | None) -> bool:
@@ -162,6 +156,7 @@ class ModelChecker:
         followup_patterns = (
             r"\b(ngay|ngày|nhan\s+phong|nhận\s+phòng|tra\s+phong|trả\s+phòng|check[\s-]?in|check[\s-]?out)\b",
             r"\b\d{1,2}([./-]\d{1,2})([./-]\d{2,4})?\b",
+            r"\b\d+\s*(dem|đêm|ngay|ngày|night|nights|day|days)\b",
             r"\b\d+([.,]\d+)?\s*(trieu|triệu|k|nghin|nghìn|ngàn|vnd|đ|dong|đồng)\b",
             r"\b(thap|thấp|trung\s*bình|trung\s+binh|cao|duoi|dưới|tren|trên)\b",
             r"\b\d+\s*(nguoi|người|khach|khách|be|bé|tre|trẻ|phong|phòng)\b",

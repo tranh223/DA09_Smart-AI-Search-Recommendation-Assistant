@@ -49,7 +49,10 @@ def _schema_preference_habits(hotel: dict[str, Any]) -> set[str]:
 
 
 def price_far_outside(profile: dict[str, Any], hotel: dict[str, Any]) -> bool:
-    price_range = as_dict(_session(profile).get("price_range"))
+    session = _session(profile)
+    if session.get("budget_type") == "total" and not session.get("number_of_nights"):
+        return False
+    price_range = as_dict(session.get("price_range"))
     user_min = to_float(price_range.get("min"), None)
     user_max = to_float(price_range.get("max"), None)
     hotel_min = to_float(hotel.get("price_min"), None)
@@ -105,7 +108,10 @@ def hard_filter(profile: dict[str, Any], hotel: dict[str, Any]) -> tuple[bool, s
 
 
 def budget_score(profile: dict[str, Any], hotel: dict[str, Any]) -> float:
-    price_range = as_dict(_session(profile).get("price_range"))
+    session = _session(profile)
+    if session.get("budget_type") == "total" and not session.get("number_of_nights"):
+        return 0.5
+    price_range = as_dict(session.get("price_range"))
     user_min = to_float(price_range.get("min"), None)
     user_max = to_float(price_range.get("max"), None)
     hotel_min = to_float(hotel.get("price_min"), None)
