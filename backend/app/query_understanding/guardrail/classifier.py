@@ -8,7 +8,7 @@ from query_understanding.models.guardrail import GuardrailResult
 GUARDRAIL_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
-    "required": ["allow", "category", "reason"],
+    "required": ["allow", "category", "reason", "assistant_help_context_mode"],
     "properties": {
         "allow": {"type": "boolean"},
         "category": {
@@ -20,6 +20,16 @@ GUARDRAIL_SCHEMA = {
             ],
         },
         "reason": {"type": "string"},
+        "assistant_help_context_mode": {
+            "type": "string",
+            "enum": ["NONE", "NO_HISTORY", "USE_HISTORY_SUMMARY"],
+            "description": (
+                "Only meaningful when category is ASSISTANT_HELP. "
+                "NONE for non-ASSISTANT_HELP categories; NO_HISTORY when current_query asks "
+                "about assistant capability/features; USE_HISTORY_SUMMARY when current_query "
+                "explicitly asks to recall/summarize prior trip or hotel context."
+            ),
+        },
     },
 }
 
@@ -73,6 +83,10 @@ OUT_OF_SCOPE criteria:
 Decision rules:
 - Return allow=true only for OTA_QUERY.
 - Return allow=false for ASSISTANT_HELP and OUT_OF_SCOPE.
+- Set assistant_help_context_mode=NONE for OTA_QUERY and OUT_OF_SCOPE.
+- For ASSISTANT_HELP capability/feature questions like "bạn có thể làm gì", set assistant_help_context_mode=NO_HISTORY.
+- For ASSISTANT_HELP recall/context questions like "bạn nhớ tôi đi đâu không" or "ngân sách tôi đã nói là bao nhiêu", set assistant_help_context_mode=USE_HISTORY_SUMMARY.
+- Do not choose USE_HISTORY_SUMMARY just because history exists; current_query itself must explicitly ask about prior context.
 - Do not classify current_query as OTA_QUERY only because conversation_summary contains hotel context. The current_query itself must be OTA/travel/hotel related or a short follow-up answer that fills active OTA details.
 - If current_query asks "do you remember where/when I planned to go?", classify ASSISTANT_HELP, not OTA_QUERY.
 - If current_query asks "what can you do?", classify ASSISTANT_HELP, not OTA_QUERY.
@@ -138,6 +152,7 @@ class OTAGuardrailClassifier:
             allow=result.allow,
             category=result.category,
             reason=result.reason,
+            assistant_help_context_mode=result.assistant_help_context_mode,
         )
 
     @staticmethod
@@ -177,19 +192,33 @@ class OTAGuardrailClassifier:
             reason = f"Normalized unsupported guardrail category: {reason}"
         allow = category == "OTA_QUERY"
         raw_allow = bool(payload.get("allow"))
+        mode = str(payload.get("assistant_help_context_mode") or "NONE")
+        if mode not in {"NONE", "NO_HISTORY", "USE_HISTORY_SUMMARY"}:
+            mode = "NONE"
+        if category != "ASSISTANT_HELP":
+            mode = "NONE"
+        elif mode == "NONE":
+            mode = "NO_HISTORY"
         if category == "OTA_QUERY" and not raw_allow:
             return GuardrailResult(
                 allow=True,
                 category=category,
                 reason=f"Normalized contradictory guardrail output: {reason}",
+                assistant_help_context_mode="NONE",
             )
         if category != "OTA_QUERY" and raw_allow:
             return GuardrailResult(
                 allow=False,
                 category=category,
                 reason=f"Normalized contradictory guardrail output: {reason}",
+                assistant_help_context_mode=mode,
             )
-        return GuardrailResult(allow=allow, category=category, reason=reason)
+        return GuardrailResult(
+            allow=allow,
+            category=category,
+            reason=reason,
+            assistant_help_context_mode=mode,
+        )
 
     @staticmethod
     def _normalize_conversation_summary(conversation_summary: str | None) -> str:

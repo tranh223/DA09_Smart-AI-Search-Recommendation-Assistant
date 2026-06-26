@@ -3,6 +3,7 @@ import logging
 import os
 import threading
 import time
+import unicodedata
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
@@ -251,19 +252,21 @@ class QueryUnderstandingPipeline:
         )
         if is_assistant_help:
             timing["total_pipeline_ms"] = _elapsed_ms(pipeline_start)
-            _log_intent_terminal(
-                "assistant_help",
-                route="answer_without_recommend",
-                guardrail_category=guardrail_result.category,
-                total_ms=timing["total_pipeline_ms"],
-            )
             guardrail_payload = asdict(guardrail_result)
             if guardrail_result.category != "ASSISTANT_HELP":
                 guardrail_payload = {
                     "allow": False,
                     "category": "ASSISTANT_HELP",
                     "reason": "Detected assistant help/capability query.",
+                    "assistant_help_context_mode": "NO_HISTORY",
                 }
+            _log_intent_terminal(
+                "assistant_help",
+                route="answer_without_recommend",
+                guardrail_category=guardrail_result.category,
+                assistant_help_context_mode=guardrail_payload.get("assistant_help_context_mode"),
+                total_ms=timing["total_pipeline_ms"],
+            )
             _log_qu_json(
                 "query_classification",
                 "query_classified",
@@ -395,6 +398,7 @@ class QueryUnderstandingPipeline:
                 query,
                 user_profile,
                 conversation_history=conversation_history or [],
+                conversation_summary=conversation_summary,
             )
             timing["precheck_extract_merge_ms"] = _elapsed_ms(precheck_extract_start)
             timing["precheck_extract_merge_detail"] = precheck_extract_detail
@@ -511,6 +515,7 @@ class QueryUnderstandingPipeline:
                 query,
                 user_profile,
                 conversation_history or [],
+                conversation_summary,
             )
             search_plan_result, search_plan_ms = search_plan_future.result()
             (intent_result, session_update, active_profile), extract_merge_ms, extract_merge_detail = (
@@ -609,11 +614,13 @@ class QueryUnderstandingPipeline:
         query: str,
         user_profile: UserProfile,
         conversation_history: list[dict[str, str]] | None = None,
+        conversation_summary: str | None = None,
     ) -> tuple[Any, SessionProfileUpdateResult, ActiveProfile]:
         result, _ = self._extract_merge_current_profile_with_timing(
             query,
             user_profile,
             conversation_history=conversation_history,
+            conversation_summary=conversation_summary,
         )
         return result
 
@@ -622,6 +629,7 @@ class QueryUnderstandingPipeline:
         query: str,
         user_profile: UserProfile,
         conversation_history: list[dict[str, str]] | None = None,
+        conversation_summary: str | None = None,
     ) -> tuple[tuple[Any, SessionProfileUpdateResult, ActiveProfile], dict[str, float]]:
         detail_start = time.perf_counter()
         extract_parallel_start = time.perf_counter()
@@ -650,6 +658,7 @@ class QueryUnderstandingPipeline:
                 query,
                 user_id=user_profile.user_id,
                 conversation_history=conversation_history,
+                conversation_summary=conversation_summary,
                 session_context=asdict(user_profile.session_context),
                 long_term_profile=asdict(user_profile.long_term_profile),
                 tagremoved_profile=asdict(user_profile.tagremoved_profile),
@@ -676,17 +685,27 @@ class QueryUnderstandingPipeline:
         intent_extract_ms = _elapsed_ms(extract_parallel_start)
         hidden_intent_trace = dict(getattr(hidden_extractor, "last_trace", {}))
         self._last_hidden_intent_trace = hidden_intent_trace
+        hidden_gate_trace = hidden_intent_trace.get("gate")
+        hidden_gate_ms = (
+            hidden_gate_trace.get("latency_ms")
+            if isinstance(hidden_gate_trace, dict)
+            else None
+        )
         _log_intent_terminal(
             "extract_done",
             ms=intent_extract_ms,
             explicit_semantic_items=len(intent_result.semantic_preferences.items),
             hidden_semantic_items=len(hidden_intent_result.semantic_preferences.items),
             hidden_profile_signals=len(hidden_intent_result.profile_signals),
-            hidden_scalar_signals=len(hidden_intent_result.scalar_signals),
             hidden_path=hidden_intent_trace.get("path"),
             hidden_reason=hidden_intent_trace.get("reason"),
+            hidden_gate_decision=hidden_intent_trace.get("gate_decision"),
+            hidden_gate_ms=hidden_gate_ms,
+            hidden_extract_ms=hidden_intent_trace.get("extraction_latency_ms"),
             hidden_model=hidden_intent_trace.get("model"),
-            explicit_cached_tokens=((self.intent_extractor.last_trace or {}).get("response_meta") or {}).get("cached_tokens"),
+            explicit_cached_tokens=(
+                (self.intent_extractor.last_trace or {}).get("response_meta") or {}
+            ).get("cached_tokens"),
             hidden_cached_tokens=(hidden_intent_trace.get("response_meta") or {}).get("cached_tokens"),
         )
         _log_qu_json(
@@ -760,7 +779,8 @@ class QueryUnderstandingPipeline:
         hidden_tag_graph_expansion_trace: dict[str, Any] = {"path": "skipped", "reason": "hidden_intent_no_graph_expansion"}
         if hidden_semantic_mapping.mapped_items:
             hidden_runtime_tag_expansion = self._runtime_tag_expansion_from_hidden_mapping(
-                hidden_semantic_mapping
+                hidden_semantic_mapping,
+                query=query,
             )
             runtime_tag_expansion = self._merge_runtime_tag_expansion(
                 runtime_tag_expansion,
@@ -818,7 +838,6 @@ class QueryUnderstandingPipeline:
             query=query,
         )
         session_profile_update_ms = _elapsed_ms(session_update_start)
-        self._apply_hidden_scalar_signals(user_profile, hidden_intent_result.scalar_signals)
         _log_intent_terminal(
             "session_update",
             applied_updates=list(dict(session_update.applied_updates).keys()),
@@ -919,12 +938,14 @@ class QueryUnderstandingPipeline:
         query: str,
         user_profile: UserProfile,
         conversation_history: list[dict[str, str]] | None = None,
+        conversation_summary: str | None = None,
     ) -> tuple[tuple[Any, SessionProfileUpdateResult, ActiveProfile], float, dict[str, float]]:
         start = time.perf_counter()
         result, detail = self._extract_merge_current_profile_with_timing(
             query,
             user_profile,
             conversation_history=conversation_history,
+            conversation_summary=conversation_summary,
         )
         return result, _elapsed_ms(start), detail
 
@@ -990,6 +1011,8 @@ class QueryUnderstandingPipeline:
     def _runtime_tag_expansion_from_hidden_mapping(
         self,
         hidden_mapping: SemanticMappingResult,
+        *,
+        query: str = "",
     ) -> RuntimeTagExpansion:
         mapped_tags: list[RuntimeTag] = []
         seen: set[tuple[str, str]] = set()
@@ -998,13 +1021,16 @@ class QueryUnderstandingPipeline:
                 continue
             if item.score is None or item.score <= self.semantic_mapper.score_threshold:
                 continue
-            key = (item.matched_tag, item.matched_category)
+            matched_tag = self._normalize_hidden_mapped_tag(item, query=query)
+            if not matched_tag:
+                continue
+            key = (matched_tag, item.matched_category)
             if key in seen:
                 continue
             seen.add(key)
             mapped_tags.append(
                 RuntimeTag(
-                    tag=item.matched_tag,
+                    tag=matched_tag,
                     category=item.matched_category,
                     score=item.score,
                     source="hidden_intent",
@@ -1015,6 +1041,29 @@ class QueryUnderstandingPipeline:
             expanded_tags=[],
             final_tags=list(mapped_tags),
         )
+
+    @classmethod
+    def _normalize_hidden_mapped_tag(cls, item: MappedSemanticItem, *, query: str = "") -> str | None:
+        matched_tag = str(item.matched_tag or "").strip()
+        if not matched_tag:
+            return None
+        normalized_tag = cls._normalize_text_for_policy(matched_tag)
+        if normalized_tag not in {"wifi tinh phi"}:
+            return matched_tag
+
+        evidence_text = cls._normalize_text_for_policy(f"{query} {item.text}")
+        fee_cues = ("tinh phi", "tra phi", "phu phi", "co phi", "mat phi", "thu phi", "paid", "fee")
+        if any(cue in evidence_text for cue in fee_cues):
+            return matched_tag
+        if "wifi" in evidence_text or "internet" in evidence_text or "ket noi" in evidence_text or "mang" in evidence_text:
+            return "WiFi miễn phí"
+        return None
+
+    @staticmethod
+    def _normalize_text_for_policy(text: str) -> str:
+        normalized = unicodedata.normalize("NFD", str(text or "").lower())
+        without_accents = "".join(char for char in normalized if unicodedata.category(char) != "Mn")
+        return " ".join(without_accents.split())
 
     @staticmethod
     def _merge_runtime_tag_expansion(
@@ -1050,17 +1099,6 @@ class QueryUnderstandingPipeline:
             seen.add(key)
             merged.append(tag)
         return merged
-
-    @staticmethod
-    def _apply_hidden_scalar_signals(user_profile: UserProfile, scalar_signals: list[Any]) -> None:
-        long_term = user_profile.long_term_profile
-        for signal in scalar_signals:
-            field_name = str(getattr(signal, "field", "")).strip()
-            value = str(getattr(signal, "value", "")).strip()
-            if field_name not in {"nationality", "age_group", "current_workplace"} or not value:
-                continue
-            if getattr(long_term, field_name, None) in (None, ""):
-                setattr(long_term, field_name, value)
 
     def _build_active_profile(
         self,
@@ -1212,10 +1250,15 @@ class QueryUnderstandingPipeline:
                 current_location=session_raw.get("current_location"),
                 nearby_place=session_raw.get("nearby_place"),
                 number_of_guests=session_raw.get("number_of_guests"),
+                number_of_days=session_raw.get("number_of_days"),
+                number_of_nights=session_raw.get("number_of_nights"),
                 has_pet=session_raw.get("has_pet"),
                 has_children=session_raw.get("has_children"),
                 check_in=session_raw.get("check_in"),
                 check_out=session_raw.get("check_out"),
+                budget_type=session_raw.get("budget_type"),
+                raw_budget_min=session_raw.get("raw_budget_min"),
+                raw_budget_max=session_raw.get("raw_budget_max"),
                 note_amenities=session_raw.get("note_amenities"),
                 is_enough_recommend=session_raw.get("is_enough_recommend", session_raw.get("is_enough")),
                 session_trip_types=self._coerce_score_map(session_raw.get("session_trip_types")),

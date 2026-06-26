@@ -120,6 +120,11 @@ _SYSTEM_INSTRUCTIONS = (
     "Nhiệm vụ: tổng hợp kết quả tìm kiếm thành câu trả lời thân thiện, "
     "giải thích lý do gợi ý cụ thể cho từng khách sạn và đề xuất câu hỏi "
     "tiếp theo giúp người dùng tinh chỉnh. "
+    "Sau khi đã có gợi ý khách sạn, chỉ hỏi thêm các thông tin follow-up được cung cấp trong prompt, tối đa 2 câu hỏi. "
+    "Không hỏi check-in/check-out ở giai đoạn này, trừ khi prompt follow-up cho phép rõ ràng. "
+    "Nếu prompt có giải thích ngân sách, hãy đưa giải thích đó vào answer bằng ngôn ngữ tự nhiên. "
+    "Không tự diễn giải hoặc công bố khoảng giá kỹ thuật từ session_price_range nếu prompt đã có raw_budget/explanation; "
+    "session_price_range chỉ là tín hiệu nội bộ để search/rerank. "
     "Viết bằng tiếng Việt, ngắn gọn và thực tế. "
     "Lý do phải cụ thể: đề cập giá, tiện nghi nổi bật, vị trí hoặc điểm đặc trưng.\n\n"
     "QUAN TRỌNG — Định dạng trường 'answer' bằng Markdown:\n"
@@ -176,6 +181,10 @@ Rules:
 - Use Markdown only. No HTML.
 - The answer field must be complete by itself. Never end answer with an unfinished sentence such as "Hiện tại VinBot có thể hỗ trợ bạn:" unless the bullets are included in the same answer string.
 - next_suggestions for OUT_OF_SCOPE should only redirect back to hotel tasks, such as finding hotels by destination, budget, amenities, or dates. They are separate UI chips, not part of the answer.
+- For ASSISTANT_HELP, obey guardrail.assistant_help_context_mode:
+  - NO_HISTORY means answer from current_query only. Do not mention prior trips, hotels, dates, budget, or preferences.
+  - USE_HISTORY_SUMMARY means the user explicitly asked about remembered context; use conversation_summary and recent_turns if provided.
+  - NONE should be treated like NO_HISTORY for ASSISTANT_HELP.
 """.strip()
 
 
@@ -265,21 +274,35 @@ def build_guardrail_response_with_llm(
     reason: str,
     conversation_summary: str,
     chat_history: list[dict[str, Any]],
+    assistant_help_context_mode: str = "NONE",
 ) -> dict[str, Any]:
+    mode = assistant_help_context_mode
+    if mode not in {"NONE", "NO_HISTORY", "USE_HISTORY_SUMMARY"}:
+        mode = "NONE"
+    if category != "ASSISTANT_HELP":
+        mode = "NONE"
+
     client = _get_llm_client()
     if client is None:
         return _guardrail_fallback_response(
             category=category,
-            conversation_summary="" if category == "OUT_OF_SCOPE" else conversation_summary,
+            conversation_summary=(
+                conversation_summary
+                if category == "ASSISTANT_HELP" and mode == "USE_HISTORY_SUMMARY"
+                else ""
+            ),
         )
 
     import json
     if category == "OUT_OF_SCOPE":
         conversation_summary_for_llm = ""
         recent_turns_for_llm: list[dict[str, str]] = []
-    elif category == "ASSISTANT_HELP":
+    elif category == "ASSISTANT_HELP" and mode == "USE_HISTORY_SUMMARY":
         conversation_summary_for_llm = conversation_summary
         recent_turns_for_llm = _normalize_recent_turns(chat_history)
+    elif category == "ASSISTANT_HELP":
+        conversation_summary_for_llm = ""
+        recent_turns_for_llm = []
     else:
         conversation_summary_for_llm = conversation_summary
         recent_turns_for_llm = _normalize_recent_turns(chat_history)
@@ -290,6 +313,7 @@ def build_guardrail_response_with_llm(
             "guardrail": {
                 "category": category,
                 "reason": reason,
+                "assistant_help_context_mode": mode,
             },
             "conversation_summary": conversation_summary_for_llm,
             "recent_turns": recent_turns_for_llm,
@@ -320,8 +344,56 @@ def build_guardrail_response_with_llm(
         )
         return _guardrail_fallback_response(
             category=category,
-            conversation_summary="" if category == "OUT_OF_SCOPE" else conversation_summary,
+            conversation_summary=(
+                conversation_summary
+                if category == "ASSISTANT_HELP" and mode == "USE_HISTORY_SUMMARY"
+                else ""
+            ),
         )
+
+
+def _build_response_context_section(
+    *,
+    session_context: dict[str, Any] | None,
+    optional_followups: list[str] | None,
+    budget_explanation: str,
+) -> str:
+    sections: list[str] = []
+    if session_context:
+        sections.append(f"Session context hiển thị cho answer: {_sanitize_response_session_context(session_context)}")
+    if budget_explanation:
+        sections.append(f"Giải thích ngân sách cần đưa vào answer nếu phù hợp: {budget_explanation}")
+    if optional_followups:
+        sections.append(
+            "Sau khi đã gợi ý khách sạn, hỏi thêm tối đa 2 thông tin này; "
+            "không hỏi check-in/check-out: "
+            + "; ".join(optional_followups[:2])
+        )
+    if not sections:
+        return ""
+    return "\n" + "\n".join(sections) + "\n"
+
+
+def _sanitize_response_session_context(session_context: dict[str, Any]) -> dict[str, Any]:
+    allowed_keys = (
+        "destination",
+        "number_of_guests",
+        "number_of_days",
+        "number_of_nights",
+        "budget_type",
+        "raw_budget_min",
+        "raw_budget_max",
+        "session_trip_types",
+        "session_preference_habits",
+        "session_hotel_types",
+        "session_room_views",
+        "session_amenities",
+    )
+    return {
+        key: session_context.get(key)
+        for key in allowed_keys
+        if session_context.get(key) not in (None, "", {}, [])
+    }
 
 
 def _build_prompt(
@@ -331,6 +403,9 @@ def _build_prompt(
     destination: str,
     rag_answer: str,
     hotels: list[dict[str, Any]],
+    session_context: dict[str, Any] | None = None,
+    optional_followups: list[str] | None = None,
+    budget_explanation: str = "",
 ) -> str:
     hotel_lines: list[str] = []
     for h in hotels[:6]:
@@ -363,11 +438,17 @@ def _build_prompt(
     )
 
     hotels_section = "\n".join(hotel_lines) if hotel_lines else "(chưa có gợi ý)"
+    extra_context = _build_response_context_section(
+        session_context=session_context,
+        optional_followups=optional_followups,
+        budget_explanation=budget_explanation,
+    )
 
     return (
         f"Truy vấn người dùng: {query}\n"
         f"Intent: {intent}\n"
         f"Điểm đến: {destination or 'chưa xác định'}"
+        f"{extra_context}"
         f"{rag_section}"
         f"\nDanh sách khách sạn gợi ý:\n{hotels_section}"
     )
@@ -375,6 +456,9 @@ def _build_prompt(
 
 def _fallback_response(
     ranked_recommendations: list[dict[str, Any]],
+    *,
+    optional_followups: list[str] | None = None,
+    budget_explanation: str = "",
 ) -> dict[str, Any]:
     """Fallback markdown khi LLM không khả dụng."""
     count = len(ranked_recommendations)
@@ -391,15 +475,119 @@ def _fallback_response(
             "- Nới rộng ngân sách\n"
             "- Bỏ bớt yêu cầu tiện nghi đặc thù"
         )
+    if budget_explanation:
+        answer += f"\n\n{budget_explanation}"
     return {
         "synthesized_answer": answer,
         "hotel_reasons": {},
-        "next_suggestions": [
+        "next_suggestions": (optional_followups or [])[:2] or [
             "Bạn muốn lọc thêm theo mức giá không?",
             "Bạn có yêu cầu đặc biệt về tiện nghi không?",
             "Bạn cần phòng cho bao nhiêu người?",
         ],
     }
+
+
+def _merge_next_suggestions(priority: list[str], generated: list[str], *, limit: int = 3) -> list[str]:
+    merged: list[str] = []
+    seen: set[str] = set()
+    for item in [*priority[:2], *generated]:
+        text = str(item).strip()
+        if not text or text in seen:
+            continue
+        seen.add(text)
+        merged.append(text)
+        if len(merged) >= limit:
+            break
+    return merged
+
+
+def _build_optional_followups(session_context: dict[str, Any] | None) -> list[str]:
+    sc = session_context or {}
+    followups: list[str] = []
+    price = sc.get("session_price_range") or {}
+    has_budget = bool((price or {}).get("min") is not None or (price or {}).get("max") is not None)
+    budget_type = sc.get("budget_type")
+    if not has_budget:
+        followups.append("Bạn muốn ngân sách khách sạn khoảng bao nhiêu?")
+    if (not sc.get("number_of_nights")) and (not sc.get("number_of_days")):
+        if has_budget and budget_type == "total":
+            followups.append("Bạn dự định đi mấy ngày mấy đêm để mình quy đổi ngân sách theo mỗi đêm?")
+        else:
+            followups.append("Bạn dự định đi mấy ngày mấy đêm?")
+    if sc.get("number_of_guests") is None:
+        followups.append("Bạn đi khoảng bao nhiêu người?")
+    return followups[:2]
+
+
+def _build_budget_explanation(session_context: dict[str, Any] | None) -> str:
+    sc = session_context or {}
+    budget_type = sc.get("budget_type")
+    raw_min = sc.get("raw_budget_min")
+    raw_max = sc.get("raw_budget_max")
+    nights = sc.get("number_of_nights")
+    raw_text = _format_budget_range_for_answer(raw_min, raw_max)
+    raw_phrase = _format_budget_reference_phrase(raw_min, raw_max)
+    if budget_type == "total" and raw_text:
+        if nights and nights > 0:
+            per_night_text = _format_budget_reference_phrase(
+                (float(raw_min) / nights) if raw_min is not None else None,
+                (float(raw_max) / nights) if raw_max is not None else None,
+            )
+            if per_night_text:
+                return (
+                    f"Dựa trên ngân sách của bạn {raw_phrase} cho chuyến đi, "
+                    f"mình đang hiểu mức này tương đương {per_night_text} mỗi đêm."
+                )
+        return (
+            f"Dựa trên ngân sách của bạn {raw_phrase}, mình sẽ ưu tiên các khách sạn phù hợp với mức chi này. "
+            "Nếu bạn cho biết số đêm, mình sẽ lọc giá mỗi đêm chính xác hơn."
+        )
+    if budget_type == "per_night" and raw_text:
+        return f"Mình dùng mức {raw_phrase} như ngân sách mỗi đêm."
+    return ""
+
+
+def _format_budget_reference_phrase(budget_min: Any, budget_max: Any) -> str:
+    min_text = _format_budget_value_for_answer(budget_min)
+    max_text = _format_budget_value_for_answer(budget_max)
+    if min_text and max_text:
+        if min_text == max_text:
+            return f"khoảng {min_text}"
+        return f"từ {min_text} đến {max_text}"
+    if max_text:
+        return f"tối đa {max_text}"
+    if min_text:
+        return f"từ {min_text}"
+    return ""
+
+
+def _format_budget_range_for_answer(budget_min: Any, budget_max: Any) -> str:
+    min_text = _format_budget_value_for_answer(budget_min)
+    max_text = _format_budget_value_for_answer(budget_max)
+    if min_text and max_text:
+        return min_text if min_text == max_text else f"{min_text} đến {max_text}"
+    if max_text:
+        return f"tối đa {max_text}"
+    if min_text:
+        return f"từ {min_text}"
+    return ""
+
+
+def _format_budget_value_for_answer(value: Any) -> str:
+    if value is None:
+        return ""
+    try:
+        million_value = float(value) / 1_000_000
+    except (TypeError, ValueError):
+        return ""
+    rounded = round(million_value, 2)
+    if rounded <= 0:
+        return ""
+    if rounded.is_integer():
+        return f"{int(rounded)} triệu"
+    return f"{rounded:.2f}".rstrip("0").rstrip(".") + " triệu"
+
 
 def build_response_with_llm(
     *,
@@ -408,6 +596,7 @@ def build_response_with_llm(
     destination: str,
     rag_answer: str,
     ranked_recommendations: list[dict[str, Any]],
+    session_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Tổng hợp kết quả RAG + recommendation bằng LLM.
 
@@ -417,9 +606,15 @@ def build_response_with_llm(
         - hotel_reasons (dict[str, str]): {hotel_id → lý do}
         - next_suggestions (list[str]): gợi ý câu hỏi tiếp theo
     """
+    optional_followups = _build_optional_followups(session_context)
+    budget_explanation = _build_budget_explanation(session_context)
     client = _get_llm_client()
     if client is None:
-        return _fallback_response(ranked_recommendations)
+        return _fallback_response(
+            ranked_recommendations,
+            optional_followups=optional_followups,
+            budget_explanation=budget_explanation,
+        )
 
     prompt = _build_prompt(
         query=query,
@@ -427,6 +622,9 @@ def build_response_with_llm(
         destination=destination,
         rag_answer=rag_answer,
         hotels=ranked_recommendations,
+        session_context=session_context,
+        optional_followups=optional_followups,
+        budget_explanation=budget_explanation,
     )
 
     try:
@@ -445,9 +643,10 @@ def build_response_with_llm(
         return {
             "synthesized_answer": raw.get("answer") or "",
             "hotel_reasons": hotel_reasons,
-            "next_suggestions": [
-                str(s) for s in (raw.get("next_suggestions") or []) if s
-            ],
+            "next_suggestions": _merge_next_suggestions(
+                optional_followups,
+                [str(s) for s in (raw.get("next_suggestions") or []) if s],
+            ),
         }
     except Exception as exc:  # noqa: BLE001
         logger.warning(
@@ -455,7 +654,11 @@ def build_response_with_llm(
             type(exc).__name__,
             exc,
         )
-        return _fallback_response(ranked_recommendations)
+        return _fallback_response(
+            ranked_recommendations,
+            optional_followups=optional_followups,
+            budget_explanation=budget_explanation,
+        )
 
 
 def build_response_stream_with_llm(
