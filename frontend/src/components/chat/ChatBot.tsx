@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { t } from '../../styles/theme';
 import { sendChatMessageStream, type BackendChatData } from '../../services/backendApi';
-import { type Hotel, type HotelListParams, type RecoQuery, extractImages } from '../../services/hotels';
+import { type Hotel, type RecoQuery, extractImages } from '../../services/hotels';
 import { useAuth } from '../../hooks/useAuth';
 
 // Bề rộng chat dock bên phải — trang chừa đúng khoảng này để không bị che.
@@ -27,27 +27,11 @@ interface UserMsg {
 
 type ChatMsg = BotMsg | UserMsg;
 
-// ─── Map hội thoại → bộ lọc API thật ──────────────────────────────────────────
-// Loại hình → thành phố tiêu biểu (đã kiểm tra đều có khách sạn trong API).
-
-function cityForDest(dt: string): string | undefined {
-  if (dt.includes('Biển')) return 'Phú Quốc';
-  if (dt.includes('Núi')) return 'Đà Lạt';
-  if (dt.includes('Phố cổ')) return 'Hội An';
-  if (dt.includes('Vui chơi')) return 'Đà Nẵng';
-  return undefined;
-}
-
-function budgetToPrice(budget: string): Pick<HotelListParams, 'price_min' | 'price_max'> {
-  if (budget.includes('Dưới')) return { price_max: 2_000_000 };
-  if (budget.includes('2')) return { price_min: 2_000_000, price_max: 5_000_000 };
-  return { price_min: 5_000_000 };
-}
-
 const STEP1_MSG: BotMsg = {
   id: 'step1',
   kind: 'bot',
-  text: 'Xin chào! Mình là VinBot — trợ lý du lịch thông minh từ VinJourney. Bạn đang tìm kiếm một kỳ nghỉ dưỡng thư giãn, một chuyến phiêu lưu khám phá, hay cần mình lên một lịch trình cụ thể?',
+  text: 'Xin chào! Mình là VinBot — trợ lý du lịch thông minh của VinJourney. Bạn muốn đi dạng nào?',
+  chips: ['Tìm resort gần biển', 'Khách sạn cho gia đình', 'Gần trung tâm', 'Có hồ bơi'],
 };
 
 function createSessionId(): string {
@@ -77,7 +61,7 @@ function suggestionChips(data: BackendChatData): string[] | undefined {
   const suggestions = (data.next_suggestions ?? [])
     .map((item) => item.trim())
     .filter(Boolean)
-    .slice(0, 3);
+    .slice(0, 4);
   return suggestions.length ? suggestions : undefined;
 }
 
@@ -321,7 +305,6 @@ export function ChatBot({ isOpen, onOpen, onClose, onRecommend, onClearRecommend
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [step, setStep] = useState(0);
-  const [destType, setDestType] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [disabledChipMsgIds, setDisabledChipMsgIds] = useState<Set<string>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -483,7 +466,7 @@ export function ChatBot({ isOpen, onOpen, onClose, onRecommend, onClearRecommend
                 text: err.message.startsWith('HTTP')
                   ? `Lỗi kết nối backend (${err.message}). Vui lòng thử lại.`
                   : `Mình chưa kết nối được backend: ${err.message}`,
-                chips: ['Biển', 'Núi', 'Phố cổ', 'Vui chơi'],
+                chips: STEP1_MSG.chips,
               });
               setStep(1);
             }
@@ -498,7 +481,7 @@ export function ChatBot({ isOpen, onOpen, onClose, onRecommend, onClearRecommend
           text: err instanceof Error
             ? `Mình chưa kết nối được backend: ${err.message}`
             : 'Mình chưa kết nối được backend. Vui lòng thử lại sau.',
-          chips: ['Biển', 'Núi', 'Phố cổ', 'Vui chơi'],
+          chips: STEP1_MSG.chips,
         });
         setStep(1);
       }
@@ -508,42 +491,8 @@ export function ChatBot({ isOpen, onOpen, onClose, onRecommend, onClearRecommend
   const handleChip = (chip: string, fromMsgId: string) => {
     disableLastChips(fromMsgId);
     addUserMsg(chip);
-    setIsTyping(true);
 
-    if (step === 1) {
-      const dt = chip;
-      setDestType(dt);
-      setTimeout(() => {
-        setIsTyping(false);
-        addBotMsg({
-          kind: 'bot',
-          text: `Tuyệt! ${dt} — mình đã lọc các khách sạn phù hợp ở danh sách bên trái. Ngân sách của bạn khoảng bao nhiêu?`,
-          chips: ['Dưới 2 triệu', '2–5 triệu', 'Trên 5 triệu'],
-        });
-        onRecommend({ label: `Gợi ý · ${dt}`, params: { city: cityForDest(dt), sort_by: 'review_score:desc' } });
-        setStep(2);
-      }, 1300);
-    } else if (step === 2) {
-      setTimeout(() => {
-        setIsTyping(false);
-        addBotMsg({
-          kind: 'bot',
-          text: `Hoàn hảo! Mình đã cập nhật danh sách bên trái theo ngân sách ${chip}. Bạn có thể lọc/sắp xếp thêm tuỳ thích.`,
-        });
-        onRecommend({
-          label: `${destType} · ${chip}`,
-          params: { city: cityForDest(destType), sort_by: 'review_score:desc', ...budgetToPrice(chip) },
-        });
-        setStep(3);
-        setTimeout(() => {
-          addBotMsg({
-            kind: 'bot',
-            text: 'Bạn có muốn tìm thêm lựa chọn khác không?',
-            chips: ['Bắt đầu lại', 'Liên hệ tư vấn viên'],
-          });
-        }, 600);
-      }, 1400);
-    } else if (chip.includes('Bắt đầu lại')) {
+    if (chip.includes('Bắt đầu lại')) {
       handleReset();
     } else {
       void sendBackendQuery(chip);
@@ -561,7 +510,6 @@ export function ChatBot({ isOpen, onOpen, onClose, onRecommend, onClearRecommend
   const handleReset = () => {
     setMessages([]);
     setStep(0);
-    setDestType('');
     setDisabledChipMsgIds(new Set());
     sessionId.current = createSessionId();
     onClearRecommend();
