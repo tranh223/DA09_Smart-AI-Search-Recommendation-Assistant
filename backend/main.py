@@ -210,6 +210,10 @@ async def lifespan(app: FastAPI):
     else:
         logger.info("[startup] All required env vars present.")
 
+    # Kết nối MongoDB một lần duy nhất trong worker process
+    from app.db.mongo.mongo_client import connect as mongo_connect, disconnect as mongo_disconnect  # noqa: PLC0415
+    mongo_connect()
+
     worker = threading.Thread(target=start_log_listener, daemon=True)
     worker.start()
     logger.info("[startup] Kafka log listener started.")
@@ -227,7 +231,9 @@ async def lifespan(app: FastAPI):
         ENABLE_TEST_ENDPOINTS,
     )
     yield
+
     logger.info("[shutdown] Application shutting down.")
+    mongo_disconnect()
 
 
 # ── App factory ───────────────────────────────────────────────────────────────
