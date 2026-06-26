@@ -16,43 +16,15 @@ Cách dùng (trong pipeline planner/skill routing):
 from __future__ import annotations
 
 import csv
-import os
 import re
-import unicodedata
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
 
-from rapidfuzz import fuzz
 
-
-_STOPWORDS = {
-    "cho", "toi", "muon", "tim", "kiem", "thong", "tin", "chi", "tiet", "ve",
-    "khach", "san", "hotel", "resort", "tai", "la", "can", "xem",
-    "dat", "phong", "nha", "nghi", "duong",
-}
-
-_LOCATION_HINTS = {
-    "ha noi": {
-        "positive": (
-            "quan thanh", "truong dinh", "ba trieu", "doi can", "chau long",
-            "bach mai", "lo duc", "phuong liet", "lac long quan",
-        ),
-        "negative": ("ha long", "da lat", "sapa", "sai gon", "hcm", "da nang"),
-    },
-}
-
-
-RAG_ROOT = Path(__file__).resolve().parents[1]
-PROJECT_ROOT = Path(__file__).resolve().parents[4]
-DEFAULT_EXPORT_CSV = Path(
-    os.getenv(
-        "HOTEL_SQL_EXPORT_CSV",
-        str(PROJECT_ROOT / "data" / "hotel_sql_local_export.csv"),
-    )
-)
-LEGACY_EXPORT_CSV = RAG_ROOT / "data" / "hotel_sql_local_export.csv"
+REPO_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_EXPORT_CSV = REPO_ROOT / "data" / "hotel_sql_local_export.csv"
 
 
 def _normalize_text(s: str) -> str:
@@ -63,19 +35,9 @@ def _normalize_text(s: str) -> str:
     - strip
     """
 
-    s = (s or "").lower().strip().replace("đ", "d")
-    decomposed = unicodedata.normalize("NFD", s)
-    s = "".join(ch for ch in decomposed if unicodedata.category(ch) != "Mn")
+    s = (s or "").lower().strip()
     s = re.sub(r"\s+", " ", s)
     return s
-
-
-def _resolve_export_csv_path(export_csv_path: Path | str) -> Path:
-    candidates = [Path(export_csv_path), DEFAULT_EXPORT_CSV, LEGACY_EXPORT_CSV]
-    for path in candidates:
-        if path.exists():
-            return path
-    return candidates[0]
 
 
 def _tokenize_for_match(s: str) -> List[str]:
@@ -122,7 +84,7 @@ def _load_hotel_catalog(export_csv_path: str) -> Tuple[Dict[str, List[Tuple[int,
     key is designed for exact match first.
     """
 
-    path = _resolve_export_csv_path(export_csv_path)
+    path = Path(export_csv_path)
     if not path.exists():
         raise FileNotFoundError(f"Missing export csv at: {path}")
 
@@ -145,98 +107,8 @@ def _load_hotel_catalog(export_csv_path: str) -> Tuple[Dict[str, List[Tuple[int,
 
             key = _normalize_text(name)
             key_to_candidates.setdefault(key, []).append((hid, name))
-            for alias in _name_aliases(name):
-                alias_key = _normalize_text(alias)
-                if alias_key and alias_key != key:
-                    key_to_candidates.setdefault(alias_key, []).append((hid, name))
 
     return key_to_candidates, id_to_name
-
-
-def _name_aliases(name: str) -> List[str]:
-    aliases = [name]
-    name_without_parentheses = re.sub(r"\([^)]*\)", "", name or "").strip()
-    if name_without_parentheses:
-        aliases.append(name_without_parentheses)
-    aliases.extend(match.strip() for match in re.findall(r"\(([^)]+)\)", name or "") if match.strip())
-    return list(dict.fromkeys(alias for alias in aliases if alias))
-
-
-def _important_query_tokens(query: str) -> set[str]:
-    return {token for token in _tokenize_for_match(query) if token not in _STOPWORDS}
-
-
-def _compact_text(value: str) -> str:
-    return _normalize_text(value).replace(" ", "")
-
-
-def _fuzzy_score(query: str, hotel_name: str) -> float:
-    q_norm = _normalize_text(query)
-    q_compact = _compact_text(query)
-    q_tokens = _important_query_tokens(query)
-    hotel_norm = _normalize_text(hotel_name)
-
-    best = 0.0
-    for alias in _name_aliases(hotel_name):
-        alias_norm = _normalize_text(alias)
-        alias_compact = _compact_text(alias)
-        alias_tokens = set(_tokenize_for_match(alias_norm))
-        alias_important_tokens = _important_query_tokens(alias_norm)
-        coverage = len(q_tokens & alias_tokens) / len(q_tokens) if q_tokens else 0.0
-        reverse_coverage = len(q_tokens & alias_tokens) / len(alias_tokens) if alias_tokens else 0.0
-        score = (
-            0.35 * fuzz.WRatio(q_norm, alias_norm)
-            + 0.30 * fuzz.token_set_ratio(q_norm, alias_norm)
-            + 0.15 * fuzz.partial_ratio(q_norm, alias_norm)
-            + 15.0 * coverage
-            + 5.0 * reverse_coverage
-        )
-        if alias_norm and re.search(r"\b" + re.escape(alias_norm) + r"\b", q_norm):
-            score = max(score, 98.0)
-        elif alias_compact and alias_compact in q_compact:
-            score = max(score, 96.0)
-        if alias_important_tokens and alias_important_tokens.issubset(q_tokens):
-            score = max(score, 95.0)
-        score += _location_score_adjustment(q_norm, hotel_norm)
-        best = max(best, min(score, 100.0))
-    return best
-
-
-def _location_score_adjustment(query_norm: str, hotel_norm: str) -> float:
-    adjustment = 0.0
-    for location, hints in _LOCATION_HINTS.items():
-        if location not in query_norm:
-            continue
-        if any(negative in hotel_norm for negative in hints["negative"]):
-            adjustment -= 20.0
-        if any(positive in hotel_norm for positive in hints["positive"]):
-            adjustment += 10.0
-    return adjustment
-
-
-def _fuzzy_search_hotel_entities(
-    query: str,
-    export_csv_path: str,
-    *,
-    top_k: int,
-    min_score: float,
-) -> List[HotelEntity]:
-    _, id_to_name = _load_hotel_catalog(export_csv_path)
-    ranked: list[HotelEntity] = []
-    for hotel_id, hotel_name in id_to_name.items():
-        score = _fuzzy_score(query, hotel_name)
-        if score < min_score:
-            continue
-        ranked.append(
-            HotelEntity(
-                hotel_id=hotel_id,
-                hotel_name=hotel_name,
-                matched_text=query,
-                confidence=round(score / 100.0, 4),
-            )
-        )
-    ranked.sort(key=lambda item: item.confidence, reverse=True)
-    return ranked[:top_k]
 
 
 @lru_cache(maxsize=2)
@@ -316,26 +188,7 @@ def extract_hotel_entities(
                 if len(matched) >= max_entities:
                     return matched
 
-    # 2) Fuzzy rerank over all canonical CSV hotel names.
-    fuzzy_matches = _fuzzy_search_hotel_entities(
-        query,
-        export_str,
-        top_k=max_entities,
-        min_score=float(os.getenv("HOTEL_ENTITY_FUZZY_MIN_SCORE", "78")),
-    )
-    for entity in fuzzy_matches:
-        if entity.hotel_id in used_ids:
-            continue
-        matched.append(entity)
-        used_ids.add(entity.hotel_id)
-        if len(matched) >= max_entities:
-            matched.sort(key=lambda x: x.confidence, reverse=True)
-            return matched[:max_entities]
-    if matched:
-        matched.sort(key=lambda x: x.confidence, reverse=True)
-        return matched[:max_entities]
-
-    # 3) N-gram match
+    # 2) N-gram match
     q_toks = _tokenize_for_match(q_norm)
     if not q_toks:
         return matched
@@ -346,9 +199,6 @@ def extract_hotel_entities(
 
         gram_tokens = gram.split(" ")
         if not gram_tokens:
-            continue
-        gram_important_tokens = {token for token in gram_tokens if token not in _STOPWORDS}
-        if len(gram_important_tokens) < 2:
             continue
 
         # Candidate pool = intersection-ish approximation by taking candidates from first token.
@@ -363,16 +213,16 @@ def extract_hotel_entities(
             continue
 
         # choose best among candidates by how many tokens of gram appear in hotel name tokens
+        gram_set = set(gram_tokens)
         best: Optional[HotelEntity] = None
         for hid, nm in cand_list:
             if hid in used_ids:
                 continue
             nm_toks = set(_tokenize_for_match(nm))
-            nm_important_tokens = _important_query_tokens(nm)
-            overlap = gram_important_tokens.intersection(nm_important_tokens or nm_toks)
+            overlap = gram_set.intersection(nm_toks)
             if not overlap:
                 continue
-            conf = min(0.9, 0.55 + 0.07 * len(gram_important_tokens) + 0.02 * len(overlap))
+            conf = min(0.9, 0.55 + 0.07 * n + 0.02 * len(overlap))
             if best is None or conf > best.confidence:
                 best = HotelEntity(
                     hotel_id=hid,

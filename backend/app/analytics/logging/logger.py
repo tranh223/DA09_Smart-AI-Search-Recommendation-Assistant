@@ -30,61 +30,30 @@ def _normalize_kafka_url(raw_url: str | None) -> str:
 
 
 KAFKA_URL = _normalize_kafka_url(os.getenv("KAFKA_URL"))
-KAFKA_ANALYTICS_ENABLED = os.getenv("KAFKA_ANALYTICS_ENABLED", "true").strip().lower() in {
-    "1",
-    "true",
-    "yes",
-    "on",
-}
-KAFKA_MAX_BLOCK_MS = int(os.getenv("KAFKA_MAX_BLOCK_MS", "1000") or "1000")
-KAFKA_WAIT_FOR_ACK = os.getenv("KAFKA_WAIT_FOR_ACK", "false").strip().lower() in {
-    "1",
-    "true",
-    "yes",
-    "on",
-}
 
-if not KAFKA_ANALYTICS_ENABLED:
-    producer = None
-    print("[Kafka] Analytics producer disabled by KAFKA_ANALYTICS_ENABLED=false.")
-elif KafkaProducer is None:
+if KafkaProducer is None:
     producer = None
     print("[Kafka] kafka-python not installed, analytics producer disabled.")
 else:
     try:
         producer = KafkaProducer(
             bootstrap_servers=[KAFKA_URL],
-            value_serializer=lambda v: json.dumps(v).encode("utf-8"),
-            max_block_ms=KAFKA_MAX_BLOCK_MS,
-            request_timeout_ms=KAFKA_MAX_BLOCK_MS,
-            api_version_auto_timeout_ms=KAFKA_MAX_BLOCK_MS,
-            retries=0,
+            value_serializer=lambda v: json.dumps(v).encode("utf-8")
         )
     except Exception as e:
         producer = None
         print(f"[Kafka] Producer init failed with KAFKA_URL='{KAFKA_URL}': {e}")
 
 def producer_send(session_id: str, value):
-    global producer
     if producer is None:
         print("[Kafka] Producer unavailable, skip analytics event.")
         return False
-    try:
-        future = producer.send(
-            topic='users-topic',
-            key=session_id.encode('utf-8'),
-            value=value
-        )
-        if KAFKA_WAIT_FOR_ACK:
-            future.get(timeout=max(KAFKA_MAX_BLOCK_MS / 1000, 0.1))
-        return True
-    except Exception as exc:  # noqa: BLE001
-        print(
-            "[Kafka] Producer send failed; disabling producer for this process: "
-            f"{type(exc).__name__}: {exc}"
-        )
-        producer = None
-        return False
+    producer.send(
+        topic='users-topic',
+        key=session_id.encode('utf-8'),
+        value=value
+    ).get(timeout=10)
+    return True
     
 def end_session(session_id: str):
     value = {
