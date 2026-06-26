@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from datetime import date
+from datetime import date, datetime
 import re
 import unicodedata
 from typing import Any
@@ -31,7 +31,15 @@ class EntitySessionUpdater:
         applied_updates: dict[str, list[str] | str | None] = {}
         amenity_tags: list[str] = []
 
+        destination_changed = False
         if entities.destination:
+            if _is_different_destination(session.destination, entities.destination):
+                destination_changed = True
+                session.number_of_days = None
+                session.number_of_nights = None
+                applied_updates["number_of_days"] = None
+                applied_updates["number_of_nights"] = None
+                applied_updates["duration_reset_reason"] = "destination_changed"
             session.destination = entities.destination
             applied_updates["destination"] = entities.destination
         if entities.nearby_place:
@@ -40,12 +48,30 @@ class EntitySessionUpdater:
         if entities.number_of_guests is not None:
             session.number_of_guests = entities.number_of_guests
             applied_updates["number_of_guests"] = str(entities.number_of_guests)
+        duration_days, duration_nights = _extract_duration_from_query(query)
+        number_of_days = entities.number_of_days if entities.number_of_days is not None else duration_days
+        number_of_nights = entities.number_of_nights if entities.number_of_nights is not None else duration_nights
+        if number_of_days is not None:
+            session.number_of_days = number_of_days
+            applied_updates["number_of_days"] = str(number_of_days)
+        if number_of_nights is not None:
+            session.number_of_nights = number_of_nights
+            applied_updates["number_of_nights"] = str(number_of_nights)
         if entities.check_in:
             session.check_in = entities.check_in
             applied_updates["check_in"] = entities.check_in
         if entities.check_out:
             session.check_out = entities.check_out
             applied_updates["check_out"] = entities.check_out
+        can_derive_nights_from_dates = (
+            not destination_changed
+            or bool(entities.check_in and entities.check_out)
+        )
+        if session.number_of_nights is None and can_derive_nights_from_dates:
+            derived_nights = _derive_nights_from_dates(session.check_in, session.check_out)
+            if derived_nights is not None:
+                session.number_of_nights = derived_nights
+                applied_updates["number_of_nights"] = str(derived_nights)
         if entities.trip_type:
             trip_type = normalize_long_term_trip_type_value(entities.trip_type)
             session.session_trip_types = {
@@ -65,12 +91,33 @@ class EntitySessionUpdater:
         )
         if raw_price_min != entities.budget_min or raw_price_max != entities.budget_max:
             applied_updates["budget_parse_correction"] = "approximate_budget"
-        if price_min is not None:
-            session.session_price_range.min = price_min
-            applied_updates["session_price_range_min"] = str(price_min)
-        if price_max is not None:
-            session.session_price_range.max = price_max
-            applied_updates["session_price_range_max"] = str(price_max)
+        if raw_price_min is not None:
+            session.raw_budget_min = raw_price_min
+            applied_updates["raw_budget_min"] = str(raw_price_min)
+        if raw_price_max is not None:
+            session.raw_budget_max = raw_price_max
+            applied_updates["raw_budget_max"] = str(raw_price_max)
+        budget_type = _resolve_budget_type(
+            query=query,
+            extracted_budget_type=entities.budget_type,
+            has_budget=price_min is not None or price_max is not None,
+            current_budget_type=session.budget_type,
+        )
+        if budget_type:
+            session.budget_type = budget_type
+            applied_updates["budget_type"] = budget_type
+        effective_min, effective_max = _effective_budget_range(
+            raw_min=price_min,
+            raw_max=price_max,
+            budget_type=session.budget_type,
+            number_of_nights=session.number_of_nights,
+        )
+        if effective_min is not None:
+            session.session_price_range.min = effective_min
+            applied_updates["session_price_range_min"] = str(effective_min)
+        if effective_max is not None:
+            session.session_price_range.max = effective_max
+            applied_updates["session_price_range_max"] = str(effective_max)
         if entities.budget_scope:
             applied_updates["budget_scope"] = entities.budget_scope
         if constraints.budget_level in BUDGET_LEVELS:
@@ -340,6 +387,12 @@ def _normalize_query_text(query: str) -> str:
     return re.sub(r"\s+", " ", without_accents).strip()
 
 
+def _is_different_destination(current_destination: str | None, new_destination: str | None) -> bool:
+    if not current_destination or not new_destination:
+        return False
+    return _normalize_query_text(current_destination) != _normalize_query_text(new_destination)
+
+
 def normalize_budget_by_scope(
     *,
     budget_scope: str | None,
@@ -352,12 +405,6 @@ def normalize_budget_by_scope(
     # - "khoang X": both min/max equal X, then expand symmetrically around X.
     if price_min is None and price_max is None:
         return price_min, price_max
-
-    if budget_scope == "trip_total":
-        if price_min is not None:
-            price_min = price_min / 4
-        if price_max is not None:
-            price_max = price_max / 4
 
     if price_min is not None and price_max is not None:
         if price_min == price_max:
@@ -397,3 +444,66 @@ def _budget_window_ratio(value: float) -> float:
     if value < 10_000_000:
         return 0.25
     return 0.20
+
+
+def _extract_duration_from_query(query: str) -> tuple[int | None, int | None]:
+    text = _normalize_query_text(query)
+    days: int | None = None
+    nights: int | None = None
+    day_match = re.search(r"\b(\d+)\s*(ngay|day|days)\b", text)
+    night_match = re.search(r"\b(\d+)\s*(dem|night|nights)\b", text)
+    if day_match:
+        days = int(day_match.group(1))
+    if night_match:
+        nights = int(night_match.group(1))
+    if nights is None and days is not None and days > 1:
+        nights = days - 1
+    if days is None and nights is not None:
+        days = nights + 1
+    return days, nights
+
+
+def _derive_nights_from_dates(check_in: str | None, check_out: str | None) -> int | None:
+    if not check_in or not check_out:
+        return None
+    try:
+        start = datetime.fromisoformat(str(check_in)).date()
+        end = datetime.fromisoformat(str(check_out)).date()
+    except ValueError:
+        return None
+    nights = (end - start).days
+    return nights if nights > 0 else None
+
+
+def _resolve_budget_type(
+    *,
+    query: str,
+    extracted_budget_type: str | None,
+    has_budget: bool,
+    current_budget_type: str | None,
+) -> str | None:
+    if extracted_budget_type in {"total", "per_night"}:
+        return extracted_budget_type
+    text = _normalize_query_text(query)
+    if has_budget and re.search(r"\b(moi\s+dem|mot\s+dem|per\s+night|/dem|theo\s+dem)\b", text):
+        return "per_night"
+    if has_budget:
+        return "total"
+    return current_budget_type if current_budget_type in {"total", "per_night"} else None
+
+
+def _effective_budget_range(
+    *,
+    raw_min: float | None,
+    raw_max: float | None,
+    budget_type: str | None,
+    number_of_nights: int | None,
+) -> tuple[float | None, float | None]:
+    if raw_min is None and raw_max is None:
+        return None, None
+    if budget_type == "total" and number_of_nights and number_of_nights > 0:
+        return (
+            round(raw_min / number_of_nights, 2) if raw_min is not None else None,
+            round(raw_max / number_of_nights, 2) if raw_max is not None else None,
+        )
+    return raw_min, raw_max
