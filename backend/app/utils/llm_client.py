@@ -5,15 +5,15 @@ from __future__ import annotations
 import json
 import os
 from typing import Any
-
+from dotenv import load_dotenv
 from utils.logger import get_logger
-
+load_dotenv()
 logger = get_logger(__name__)
 
 # Defaults are conservative fallbacks; runtime config should come from .env.
 _DEFAULT_MODEL = "gpt-4o-mini"
-_DEFAULT_TEMPERATURE = 0.7
-_DEFAULT_MAX_TOKENS = 2000
+_DEFAULT_TEMPERATURE = 0.9
+_DEFAULT_MAX_TOKENS = 12000
 _DEFAULT_TIMEOUT_SECONDS = 30.0
 
 try:

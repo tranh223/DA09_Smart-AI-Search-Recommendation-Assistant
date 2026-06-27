@@ -8,18 +8,19 @@ import json
 from utils.logger import get_logger
 
 try:
-    from app.rag.utils.langsmith_tracer import tracer
-    from app.rag.trace_utils import rag_trace, rag_trace_error
+    from utils.langsmith_tracer import tracer
+    from utils.trace_utils import rag_trace, rag_trace_error
 except Exception:  # pragma: no cover - standalone app/rag script mode
     from utils.langsmith_tracer import tracer
-    from trace_utils import rag_trace, rag_trace_error
+    from utils.trace_utils import rag_trace, rag_trace_error
 
-from modules.planner import plan
-from modules.retrieval import retrieve_from_graph, retrieve_from_rag
+from rag.modules.planner import plan
+from rag.modules.retrieval import retrieve_from_graph, retrieve_from_rag
+from rag.tools.hotel_entity_resolver import hotel_entity_resolver
 
-from modules.skill_agent import route_intent
-from modules.total_info import aggregate_information
-from modules.generation import generate_response
+from rag.modules.skill_agent import route_intent
+from rag.modules.total_info import aggregate_information
+from rag.modules.generation import generate_response
 
 
 logger = get_logger(__name__)
@@ -103,40 +104,45 @@ class chatbot:
             )
 
             try:
-                from modules.planner_intents_aux import parse_aux_intents
+                from rag.modules.planner_intent_toolschema import build_tool_inputs_from_context
 
-                aux_intents = parse_aux_intents(str(retrieval_query))
-                logger.info(
-                    "Aux intents: "
-                    f"{json.dumps(aux_intents, ensure_ascii=False) if isinstance(aux_intents, dict) else aux_intents}"
-                )
-            except Exception as exc:  # noqa: BLE001
-                logger.warning(f"Aux intents extraction failed: {exc}")
-                rag_trace_error(
-                    step="rag_system:aux_intents",
-                    error=exc,
-                    input={"query": str(retrieval_query)},
-                )
-                aux_intents = {}
-            rag_trace(
-                step="rag_system:aux_intents",
-                input={"query": str(retrieval_query)},
-                output=aux_intents,
-            )
-
-            try:
-                from modules.planner_intent_toolschema import build_tool_inputs_from_context
+                hotel_entities: list[dict[str, Any]] = []
+                if isinstance(plan_result, dict):
+                    for key in ("hotel_name", "destination"):
+                        val = plan_result.get(key)
+                        if isinstance(val, str) and val.strip():
+                            try:
+                                resolution = hotel_entity_resolver.resolve(
+                                    val.strip(), candidates=[], city=None
+                                )
+                                if (
+                                    resolution.status == "resolved"
+                                    and resolution.hotel_id is not None
+                                ):
+                                    hotel_entities.append(
+                                        {
+                                            "hotel_id": resolution.hotel_id,
+                                            "hotel_name": resolution.canonical_name or val.strip(),
+                                            "confidence": resolution.confidence,
+                                            "matched_text": resolution.matched_alias or val.strip(),
+                                        }
+                                    )
+                            except Exception as exc:  # noqa: BLE001
+                                logger.warning(f"Hotel entity resolution failed for '{val}': {exc}")
 
                 std_tool_inputs = build_tool_inputs_from_context(
                     query=str(retrieval_query),
                     plan_result=plan_result,
-                    aux_intents=aux_intents,
+                    hotel_entities=hotel_entities,
                 )
                 if isinstance(plan_result, dict):
                     plan_result["tool_inputs"] = std_tool_inputs.get(
                         "tools",
                         plan_result.get("tool_inputs", {}),
                     )
+                    if hotel_entities:
+                        plan_result.setdefault("context", "")
+                        plan_result["context"] += f"\n[Hotel Entities Resolved] {hotel_entities}"
             except Exception as exc:  # noqa: BLE001
                 logger.warning(f"Failed to build standardized tool inputs: {exc}")
                 rag_trace_error(
@@ -151,53 +157,43 @@ class chatbot:
                 output=(plan_result.get("tool_inputs") if isinstance(plan_result, dict) else None),
             )
 
-            logger.info("Step 2: Retrieving (RAG, Graph, Hotel SQL)...")
+            logger.info("Step 2: Retrieving (RAG, Graph)...")
 
             needs_rag = plan_result.get("needs_rag", True)
             needs_graph = plan_result.get("needs_graph", True)
-            needs_hotel_sql = plan_result.get("needs_hotel_sql", True)
 
             rag_trace(
                 step="rag_system:retrieval_plan_flags",
                 input={
                     "needs_rag": needs_rag,
                     "needs_graph": needs_graph,
-                    "needs_hotel_sql": needs_hotel_sql,
                 },
                 output={},
             )
 
             logger.info(
-                "Planner needs flags: "
-                f"needs_rag={needs_rag}, needs_graph={needs_graph}, needs_hotel_sql={needs_hotel_sql}"
+                f"Planner needs flags: needs_rag={needs_rag}, needs_graph={needs_graph}"
             )
 
             rag_results = {"success": False, "source": "rag", "results": [], "count": 0}
             graph_results = {"success": False, "source": "graph", "results": [], "count": 0}
-            hotel_sql_results = {"success": False, "source": "hotel_sql", "results": None, "count": 0}
-
-
-            tool_inputs = plan_result.get("tool_inputs") if isinstance(plan_result, dict) else None
-            hotel_sql_entities: list[Any] = []
-            hotel_sql_need = None
-            if isinstance(tool_inputs, dict):
-                hsql = tool_inputs.get("hotel_sql")
-                if isinstance(hsql, dict):
-                    hotel_sql_entities = hsql.get("hotel_ids") or []
-                    hotel_sql_need = hsql.get("need")
-
-            hotel_sql_selector = ""
-            if hotel_sql_entities:
-                hotel_sql_selector = "hotel_id=" + ",".join(str(x) for x in hotel_sql_entities)
-            elif structured_request is not None:
-                hotel_name = structured_request.parameters.features.hotel_name
-                if hotel_name:
-                    hotel_sql_selector = hotel_name
 
             if enable_rag and needs_rag:
                 logger.info("Retrieving from RAG...")
-                rag_trace(step="rag_system:rag_retrieve:input", input={"query": str(retrieval_query)})
-                rag_results = retrieve_from_rag(str(retrieval_query))
+                rag_tool_inputs = (
+                    plan_result.get("tool_inputs") if isinstance(plan_result, dict) else {}
+                ) or {}
+                rag_hotel_ids = (rag_tool_inputs.get("rag") or {}).get("hotel_ids") or []
+                rag_sections = (rag_tool_inputs.get("rag") or {}).get("sections") or []
+                rag_trace(
+                    step="rag_system:rag_retrieve:input",
+                    input={"query": str(retrieval_query), "hotel_ids": rag_hotel_ids, "sections": rag_sections},
+                )
+                rag_results = retrieve_from_rag(
+                    str(retrieval_query),
+                    hotel_ids=rag_hotel_ids,
+                    sections=rag_sections,
+                )
                 rag_trace(step="rag_system:rag_retrieve:output", output=rag_results)
                 logger.info(f"rag_results: {rag_results}")
 
@@ -208,30 +204,12 @@ class chatbot:
                 rag_trace(step="rag_system:graph_retrieve:output", output=graph_results)
                 logger.info(f"graph_results: {graph_results}")
 
-            # Hotel Ask is handled via FAISS in RAG path.
-            # Hotel SQL tool is removed from backend/rag.
-            if needs_hotel_sql:
-                logger.info("Skipping Hotel SQL retrieval (removed). Hotel Ask uses FAISS vector search.")
-
-
-            if isinstance(aux_intents, dict):
-                try:
-                    plan_result.setdefault("context", "")
-                    extra_ctx = aux_intents.get("hotel_entity_intent", {})
-                    plan_result["context"] = (
-                        plan_result.get("context", "")
-                        + f"\n[Hotel Entities Extracted] {extra_ctx}"
-                    )
-                except Exception:
-                    pass
-
             logger.info("Step 3: Aggregating information...")
             rag_trace(
                 step="rag_system:aggregate:input",
                 input={
                     "rag_ok": bool(rag_results and rag_results.get("success")),
                     "graph_ok": bool(graph_results and graph_results.get("success")),
-                    "hotel_sql_ok": bool(hotel_sql_results and hotel_sql_results.get("success")),
                 },
                 output={},
             )
@@ -277,10 +255,8 @@ class chatbot:
                     "response": response,
                     "plan": plan_result,
                     "skill_agent": skill_result,
-                    "aux_intents": aux_intents,
                     "rag": rag_results,
                     "graph": graph_results,
-                    "hotel_sql": hotel_sql_results,
                     "aggregated_info": aggregated_result,
                 }
 

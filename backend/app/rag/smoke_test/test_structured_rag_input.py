@@ -121,17 +121,14 @@ EXPECTED_ROUTES = {
     "HOTEL_FEATURE_QA": {
         "needs_graph": False,
         "rag_sections": ["description", "overview", "semantic_profile", "faq"],
-        "hotel_sql_needs": ["detail", "activities"],
     },
     "HOTEL_POLICY_QA": {
         "needs_graph": False,
         "rag_sections": ["faq", "description", "semantic_profile"],
-        "hotel_sql_needs": ["policies"],
     },
     "HOTEL_COMPARISON_QA": {
         "needs_graph": True,
         "rag_sections": ["description", "overview", "semantic_profile", "faq"],
-        "hotel_sql_needs": ["detail", "policies", "activities"],
     },
 }
 
@@ -156,10 +153,8 @@ def _test_case(case: dict) -> None:
     assert plan["query_type"] == case["intent_type"], case["name"]
     assert plan["main_object"] == case["main_object"], case["name"]
     assert plan["needs_rag"] is True, case["name"]
-    assert plan["needs_hotel_sql"] is True, case["name"]
     assert plan["needs_graph"] is route["needs_graph"], case["name"]
     assert plan["rag_sections"] == route["rag_sections"], case["name"]
-    assert plan["hotel_sql_needs"] == route["hotel_sql_needs"], case["name"]
     assert retrieval_query.startswith(case["query"]), case["name"]
 
     features = request.parameters.features

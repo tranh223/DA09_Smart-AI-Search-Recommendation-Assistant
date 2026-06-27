@@ -12,9 +12,9 @@ except Exception:  # pragma: no cover - standalone smoke scripts
         return ""
 
 try:
-    from app.rag.trace_langsmith import rag_langsmith_span
+    from utils.trace_langsmith import rag_langsmith_span
 except Exception:  # pragma: no cover - standalone app/rag script mode
-    from trace_langsmith import rag_langsmith_span
+    from utils.trace_langsmith import rag_langsmith_span
 
 
 logger = logging.getLogger("ota.flow")

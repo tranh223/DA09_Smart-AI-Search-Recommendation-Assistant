@@ -49,19 +49,16 @@ INTENT_ROUTES: dict[IntentType, dict[str, Any]] = {
         "needs_rag": True,
         "needs_graph": False,
         "rag_sections": ["description", "overview", "semantic_profile", "faq"],
-        "hotel_sql_needs": ["detail", "activities"],
     },
     "HOTEL_POLICY_QA": {
         "needs_rag": True,
         "needs_graph": False,
         "rag_sections": ["faq", "description", "semantic_profile"],
-        "hotel_sql_needs": ["policies"],
     },
     "HOTEL_COMPARISON_QA": {
         "needs_rag": True,
         "needs_graph": True,
         "rag_sections": ["description", "overview", "semantic_profile", "faq"],
-        "hotel_sql_needs": ["detail", "policies", "activities"],
     },
 }
 
@@ -107,11 +104,11 @@ def build_structured_plan(request: RAGRequest) -> dict[str, Any]:
         "query_type": request.intent_type,
         "main_object": features.hotel_name or features.destination or "hotel",
         "sub_objects": [*features.amenities, *features.expectations],
+        "hotel_name": features.hotel_name,
+        "destination": features.destination,
         "needs_rag": route["needs_rag"],
         "needs_graph": route["needs_graph"],
-        "needs_hotel_sql": True,
         "rag_sections": list(route["rag_sections"]),
-        "hotel_sql_needs": route.get("hotel_sql_needs", []),
         "tool_inputs": {
             "rag": {
                 "query": build_retrieval_query(request),

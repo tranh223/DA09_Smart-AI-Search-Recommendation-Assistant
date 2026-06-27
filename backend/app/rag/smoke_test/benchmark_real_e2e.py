@@ -96,7 +96,7 @@ class RealE2EBenchmark:
         """Initialize RAG chatbot"""
         try:
             print("\nInitializing RAG chatbot...")
-            from rag_system import get_chatbot
+            from backend.app.rag.rag_system import get_chatbot
             
             self.chatbot = get_chatbot("benchmark_user")
             print("  [OK] Chatbot initialized")

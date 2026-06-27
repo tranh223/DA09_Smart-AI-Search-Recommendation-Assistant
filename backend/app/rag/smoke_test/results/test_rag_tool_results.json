@@ -1,0 +1,291 @@
+{
+  "timestamp": "2026-06-26T16:49:24.064950",
+  "file": "test_rag_tool.py",
+  "summary": {
+    "total": 39,
+    "passed": 36,
+    "failed": 0,
+    "skipped": 3,
+    "success_rate": "92.3%"
+  },
+  "tests": [
+    {
+      "name": "test_input_defaults",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestHotelAskInput",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_input_with_values",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestHotelAskInput",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_chunk_defaults",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestHotelAskChunk",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_chunk_full",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestHotelAskChunk",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_output_defaults",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestHotelAskOutput",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_output_with_chunks_and_errors",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestHotelAskOutput",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_uniq_ints_basic",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestUtilityFunctions",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_uniq_ints_with_strings",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestUtilityFunctions",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_uniq_ints_mixed",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestUtilityFunctions",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_uniq_ints_invalid",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestUtilityFunctions",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_uniq_ints_empty",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestUtilityFunctions",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_normalize_sections_valid",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestUtilityFunctions",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_normalize_sections_invalid",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestUtilityFunctions",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_normalize_sections_duplicates",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestUtilityFunctions",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_normalize_sections_empty",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestUtilityFunctions",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_normalize_sections_none",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestUtilityFunctions",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_coerce_float_valid",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestUtilityFunctions",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_coerce_float_invalid",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestUtilityFunctions",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_normalize_chunks_valid",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestNormalizeChunks",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_normalize_chunks_alt_keys",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestNormalizeChunks",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_normalize_chunks_empty",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestNormalizeChunks",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_normalize_chunks_invalid_format",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestNormalizeChunks",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_normalize_chunks_empty_content",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestNormalizeChunks",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_init_defaults",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestHotelAskTool",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_init_custom",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestHotelAskTool",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_base_url_from_env",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestHotelAskTool",
+      "time": 0.003,
+      "status": "passed"
+    },
+    {
+      "name": "test_should_retry_timeout",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestHotelAskTool",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_should_retry_http_error",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestHotelAskTool",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_should_retry_max_retries",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestHotelAskTool",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_hotel_ask_tool_ask_empty_query",
+      "classname": "app.rag.smoke_test.test_rag_tool",
+      "time": 0.001,
+      "status": "skipped"
+    },
+    {
+      "name": "test_hotel_ask_tool_ask_no_hotel_ids",
+      "classname": "app.rag.smoke_test.test_rag_tool",
+      "time": 0.001,
+      "status": "skipped"
+    },
+    {
+      "name": "test_hotel_ask_tool_context_manager",
+      "classname": "app.rag.smoke_test.test_rag_tool",
+      "time": 0.001,
+      "status": "skipped"
+    },
+    {
+      "name": "test_search_rag_empty_query",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestSearchRag",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_search_rag_whitespace_query",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestSearchRag",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_search_rag_with_hotel_ids",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestSearchRag",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_normalize_chunks_with_metadata_section",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestEdgeCases",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_uniq_ints_preserves_order",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestEdgeCases",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_normalize_sections_with_spaces",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestEdgeCases",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_coerce_float_negative",
+      "classname": "app.rag.smoke_test.test_rag_tool.TestEdgeCases",
+      "time": 0.001,
+      "status": "passed"
+    }
+  ],
+  "passed_tests": [
+    "test_input_defaults",
+    "test_input_with_values",
+    "test_chunk_defaults",
+    "test_chunk_full",
+    "test_output_defaults",
+    "test_output_with_chunks_and_errors",
+    "test_uniq_ints_basic",
+    "test_uniq_ints_with_strings",
+    "test_uniq_ints_mixed",
+    "test_uniq_ints_invalid",
+    "test_uniq_ints_empty",
+    "test_normalize_sections_valid",
+    "test_normalize_sections_invalid",
+    "test_normalize_sections_duplicates",
+    "test_normalize_sections_empty",
+    "test_normalize_sections_none",
+    "test_coerce_float_valid",
+    "test_coerce_float_invalid",
+    "test_normalize_chunks_valid",
+    "test_normalize_chunks_alt_keys",
+    "test_normalize_chunks_empty",
+    "test_normalize_chunks_invalid_format",
+    "test_normalize_chunks_empty_content",
+    "test_init_defaults",
+    "test_init_custom",
+    "test_base_url_from_env",
+    "test_should_retry_timeout",
+    "test_should_retry_http_error",
+    "test_should_retry_max_retries",
+    "test_search_rag_empty_query",
+    "test_search_rag_whitespace_query",
+    "test_search_rag_with_hotel_ids",
+    "test_normalize_chunks_with_metadata_section",
+    "test_uniq_ints_preserves_order",
+    "test_normalize_sections_with_spaces",
+    "test_coerce_float_negative"
+  ],
+  "failed_tests": [],
+  "skipped_tests": [
+    "test_hotel_ask_tool_ask_empty_query",
+    "test_hotel_ask_tool_ask_no_hotel_ids",
+    "test_hotel_ask_tool_context_manager"
+  ]
+}

@@ -23,7 +23,7 @@ def _uniq_ints(xs: List[Any]) -> List[int]:
 def build_tool_inputs_from_context(
     query: str,
     plan_result: Dict[str, Any],
-    aux_intents: Optional[Dict[str, Any]] = None,
+    hotel_entities: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """Build standardized tool inputs payload.
 
@@ -37,9 +37,7 @@ def build_tool_inputs_from_context(
     }
     """
 
-    aux_intents = aux_intents or {}
-    hotel_entities = (aux_intents.get("hotel_entity_intent") or {}).get("entities") or []
-
+    hotel_entities = hotel_entities or []
     hotel_ids = _uniq_ints([e.get("hotel_id") for e in hotel_entities if isinstance(e, dict)])
 
     rag_top_k = plan_result.get("rag_top_k", 3)

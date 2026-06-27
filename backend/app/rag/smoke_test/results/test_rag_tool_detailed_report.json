@@ -1,0 +1,429 @@
+{
+  "test_suite": "test_rag_tool.py",
+  "timestamp": "2026-06-26T16:49:24",
+  "summary": {
+    "total_tests": 39,
+    "passed": 36,
+    "failed": 0,
+    "skipped": 3,
+    "success_rate": "92.3%"
+  },
+  "test_categories": [
+    {
+      "category": "HotelAskInput Model",
+      "description": "Tests for input payload validation",
+      "tests": [
+        {
+          "name": "test_input_defaults",
+          "input": {
+            "query": "test"
+          },
+          "expected_output": {
+            "query": "test",
+            "hotel_ids": [],
+            "sections": [],
+            "top_k": 5
+          },
+          "status": "passed"
+        },
+        {
+          "name": "test_input_with_values",
+          "input": {
+            "query": "best rooms",
+            "hotel_ids": [123, 456],
+            "sections": ["room_type", "faq"],
+            "top_k": 10
+          },
+          "expected_output": {
+            "query": "best rooms",
+            "hotel_ids": [123, 456],
+            "sections": ["room_type", "faq"],
+            "top_k": 10
+          },
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "category": "HotelAskChunk Model",
+      "description": "Tests for chunk data structure",
+      "tests": [
+        {
+          "name": "test_chunk_defaults",
+          "input": {
+            "content": "Sample content"
+          },
+          "expected_output": {
+            "content": "Sample content",
+            "score": 0.0,
+            "chunk_id": null,
+            "section": null,
+            "metadata": {}
+          },
+          "status": "passed"
+        },
+        {
+          "name": "test_chunk_full",
+          "input": {
+            "score": 0.95,
+            "chunk_id": "chunk_1",
+            "section": "description",
+            "content": "Luxury room",
+            "metadata": {"hotel_id": 123}
+          },
+          "expected_output": {
+            "score": 0.95,
+            "chunk_id": "chunk_1",
+            "section": "description",
+            "content": "Luxury room",
+            "metadata": {"hotel_id": 123}
+          },
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "category": "HotelAskOutput Model",
+      "description": "Tests for output payload",
+      "tests": [
+        {
+          "name": "test_output_defaults",
+          "input": {
+            "query": "test",
+            "hotel_ids": [1, 2]
+          },
+          "expected_output": {
+            "query": "test",
+            "hotel_ids": [1, 2],
+            "chunks": [],
+            "errors": []
+          },
+          "status": "passed"
+        },
+        {
+          "name": "test_output_with_chunks_and_errors",
+          "input": {
+            "query": "test",
+            "hotel_ids": [1],
+            "chunks": [{"content": "Room 1"}],
+            "errors": ["Error 1"]
+          },
+          "expected_output": {
+            "chunks_count": 1,
+            "errors_count": 1
+          },
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "category": "Utility Functions - _uniq_ints",
+      "description": "Tests for unique integer extraction",
+      "tests": [
+        {
+          "name": "test_uniq_ints_basic",
+          "input": [1, 2, 3, 2, 1],
+          "expected_output": [1, 2, 3],
+          "status": "passed"
+        },
+        {
+          "name": "test_uniq_ints_with_strings",
+          "input": ["1", "2", "3"],
+          "expected_output": [1, 2, 3],
+          "status": "passed"
+        },
+        {
+          "name": "test_uniq_ints_mixed",
+          "input": [1, "2", 3, "2", 1],
+          "expected_output": [1, 2, 3],
+          "status": "passed"
+        },
+        {
+          "name": "test_uniq_ints_invalid",
+          "input": [1, "invalid", 2],
+          "expected_output": [1, 2],
+          "status": "passed"
+        },
+        {
+          "name": "test_uniq_ints_empty",
+          "input": [],
+          "expected_output": [],
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "category": "Utility Functions - _normalize_sections",
+      "description": "Tests for section name validation and normalization",
+      "tests": [
+        {
+          "name": "test_normalize_sections_valid",
+          "input": ["description", "faq", "room_type"],
+          "expected_output": ["description", "faq", "room_type"],
+          "status": "passed"
+        },
+        {
+          "name": "test_normalize_sections_invalid",
+          "input": ["description", "invalid", "faq"],
+          "expected_output": ["description", "faq"],
+          "note": "Invalid sections filtered out",
+          "status": "passed"
+        },
+        {
+          "name": "test_normalize_sections_duplicates",
+          "input": ["description", "faq", "description"],
+          "expected_output": ["description", "faq"],
+          "note": "Duplicates removed",
+          "status": "passed"
+        },
+        {
+          "name": "test_normalize_sections_empty",
+          "input": [],
+          "expected_output": [],
+          "status": "passed"
+        },
+        {
+          "name": "test_normalize_sections_none",
+          "input": null,
+          "expected_output": [],
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "category": "Utility Functions - _coerce_float",
+      "description": "Tests for float type coercion",
+      "tests": [
+        {
+          "name": "test_coerce_float_valid",
+          "input": [3.14, "3.14", 5],
+          "expected_output": [3.14, 3.14, 5.0],
+          "status": "passed"
+        },
+        {
+          "name": "test_coerce_float_invalid",
+          "input": ["invalid", null, []],
+          "expected_output": [0.0, 0.0, 0.0],
+          "note": "Invalid values default to 0.0",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "category": "Chunk Normalization",
+      "description": "Tests for normalizing chunk responses",
+      "tests": [
+        {
+          "name": "test_normalize_chunks_valid",
+          "input": {
+            "chunks": [{"text": "Beautiful room", "score": 0.95, "chunk_id": "c1", "section": "description"}],
+            "hotel_id": 123,
+            "query": "room"
+          },
+          "expected_output": {
+            "length": 1,
+            "content": "Beautiful room",
+            "score": 0.95,
+            "metadata_hotel_id": 123
+          },
+          "status": "passed"
+        },
+        {
+          "name": "test_normalize_chunks_alt_keys",
+          "input": {
+            "results": [{"content": "Room content", "score": 0.8}],
+            "hotel_id": 123,
+            "query": "test"
+          },
+          "expected_output": {
+            "length": 1,
+            "content": "Room content",
+            "note": "Alternative 'results' key works"
+          },
+          "status": "passed"
+        },
+        {
+          "name": "test_normalize_chunks_empty",
+          "input": {},
+          "expected_output": [],
+          "status": "passed"
+        },
+        {
+          "name": "test_normalize_chunks_invalid_format",
+          "input": {"chunks": "not a list"},
+          "expected_output": [],
+          "status": "passed"
+        },
+        {
+          "name": "test_normalize_chunks_empty_content",
+          "input": {
+            "chunks": [
+              {"content": "Valid content"},
+              {"content": ""},
+              {"content": "   "}
+            ]
+          },
+          "expected_output": {
+            "length": 1,
+            "note": "Empty/whitespace content filtered"
+          },
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "category": "HotelAskTool Initialization",
+      "description": "Tests for tool initialization and configuration",
+      "tests": [
+        {
+          "name": "test_init_defaults",
+          "input": {},
+          "expected_output": {
+            "timeout": 15.0,
+            "max_retries": 2,
+            "retry_backoff_seconds": 0.4,
+            "_owns_client": true
+          },
+          "status": "passed"
+        },
+        {
+          "name": "test_init_custom",
+          "input": {
+            "base_url": "http://custom.api",
+            "timeout": 30.0,
+            "max_retries": 5
+          },
+          "expected_output": {
+            "base_url": "http://custom.api",
+            "timeout": 30.0,
+            "max_retries": 5
+          },
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "category": "Retry Logic",
+      "description": "Tests for HTTP retry behavior",
+      "tests": [
+        {
+          "name": "test_should_retry_timeout",
+          "input": {
+            "exception": "httpx.TimeoutException",
+            "attempt": 0
+          },
+          "expected_output": true,
+          "status": "passed"
+        },
+        {
+          "name": "test_should_retry_http_error",
+          "input": {
+            "exception": "httpx.HTTPStatusError",
+            "status_code": 503,
+            "attempt": 0
+          },
+          "expected_output": true,
+          "status": "passed"
+        },
+        {
+          "name": "test_should_retry_max_retries",
+          "input": {
+            "exception": "httpx.HTTPStatusError",
+            "status_code": 503,
+            "attempt": 2,
+            "max_retries": 2
+          },
+          "expected_output": false,
+          "note": "No retry after max attempts reached",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "category": "search_rag Function",
+      "description": "Tests for main RAG search function",
+      "tests": [
+        {
+          "name": "test_search_rag_empty_query",
+          "input": "",
+          "expected_output": [],
+          "status": "passed"
+        },
+        {
+          "name": "test_search_rag_whitespace_query",
+          "input": "   ",
+          "expected_output": [],
+          "status": "passed"
+        },
+        {
+          "name": "test_search_rag_with_hotel_ids",
+          "input": {
+            "query": "test",
+            "hotel_ids": [123]
+          },
+          "expected_output": "Called async execution",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "category": "Edge Cases",
+      "description": "Tests for special cases and error handling",
+      "tests": [
+        {
+          "name": "test_normalize_chunks_with_metadata_section",
+          "input": {
+            "chunks": [{"text": "Content", "section": "room_type", "score": 0.8}],
+            "hotel_id": 123,
+            "query": "test"
+          },
+          "expected_output": {
+            "metadata_section": "room_type"
+          },
+          "status": "passed"
+        },
+        {
+          "name": "test_uniq_ints_preserves_order",
+          "input": [3, 1, 2, 1, 3],
+          "expected_output": [3, 1, 2],
+          "note": "Order preserved from first appearance",
+          "status": "passed"
+        },
+        {
+          "name": "test_normalize_sections_with_spaces",
+          "input": ["  description  ", "faq"],
+          "expected_output": ["description", "faq"],
+          "note": "Spaces trimmed",
+          "status": "passed"
+        },
+        {
+          "name": "test_coerce_float_negative",
+          "input": -3.14,
+          "expected_output": -3.14,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "category": "Skipped Tests",
+      "description": "Async tests requiring pytest-asyncio plugin",
+      "tests": [
+        {
+          "name": "test_hotel_ask_tool_ask_empty_query",
+          "reason": "Requires pytest-asyncio plugin",
+          "status": "skipped"
+        },
+        {
+          "name": "test_hotel_ask_tool_ask_no_hotel_ids",
+          "reason": "Requires pytest-asyncio plugin",
+          "status": "skipped"
+        },
+        {
+          "name": "test_hotel_ask_tool_context_manager",
+          "reason": "Requires pytest-asyncio plugin",
+          "status": "skipped"
+        }
+      ]
+    }
+  ]
+}
