@@ -4,7 +4,7 @@ import contextlib
 from typing import Any, Iterator
 
 try:
-    from app.rag.utils.langsmith_tracer import tracer
+    from utils.langsmith_tracer import tracer
 except Exception:  # pragma: no cover - standalone app/rag script mode
     from utils.langsmith_tracer import tracer
 

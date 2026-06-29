@@ -87,19 +87,19 @@ def check_imports():
     print("\n4. Checking imports...")
     
     try:
-        from config.settings import settings
+        from backend.app.utils.settings import settings
         print("   ✓ config.settings imported successfully")
         
-        from utils.logger import get_logger
+        from backend.app.utils.logger import get_logger
         print("   ✓ utils.logger imported successfully")
         
-        from utils.llm_client import llm_client
+        from backend.app.utils.llm_client import llm_client
         print("   ✓ utils.llm_client imported successfully")
         
         from modules.planner import plan
         print("   ✓ modules.planner imported successfully")
         
-        from rag_system import RAGSystem
+        from backend.app.rag.rag_system import RAGSystem
         print("   ✓ rag_system imported successfully")
         
         return True
@@ -112,7 +112,7 @@ def check_configuration():
     print("\n5. Checking configuration...")
     
     try:
-        from config.settings import settings
+        from backend.app.utils.settings import settings
         
         key = settings.OPENAI_API_KEY
         masked = f"{key[:8]}...{key[-4:]}" if len(key) > 12 else ("set" if key else "NOT SET")
@@ -132,7 +132,7 @@ def test_llm_connection():
     print("\n6. Testing LLM connection...")
     
     try:
-        from utils.llm_client import llm_client
+        from backend.app.utils.llm_client import llm_client
         
         print("   Testing OpenAI API connection...")
         response = llm_client.call(

@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from rag_system import chatbot, get_chatbot
+from backend.app.rag.rag_system import chatbot, get_chatbot
 
 
 def test_pipeline():

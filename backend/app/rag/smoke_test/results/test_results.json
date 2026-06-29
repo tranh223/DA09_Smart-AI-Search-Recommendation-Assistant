@@ -1,0 +1,91 @@
+{
+  "timestamp": "2026-06-26T16:37:42.355852",
+  "summary": {
+    "total": 10,
+    "passed": 7,
+    "failed": 3,
+    "success_rate": "70.0%"
+  },
+  "tests": [
+    {
+      "name": "test_structured_input",
+      "classname": "app.rag.smoke_test.component_test",
+      "time": 0.002,
+      "status": "passed"
+    },
+    {
+      "name": "test_graph_connection",
+      "classname": "app.rag.smoke_test.component_test",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_graph_search",
+      "classname": "app.rag.smoke_test.component_test",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_rag_search",
+      "classname": "app.rag.smoke_test.component_test",
+      "time": 0.236,
+      "status": "passed"
+    },
+    {
+      "name": "test_graph_config",
+      "classname": "app.rag.smoke_test.test_graph_tool",
+      "time": 0.001,
+      "status": "failed",
+      "error": "AssertionError: GRAPH_DB_PASSWORD or NEO4J_PASSWORD is required\nassert ''",
+      "traceback": "..\\..\\..\\DA09_Smart-AI-Search-Recommendation-Assistant\\DA09_Smart-AI-Search-Recommendation-Assistant\\backend\\app\\rag\\smoke_test\\test_graph_tool.py:32: in test_graph_config\n    assert config[\"password\"], \"GRAPH_DB_PASSWORD or NEO4J_PASSWORD is required\"\nE   AssertionError: GRAPH_DB_PASSWORD or NEO4J_PASSWORD is required\nE   assert ''"
+    },
+    {
+      "name": "test_graph_connection",
+      "classname": "app.rag.smoke_test.test_graph_tool",
+      "time": 0.001,
+      "status": "failed",
+      "error": "ValueError: Neo4j credentials are not set. Add NEO4J_USER and NEO4J_PASSWORD or GRAPH_DB_USER and GRAPH_DB_PASSWORD to .env.",
+      "traceback": "..\\..\\..\\DA09_Smart-AI-Search-Recommendation-Assistant\\DA09_Smart-AI-Search-Recommendation-Assistant\\backend\\app\\rag\\smoke_test\\test_graph_tool.py:42: in test_graph_connection\n    rows = run_cypher(\"MATCH (n) RETURN count(n) AS node_count\")\napp\\rag\\tools\\graph_tool.py:106: in run_cypher\n    raise ValueError(\nE   ValueError: Neo4j credentials are not set. Add NEO4J_USER and NEO4J_PASSWORD or GRAPH_DB_USER and GRAPH_DB_PASSWORD to .env."
+    },
+    {
+      "name": "test_graph_metadata",
+      "classname": "app.rag.smoke_test.test_graph_tool",
+      "time": 0.001,
+      "status": "failed",
+      "error": "ValueError: Neo4j credentials are not set. Add NEO4J_USER and NEO4J_PASSWORD or GRAPH_DB_USER and GRAPH_DB_PASSWORD to .env.",
+      "traceback": "..\\..\\..\\DA09_Smart-AI-Search-Recommendation-Assistant\\DA09_Smart-AI-Search-Recommendation-Assistant\\backend\\app\\rag\\smoke_test\\test_graph_tool.py:56: in test_graph_metadata\n    label_rows = run_cypher(\"CALL db.labels() YIELD label RETURN collect(label) AS labels\")\napp\\rag\\tools\\graph_tool.py:106: in run_cypher\n    raise ValueError(\nE   ValueError: Neo4j credentials are not set. Add NEO4J_USER and NEO4J_PASSWORD or GRAPH_DB_USER and GRAPH_DB_PASSWORD to .env."
+    },
+    {
+      "name": "test_search_graph_returns_list",
+      "classname": "app.rag.smoke_test.test_graph_tool",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_search_graph_result_structure",
+      "classname": "app.rag.smoke_test.test_graph_tool",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_search_graph_top_k_zero",
+      "classname": "app.rag.smoke_test.test_graph_tool",
+      "time": 0.0,
+      "status": "passed"
+    }
+  ],
+  "passed_tests": [
+    "test_structured_input",
+    "test_graph_connection",
+    "test_graph_search",
+    "test_rag_search",
+    "test_search_graph_returns_list",
+    "test_search_graph_result_structure",
+    "test_search_graph_top_k_zero"
+  ],
+  "failed_tests": [
+    "test_graph_config",
+    "test_graph_connection",
+    "test_graph_metadata"
+  ]
+}

@@ -1,0 +1,2333 @@
+{
+  "summary": {
+    "n": 30,
+    "perturb_mode": "typo",
+    "avg_latency_ms": 1044.580326671712,
+    "accuracy_resolved_and_id_match": 0.9,
+    "resolved_ok": 27,
+    "ambiguous": 3,
+    "not_found": 0
+  },
+  "results": [
+    {
+      "i": 1,
+      "expected": {
+        "hotel_id": 1160655,
+        "hotel_name": "Khách sạn Mekong Mỹ Tho",
+        "city": "Mỹ Tho (Tiền Giang)"
+      },
+      "input_name": "Khách sạ",
+      "got": {
+        "status": "ambiguous",
+        "hotel_id": null,
+        "canonical_name": null,
+        "confidence": 0.97,
+        "candidates": [
+          {
+            "hotel_id": 5161316,
+            "hotel_name": "Khách sạn Cửu Long",
+            "city": "Mỹ Tho (Tiền Giang)",
+            "score": 97.0,
+            "raw": {
+              "id": 5161316,
+              "name": "Khách sạn Cửu Long",
+              "city": "Mỹ Tho (Tiền Giang)",
+              "area": "Mỹ Tho",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/cuu-long-hotel-my-tho/hotel/my-tho-tien-giang-vn.html?hotel=5161316&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 1160655,
+            "hotel_name": "Khách sạn Mekong Mỹ Tho",
+            "city": "Mỹ Tho (Tiền Giang)",
+            "score": 97.0,
+            "raw": {
+              "id": 1160655,
+              "name": "Khách sạn Mekong Mỹ Tho",
+              "city": "Mỹ Tho (Tiền Giang)",
+              "area": "Mỹ Tho",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/mekong-my-tho-hotel/hotel/my-tho-tien-giang-vn.html?hotel=1160655&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 61615461,
+            "hotel_name": "Khách sạn Central Plaza - Mỹ Tho",
+            "city": "Mỹ Tho (Tiền Giang)",
+            "score": 97.0,
+            "raw": {
+              "id": 61615461,
+              "name": "Khách sạn Central Plaza - Mỹ Tho",
+              "city": "Mỹ Tho (Tiền Giang)",
+              "area": "Mỹ Tho",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/central-plaza-hotel/hotel/my-tho-tien-giang-vn.html?hotel=61615461&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 29858.898299979046
+    },
+    {
+      "i": 2,
+      "expected": {
+        "hotel_id": 165247,
+        "hotel_name": "Liberty Central Saigon Centre Hotel",
+        "city": "Hồ Chí Minh"
+      },
+      "input_name": "LibHrty Central Saigon Centre eotel",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 165247,
+        "canonical_name": "Liberty Central Saigon Centre Hotel",
+        "confidence": 0.8943,
+        "candidates": [
+          {
+            "hotel_id": 165247,
+            "hotel_name": "Liberty Central Saigon Centre Hotel",
+            "city": "Hồ Chí Minh",
+            "score": 89.42857142857143,
+            "raw": {
+              "id": 165247,
+              "name": "Liberty Central Saigon Centre Hotel",
+              "city": "Hồ Chí Minh",
+              "area": "Quận 1",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/liberty-central-saigon-centre-hotel/hotel/ho-chi-minh-city-vn.html?hotel=165247&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 666232,
+            "hotel_name": "Liberty Central Saigon Citypoint Hotel",
+            "city": "Hồ Chí Minh",
+            "score": 76.75342465753424,
+            "raw": {
+              "id": 666232,
+              "name": "Liberty Central Saigon Citypoint Hotel",
+              "city": "Hồ Chí Minh",
+              "area": "Quận 1",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/liberty-central-saigon-citypoint-hotel/hotel/ho-chi-minh-city-vn.html?hotel=666232&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 43411,
+            "hotel_name": "Liberty Saigon Green View Hotel",
+            "city": "Hồ Chí Minh",
+            "score": 61.333333333333336,
+            "raw": {
+              "id": 43411,
+              "name": "Liberty Saigon Green View Hotel",
+              "city": "Hồ Chí Minh",
+              "area": "Quận 1",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/liberty-saigon-green-view-hotel/hotel/ho-chi-minh-city-vn.html?hotel=43411&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 488444,
+            "hotel_name": "Khách sạn Liberty Central Saigon Riverside",
+            "city": "Hồ Chí Minh",
+            "score": 60.6103896103896,
+            "raw": {
+              "id": 488444,
+              "name": "Khách sạn Liberty Central Saigon Riverside",
+              "city": "Hồ Chí Minh",
+              "area": "Quận 1",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/liberty-central-saigon-riverside-hotel/hotel/ho-chi-minh-city-vn.html?hotel=488444&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 315667,
+            "hotel_name": "Khách sạn Novotel Saigon Centre",
+            "city": "Hồ Chí Minh",
+            "score": 59.58333333333333,
+            "raw": {
+              "id": 315667,
+              "name": "Khách sạn Novotel Saigon Centre",
+              "city": "Hồ Chí Minh",
+              "area": "Quận 1",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/novotel-saigon-centre-hotel/hotel/ho-chi-minh-city-vn.html?hotel=315667&currency=VND&checkIn=2026-06-14&checkOut=2026-06-15&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 56.5395001322031
+    },
+    {
+      "i": 3,
+      "expected": {
+        "hotel_id": 32821725,
+        "hotel_name": "Khách sạn A83 Hà Nội",
+        "city": "Hà Nội"
+      },
+      "input_name": "Khá h sạn A83cHà Nội",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 32821725,
+        "canonical_name": "Khách sạn A83 Hà Nội",
+        "confidence": 0.785,
+        "candidates": [
+          {
+            "hotel_id": 32821725,
+            "hotel_name": "Khách sạn A83 Hà Nội",
+            "city": "Hà Nội",
+            "score": 78.5,
+            "raw": {
+              "id": 32821725,
+              "name": "Khách sạn A83 Hà Nội",
+              "city": "Hà Nội",
+              "area": "Đống Đa",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/hanoi-a83-hotel/hotel/hanoi-vn.html?hotel=32821725&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 36780702,
+            "hotel_name": "Khách sạn Coco Hà Nội",
+            "city": "Hà Nội",
+            "score": 68.9939024390244,
+            "raw": {
+              "id": 36780702,
+              "name": "Khách sạn Coco Hà Nội",
+              "city": "Hà Nội",
+              "area": "Cầu Giấy",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/coco-hanoi-hotel/hotel/hanoi-vn.html?hotel=36780702&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 161676,
+            "hotel_name": "Khách sạn Mercure Hà Nội La Gare",
+            "city": "Hà Nội",
+            "score": 64.63653846153846,
+            "raw": {
+              "id": 161676,
+              "name": "Khách sạn Mercure Hà Nội La Gare",
+              "city": "Hà Nội",
+              "area": "Quận Hoàn Kiếm",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/mercure-hanoi-la-gare-hotel/hotel/hanoi-vn.html?hotel=161676&currency=VND&checkIn=2026-06-14&checkOut=2026-06-15&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 247372,
+            "hotel_name": "Khách sạn Mường Thanh Grand Hà Nội",
+            "city": "Hà Nội",
+            "score": 64.60092592592594,
+            "raw": {
+              "id": 247372,
+              "name": "Khách sạn Mường Thanh Grand Hà Nội",
+              "city": "Hà Nội",
+              "area": "Quận Hoàng Mai",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/muong-thanh-grand-hanoi-hotel/hotel/hanoi-vn.html?hotel=247372&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 10961,
+            "hotel_name": "Khách sạn Pullman Hà Nội",
+            "city": "Hà Nội",
+            "score": 62.84090909090909,
+            "raw": {
+              "id": 10961,
+              "name": "Khách sạn Pullman Hà Nội",
+              "city": "Hà Nội",
+              "area": "Đống Đa",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/pullman-hanoi-hotel/hotel/hanoi-vn.html?hotel=10961&currency=VND&checkIn=2026-06-14&checkOut=2026-06-15&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 61.83390016667545
+    },
+    {
+      "i": 4,
+      "expected": {
+        "hotel_id": 25133369,
+        "hotel_name": "Khách sạn Paris – Bình Thuận",
+        "city": "Tuy Phong"
+      },
+      "input_name": "Khách sạn Paris – Bìhn Thuận",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 25133369,
+        "canonical_name": "Khách sạn Paris – Bình Thuận",
+        "confidence": 0.9192,
+        "candidates": [
+          {
+            "hotel_id": 25133369,
+            "hotel_name": "Khách sạn Paris – Bình Thuận",
+            "city": "Tuy Phong",
+            "score": 91.92307692307693,
+            "raw": {
+              "id": 25133369,
+              "name": "Khách sạn Paris – Bình Thuận",
+              "city": "Tuy Phong",
+              "area": "Tuy Phong",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/paris-hotel-binh-thuan/hotel/tuy-phong-vn.html?hotel=25133369&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 57.4624000582844
+    },
+    {
+      "i": 5,
+      "expected": {
+        "hotel_id": 16360312,
+        "hotel_name": "Mường Thanh Holiday Suối Mơ",
+        "city": "Hạ Long"
+      },
+      "input_name": "Mường Thanh ioliday Suối Mơ",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 16360312,
+        "canonical_name": "Mường Thanh Holiday Suối Mơ",
+        "confidence": 0.9404,
+        "candidates": [
+          {
+            "hotel_id": 16360312,
+            "hotel_name": "Mường Thanh Holiday Suối Mơ",
+            "city": "Hạ Long",
+            "score": 94.03703703703704,
+            "raw": {
+              "id": 16360312,
+              "name": "Mường Thanh Holiday Suối Mơ",
+              "city": "Hạ Long",
+              "area": "Hạ Long",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/muong-thanh-holiday-suoi-mo/hotel/ha-long-vn.html?hotel=16360312&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 11081745,
+            "hotel_name": "Mường Thanh Grand Bãi Cháy",
+            "city": "Hạ Long",
+            "score": 59.301886792452834,
+            "raw": {
+              "id": 11081745,
+              "name": "Mường Thanh Grand Bãi Cháy",
+              "city": "Hạ Long",
+              "area": "Hạ Long",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/muong-thanh-grand-bai-chay/hotel/halong-vn.html?hotel=11081745&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 247789,
+            "hotel_name": "Khách sạn Mường Thanh Grand Hạ Long",
+            "city": "Hạ Long",
+            "score": 56.43548387096774,
+            "raw": {
+              "id": 247789,
+              "name": "Khách sạn Mường Thanh Grand Hạ Long",
+              "city": "Hạ Long",
+              "area": "Hạ Long",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/muong-thanh-grand-ha-long-hotel/hotel/halong-vn.html?hotel=247789&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 32914376,
+            "hotel_name": "Mường Thanh Luxury Hạ Long Centre II",
+            "city": "Hạ Long",
+            "score": 54.88241436925647,
+            "raw": {
+              "id": 32914376,
+              "name": "Mường Thanh Luxury Hạ Long Centre II",
+              "city": "Hạ Long",
+              "area": "Hạ Long",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/muong-thanh-luxury-ha-long-residence/hotel/ha-long-vn.html?hotel=32914376&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 42152643,
+            "hotel_name": "Khách sạn Harmony Hạ Long",
+            "city": "Hạ Long",
+            "score": 41.11538461538461,
+            "raw": {
+              "id": 42152643,
+              "name": "Khách sạn Harmony Hạ Long",
+              "city": "Hạ Long",
+              "area": "Cảng Hòn Gai",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/harmony-hotel/hotel/ha-long-vn.html?hotel=42152643&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 65.31289988197386
+    },
+    {
+      "i": 6,
+      "expected": {
+        "hotel_id": 1994625,
+        "hotel_name": "Vinpearl Cửa Hội, Affiliated by Meliá",
+        "city": "Biển Cửa Lò"
+      },
+      "input_name": "Vinpearl Cửa Hội, by Meliá",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 1994625,
+        "canonical_name": "Vinpearl Cửa Hội, Affiliated by Meliá",
+        "confidence": 0.9464,
+        "candidates": [
+          {
+            "hotel_id": 1994625,
+            "hotel_name": "Vinpearl Cửa Hội, Affiliated by Meliá",
+            "city": "Biển Cửa Lò",
+            "score": 94.64344262295083,
+            "raw": {
+              "id": 1994625,
+              "name": "Vinpearl Cửa Hội, Affiliated by Meliá",
+              "city": "Biển Cửa Lò",
+              "area": "Bãi biển Cửa Lò",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/vinpearl-discovery-cua-hoi/hotel/cua-lo-beach-vn.html?hotel=1994625&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 40.84970010444522
+    },
+    {
+      "i": 7,
+      "expected": {
+        "hotel_id": 1032420,
+        "hotel_name": "Khu nghỉ dưỡng Sheraton Phu Quoc Long Beach",
+        "city": "Đảo Phú Quốc"
+      },
+      "input_name": "Khu nghỉ dưỡng Sheraton Quoc Long Beach",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 1032420,
+        "canonical_name": "Khu nghỉ dưỡng Sheraton Phu Quoc Long Beach",
+        "confidence": 0.9732,
+        "candidates": [
+          {
+            "hotel_id": 1032420,
+            "hotel_name": "Khu nghỉ dưỡng Sheraton Phu Quoc Long Beach",
+            "city": "Đảo Phú Quốc",
+            "score": 97.3170731707317,
+            "raw": {
+              "id": 1032420,
+              "name": "Khu nghỉ dưỡng Sheraton Phu Quoc Long Beach",
+              "city": "Đảo Phú Quốc",
+              "area": "Gành Dầu",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/sheraton-phu-quoc-long-beach-resort/hotel/phu-qu-c-island-vn.html?hotel=1032420&currency=VND&checkIn=2026-06-14&checkOut=2026-06-15&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 30897715,
+            "hotel_name": "Khu nghỉ dưỡng Sun Việt Phú Quốc",
+            "city": "Đảo Phú Quốc",
+            "score": 65.10970726318698,
+            "raw": {
+              "id": 30897715,
+              "name": "Khu nghỉ dưỡng Sun Việt Phú Quốc",
+              "city": "Đảo Phú Quốc",
+              "area": "Dương Đông",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/sun-viet-resort-beach-and-spa/hotel/phu-quoc-island-vn.html?hotel=30897715&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 1157572,
+            "hotel_name": "Khu nghỉ dưỡng Novotel Phú Quốc",
+            "city": "Đảo Phú Quốc",
+            "score": 64.44857142857143,
+            "raw": {
+              "id": 1157572,
+              "name": "Khu nghỉ dưỡng Novotel Phú Quốc",
+              "city": "Đảo Phú Quốc",
+              "area": "Dương Tơ",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/novotel-phu-quoc-resort/hotel/phu-quoc-island-vn.html?hotel=1157572&currency=VND&checkIn=2026-06-14&checkOut=2026-06-15&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 2577124,
+            "hotel_name": "Khu nghỉ dưỡng & Spa Lahana Phú Quốc",
+            "city": "Đảo Phú Quốc",
+            "score": 64.21278108038253,
+            "raw": {
+              "id": 2577124,
+              "name": "Khu nghỉ dưỡng & Spa Lahana Phú Quốc",
+              "city": "Đảo Phú Quốc",
+              "area": "Dương Đông",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/lahana-resort-phu-quoc/hotel/phu-quoc-island-vn.html?hotel=2577124&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 9776735,
+            "hotel_name": "Khu nghỉ dưỡng Pullman Phú Quốc",
+            "city": "Đảo Phú Quốc",
+            "score": 63.87714285714286,
+            "raw": {
+              "id": 9776735,
+              "name": "Khu nghỉ dưỡng Pullman Phú Quốc",
+              "city": "Đảo Phú Quốc",
+              "area": "Dương Tơ",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/pullman-phu-quoc/hotel/phu-quoc-island-vn.html?hotel=9776735&currency=VND&checkIn=2026-06-14&checkOut=2026-06-15&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 50.85040000267327
+    },
+    {
+      "i": 8,
+      "expected": {
+        "hotel_id": 859981,
+        "hotel_name": "Khách sạn Mường Thanh Holiday Hội An",
+        "city": "Hội An"
+      },
+      "input_name": "Khách nạn Mường Thash Holiday Hội An",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 859981,
+        "canonical_name": "Khách sạn Mường Thanh Holiday Hội An",
+        "confidence": 0.9056,
+        "candidates": [
+          {
+            "hotel_id": 859981,
+            "hotel_name": "Khách sạn Mường Thanh Holiday Hội An",
+            "city": "Hội An",
+            "score": 90.55555555555554,
+            "raw": {
+              "id": 859981,
+              "name": "Khách sạn Mường Thanh Holiday Hội An",
+              "city": "Hội An",
+              "area": "Cửa Đại",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/muong-thanh-holiday-hoi-an-hotel/hotel/hoi-an-vn.html?hotel=859981&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 46763704,
+            "hotel_name": "Khách sạn Golden Sun Hội An",
+            "city": "Hội An",
+            "score": 62.74603174603175,
+            "raw": {
+              "id": 46763704,
+              "name": "Khách sạn Golden Sun Hội An",
+              "city": "Hội An",
+              "area": "Sơn Phong",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/golden-sun-hotel-hoi-an/hotel/hoi-an-vn.html?hotel=46763704&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 32713399,
+            "hotel_name": "Nam An Mama Villa Hội An",
+            "city": "Hội An",
+            "score": 62.20570175438596,
+            "raw": {
+              "id": 32713399,
+              "name": "Nam An Mama Villa Hội An",
+              "city": "Hội An",
+              "area": "Cẩm Hà",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/mama-villa-hoian/hotel/hoi-an-vn.html?hotel=32713399&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 6945065,
+            "hotel_name": "The Nam An Villa Hoi An",
+            "city": "Hội An",
+            "score": 61.023668280871675,
+            "raw": {
+              "id": 6945065,
+              "name": "The Nam An Villa Hoi An",
+              "city": "Hội An",
+              "area": "Cẩm Châu",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/the-nam-an-villa-hoi-an/hotel/hoi-an-vn.html?hotel=6945065&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 38692610,
+            "hotel_name": "Khách sạn & Spa Happy Life Memories Hội An",
+            "city": "Hội An",
+            "score": 58.368421052631575,
+            "raw": {
+              "id": 38692610,
+              "name": "Khách sạn & Spa Happy Life Memories Hội An",
+              "city": "Hội An",
+              "area": "Cẩm Châu",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/the-villa-hoi-an_6/hotel/hoi-an-vn.html?hotel=38692610&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 29.782800003886223
+    },
+    {
+      "i": 9,
+      "expected": {
+        "hotel_id": 61890911,
+        "hotel_name": "Khách sạn Thanh Tâm",
+        "city": "Hồ Chí Minh"
+      },
+      "input_name": "Kháci sạn Thanh Tâm",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 61890911,
+        "canonical_name": "Khách sạn Thanh Tâm",
+        "confidence": 0.9079,
+        "candidates": [
+          {
+            "hotel_id": 61890911,
+            "hotel_name": "Khách sạn Thanh Tâm",
+            "city": "Hồ Chí Minh",
+            "score": 90.78947368421052,
+            "raw": {
+              "id": 61890911,
+              "name": "Khách sạn Thanh Tâm",
+              "city": "Hồ Chí Minh",
+              "area": "Gò Vấp",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/khach-s-n-thanh-tam/hotel/ho-chi-minh-city-vn.html?hotel=61890911&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 31935748,
+            "hotel_name": "Khách sạn Thành Vinh",
+            "city": "Hồ Chí Minh",
+            "score": 70.5128205128205,
+            "raw": {
+              "id": 31935748,
+              "name": "Khách sạn Thành Vinh",
+              "city": "Hồ Chí Minh",
+              "area": "Huyện Củ Chi",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/khach-s-n-thanh-vinh/hotel/ho-chi-minh-city-vn.html?hotel=31935748&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 56358742,
+            "hotel_name": "Khách sạn Trà My - Trung tâm Sài Gòn",
+            "city": "Hồ Chí Minh",
+            "score": 68.79292452830188,
+            "raw": {
+              "id": 56358742,
+              "name": "Khách sạn Trà My - Trung tâm Sài Gòn",
+              "city": "Hồ Chí Minh",
+              "area": "Quận 3",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/tra-my-hotel-saigon-central/hotel/ho-chi-minh-city-vn.html?hotel=56358742&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 33815684,
+            "hotel_name": "Khách sạn A25 - 255 Lê Thánh Tôn",
+            "city": "Hồ Chí Minh",
+            "score": 67.68010204081632,
+            "raw": {
+              "id": 33815684,
+              "name": "Khách sạn A25 - 255 Lê Thánh Tôn",
+              "city": "Hồ Chí Minh",
+              "area": "Quận 1",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/a25-hotel-255-le-thanh-ton/hotel/ho-chi-minh-city-vn.html?hotel=33815684&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 68299826,
+            "hotel_name": "Khách sạn Townhouse Cường Thành 3",
+            "city": "Hồ Chí Minh",
+            "score": 67.53489010989011,
+            "raw": {
+              "id": 68299826,
+              "name": "Khách sạn Townhouse Cường Thành 3",
+              "city": "Hồ Chí Minh",
+              "area": "Quận 10",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/khach-san-cuong-thanh-3/hotel/ho-chi-minh-city-vn.html?hotel=68299826&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 28.313799994066358
+    },
+    {
+      "i": 10,
+      "expected": {
+        "hotel_id": 185968,
+        "hotel_name": "Khách Sạn TTC - Phan Thiết",
+        "city": "Phan Thiết"
+      },
+      "input_name": "Khách Sạ",
+      "got": {
+        "status": "ambiguous",
+        "hotel_id": null,
+        "canonical_name": null,
+        "confidence": 0.97,
+        "candidates": [
+          {
+            "hotel_id": 64060008,
+            "hotel_name": "Khách sạn Amana Phan Thiết",
+            "city": "Phan Thiết",
+            "score": 97.0,
+            "raw": {
+              "id": 64060008,
+              "name": "Khách sạn Amana Phan Thiết",
+              "city": "Phan Thiết",
+              "area": "Phú Thủy",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/amana-hotel-phan-thiet/hotel/phan-thiet-vn.html?hotel=64060008&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 185968,
+            "hotel_name": "Khách Sạn TTC - Phan Thiết",
+            "city": "Phan Thiết",
+            "score": 97.0,
+            "raw": {
+              "id": 185968,
+              "name": "Khách Sạn TTC - Phan Thiết",
+              "city": "Phan Thiết",
+              "area": "Phú Thủy",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/ttc-hotel-premium-phan-thiet/hotel/phan-thiet-vn.html?hotel=185968&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 736941,
+            "hotel_name": "Khách Sạn Mường Thanh Holiday Mũi Né",
+            "city": "Phan Thiết",
+            "score": 97.0,
+            "raw": {
+              "id": 736941,
+              "name": "Khách Sạn Mường Thanh Holiday Mũi Né",
+              "city": "Phan Thiết",
+              "area": "Mũi Né",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/muong-thanh-holiday-mui-ne-hotel/hotel/phan-thiet-vn.html?hotel=736941&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 46727693,
+            "hotel_name": "Apec Mandala Mũi Né - Căn hộ khách sạn nghỉ dưỡng",
+            "city": "Phan Thiết",
+            "score": 97.0,
+            "raw": {
+              "id": 46727693,
+              "name": "Apec Mandala Mũi Né - Căn hộ khách sạn nghỉ dưỡng",
+              "city": "Phan Thiết",
+              "area": "Mũi Né",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/apec-mandala-mui-ne-can-h-khach-s-n-nghi-du-ng/hotel/phan-thiet-vn.html?hotel=46727693&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 62063243,
+            "hotel_name": "Apec Mandala Mũi Né by LHG",
+            "city": "Phan Thiết",
+            "score": 35.035294117647055,
+            "raw": {
+              "id": 62063243,
+              "name": "Apec Mandala Mũi Né by LHG",
+              "city": "Phan Thiết",
+              "area": "Mũi Né",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/apec-mandala-mui-ne-beach-khach-s-n-lhg/hotel/phan-thiet-vn.html?hotel=62063243&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 51.86489992775023
+    },
+    {
+      "i": 11,
+      "expected": {
+        "hotel_id": 179080,
+        "hotel_name": "Khách Sạn TTC Ngọc Lan",
+        "city": "Đà Lạt"
+      },
+      "input_name": "Khách Sạn Ngọc Lan",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 179080,
+        "canonical_name": "Khách Sạn TTC Ngọc Lan",
+        "confidence": 0.9625,
+        "candidates": [
+          {
+            "hotel_id": 179080,
+            "hotel_name": "Khách Sạn TTC Ngọc Lan",
+            "city": "Đà Lạt",
+            "score": 96.25,
+            "raw": {
+              "id": 179080,
+              "name": "Khách Sạn TTC Ngọc Lan",
+              "city": "Đà Lạt",
+              "area": "Trung tâm Thành phố Đà Lạt",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/ttc-hotel-premium-ngoc-lan_5/hotel/dalat-vn.html?hotel=179080&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 168993,
+            "hotel_name": "Khách Sạn Mường Thanh Đà Lạt",
+            "city": "Đà Lạt",
+            "score": 64.63514492753623,
+            "raw": {
+              "id": 168993,
+              "name": "Khách Sạn Mường Thanh Đà Lạt",
+              "city": "Đà Lạt",
+              "area": "Trung tâm Thành phố Đà Lạt",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/muong-thanh-dalat-hotel/hotel/dalat-vn.html?hotel=168993&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 49851722,
+            "hotel_name": "Khách sạn Golden Sun Đà Lạt",
+            "city": "Đà Lạt",
+            "score": 63.14722222222222,
+            "raw": {
+              "id": 49851722,
+              "name": "Khách sạn Golden Sun Đà Lạt",
+              "city": "Đà Lạt",
+              "area": "Hồ Xuân Hương",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/golden-imperial-hotel-da-lat/hotel/dalat-vn.html?hotel=49851722&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 9698,
+            "hotel_name": "Khách Sạn TTC Đà Lạt",
+            "city": "Đà Lạt",
+            "score": 61.842105263157904,
+            "raw": {
+              "id": 9698,
+              "name": "Khách Sạn TTC Đà Lạt",
+              "city": "Đà Lạt",
+              "area": "Trung tâm Thành phố Đà Lạt",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/ttc-hotel-premium-dalat/hotel/dalat-vn.html?hotel=9698&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 50138938,
+            "hotel_name": "Khách sạn Savio Triệu Việt Vương Đà Lạt",
+            "city": "Đà Lạt",
+            "score": 61.416228070175436,
+            "raw": {
+              "id": 50138938,
+              "name": "Khách sạn Savio Triệu Việt Vương Đà Lạt",
+              "city": "Đà Lạt",
+              "area": "Trung tâm Thành phố Đà Lạt",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/thanh-do-1-hotel/hotel/dalat-vn.html?hotel=50138938&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 53.19390003569424
+    },
+    {
+      "i": 12,
+      "expected": {
+        "hotel_id": 926872,
+        "hotel_name": "Trang Vu Homestay Cu Lao Cham",
+        "city": "Tân Hiệp"
+      },
+      "input_name": "Trang V",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 926872,
+        "canonical_name": "Trang Vu Homestay Cu Lao Cham",
+        "confidence": 0.97,
+        "candidates": [
+          {
+            "hotel_id": 926872,
+            "hotel_name": "Trang Vu Homestay Cu Lao Cham",
+            "city": "Tân Hiệp",
+            "score": 97.0,
+            "raw": {
+              "id": 926872,
+              "name": "Trang Vu Homestay Cu Lao Cham",
+              "city": "Tân Hiệp",
+              "area": "Tam Hiệp",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/trang-vu-homestay-cu-lao-cham_2/hotel/all/tan-hiep-vn.html?hotel=926872&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 55490372,
+            "hotel_name": "Thu Trang Homestay Cu Lao Cham",
+            "city": "Tân Hiệp",
+            "score": 68.66373873873873,
+            "raw": {
+              "id": 55490372,
+              "name": "Thu Trang Homestay Cu Lao Cham",
+              "city": "Tân Hiệp",
+              "area": "Tam Hiệp",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/thu-trang-homestay-cham-island-h55490372/hotel/all/hoi-an-vn.html?hotel=55490372&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 86363054,
+            "hotel_name": "Homestay Mai Trường Cù Lao Chàm",
+            "city": "Tân Hiệp",
+            "score": 36.973684210526315,
+            "raw": {
+              "id": 86363054,
+              "name": "Homestay Mai Trường Cù Lao Chàm",
+              "city": "Tân Hiệp",
+              "area": "Tam Hiệp",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/homestay-mai-truong-cu-lao-cham/hotel/all/tan-hiep-vn.html?hotel=86363054&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 37922085,
+            "hotel_name": "Homestay Vân Đức Cù Lao Chàm",
+            "city": "Tân Hiệp",
+            "score": 33.285714285714285,
+            "raw": {
+              "id": 37922085,
+              "name": "Homestay Vân Đức Cù Lao Chàm",
+              "city": "Tân Hiệp",
+              "area": "Tam Hiệp",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/homestay-van-uc-cu-lao-cham_2/hotel/all/tan-hiep-vn.html?hotel=37922085&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 66755966,
+            "hotel_name": "Sunbay Homestay Cù Lao Chàm",
+            "city": "Tân Hiệp",
+            "score": 26.44117647058824,
+            "raw": {
+              "id": 66755966,
+              "name": "Sunbay Homestay Cù Lao Chàm",
+              "city": "Tân Hiệp",
+              "area": "Tam Hiệp",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/sunbay-homestay_2/hotel/tan-hiep-vn.html?hotel=66755966&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 45.54600012488663
+    },
+    {
+      "i": 13,
+      "expected": {
+        "hotel_id": 16093065,
+        "hotel_name": "Khách sạn A25 Premium - 29 Thác Bạc - Sapa",
+        "city": "Sapa"
+      },
+      "input_name": "Kháchxsạn A25 Premium - 29 Thác Bạc - Sapa",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 16093065,
+        "canonical_name": "Khách sạn A25 Premium - 29 Thác Bạc - Sapa",
+        "confidence": 0.9417,
+        "candidates": [
+          {
+            "hotel_id": 16093065,
+            "hotel_name": "Khách sạn A25 Premium - 29 Thác Bạc - Sapa",
+            "city": "Sapa",
+            "score": 94.17293233082707,
+            "raw": {
+              "id": 16093065,
+              "name": "Khách sạn A25 Premium - 29 Thác Bạc - Sapa",
+              "city": "Sapa",
+              "area": "Trung tâm Sapa",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/a25-hotel-29-thac-b-c-sapa/hotel/sapa-vn.html?hotel=16093065&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 51.022700034081936
+    },
+    {
+      "i": 14,
+      "expected": {
+        "hotel_id": 21971824,
+        "hotel_name": "Khu nghỉ dưỡng Flamingo Cát Bà – Quản lý bởi Flamingo Hotels & Resorts",
+        "city": "Quần Đảo Cát Bà"
+      },
+      "input_name": "Khu nghỉ dưỡng Flamin o Cát Bà –gQuản lý bởi Flamingo Hotels & Resorts",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 21971824,
+        "canonical_name": "Khu nghỉ dưỡng Flamingo Cát Bà – Quản lý bởi Flamingo Hotels & Resorts",
+        "confidence": 0.9161,
+        "candidates": [
+          {
+            "hotel_id": 21971824,
+            "hotel_name": "Khu nghỉ dưỡng Flamingo Cát Bà – Quản lý bởi Flamingo Hotels & Resorts",
+            "city": "Quần Đảo Cát Bà",
+            "score": 91.60885010691867,
+            "raw": {
+              "id": 21971824,
+              "name": "Khu nghỉ dưỡng Flamingo Cát Bà – Quản lý bởi Flamingo Hotels & Resorts",
+              "city": "Quần Đảo Cát Bà",
+              "area": "Cát Bà",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/wyndham-grand-flamingo-cat-ba-resort/hotel/haiphong-vn.html?hotel=21971824&currency=VND&checkIn=2026-06-14&checkOut=2026-06-15&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 45.4069001134485
+    },
+    {
+      "i": 15,
+      "expected": {
+        "hotel_id": 87252891,
+        "hotel_name": "Studio 1 king bed, bathtub, kitchen, next to Sheraton, Tay Ho",
+        "city": "Hà Nội"
+      },
+      "input_name": "Studio 1 king bed, bathtub, kitchen, next to Sheraton, Tay Ho",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 87252891,
+        "canonical_name": "Studio 1 king bed, bathtub, kitchen, next to Sheraton, Tay Ho",
+        "confidence": 1.0,
+        "candidates": [
+          {
+            "hotel_id": 87252891,
+            "hotel_name": "Studio 1 king bed, bathtub, kitchen, next to Sheraton, Tay Ho",
+            "city": "Hà Nội",
+            "score": 100.0,
+            "raw": {
+              "id": 87252891,
+              "name": "Studio 1 king bed, bathtub, kitchen, next to Sheraton, Tay Ho",
+              "city": "Hà Nội",
+              "area": "Quận Tây Hồ",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/1-double-bed-room-shared-apartment-bathtub-tay-ho/hotel/all/hanoi-vn.html?hotel=87252891&currency=VND&checkIn=2026-06-14&checkOut=2026-06-15&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 86658383,
+            "hotel_name": "Studio cạnh Sheraton/Ban Công/Bồn Tắm/Bếp/Tây Hồ",
+            "city": "Hà Nội",
+            "score": 64.45930735930736,
+            "raw": {
+              "id": 86658383,
+              "name": "Studio cạnh Sheraton/Ban Công/Bồn Tắm/Bếp/Tây Hồ",
+              "city": "Hà Nội",
+              "area": "Quận Tây Hồ",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/studio-c-nh-sheraton-may-chi-u-b-n-t-m-b-p-tay-h/hotel/hanoi-vn.html?hotel=86658383&currency=VND&checkIn=2026-06-14&checkOut=2026-06-15&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 48364,
+            "hotel_name": "Khách sạn Sheraton Hà Nội",
+            "city": "Hà Nội",
+            "score": 56.70253141167776,
+            "raw": {
+              "id": 48364,
+              "name": "Khách sạn Sheraton Hà Nội",
+              "city": "Hà Nội",
+              "area": "Quận Tây Hồ",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/sheraton-hanoi-hotel/hotel/hanoi-vn.html?hotel=48364&currency=VND&checkIn=2026-06-14&checkOut=2026-06-15&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 39900379,
+            "hotel_name": "CL•Charming Studio Apt•Laundry•Pullman",
+            "city": "Hà Nội",
+            "score": 56.18337320574163,
+            "raw": {
+              "id": 39900379,
+              "name": "CL•Charming Studio Apt•Laundry•Pullman",
+              "city": "Hà Nội",
+              "area": "Đống Đa",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/cl-charming-studio-apt-laundry-pullman/hotel/all/hanoi-vn.html?hotel=39900379&currency=VND&checkIn=2026-06-14&checkOut=2026-06-15&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 85304449,
+            "hotel_name": "Tru by Hilton Hanoi Station",
+            "city": "Hà Nội",
+            "score": 42.05882352941177,
+            "raw": {
+              "id": 85304449,
+              "name": "Tru by Hilton Hanoi Station",
+              "city": "Hà Nội",
+              "area": "Quận Hoàn Kiếm",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/tru-by-hilton-hanoi-station-h85304449/hotel/hanoi-vn.html?hotel=85304449&currency=VND&checkIn=2026-06-14&checkOut=2026-06-15&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 46.32110008969903
+    },
+    {
+      "i": 16,
+      "expected": {
+        "hotel_id": 168993,
+        "hotel_name": "Khách Sạn Mường Thanh Đà Lạt",
+        "city": "Đà Lạt"
+      },
+      "input_name": "Khách SạĐ Mường Thanh nà Lạt",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 168993,
+        "canonical_name": "Khách Sạn Mường Thanh Đà Lạt",
+        "confidence": 0.8686,
+        "candidates": [
+          {
+            "hotel_id": 168993,
+            "hotel_name": "Khách Sạn Mường Thanh Đà Lạt",
+            "city": "Đà Lạt",
+            "score": 86.85714285714286,
+            "raw": {
+              "id": 168993,
+              "name": "Khách Sạn Mường Thanh Đà Lạt",
+              "city": "Đà Lạt",
+              "area": "Trung tâm Thành phố Đà Lạt",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/muong-thanh-dalat-hotel/hotel/dalat-vn.html?hotel=168993&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 32680041,
+            "hotel_name": "Khách sạn Tala Đà Lạt",
+            "city": "Đà Lạt",
+            "score": 63.30612244897959,
+            "raw": {
+              "id": 32680041,
+              "name": "Khách sạn Tala Đà Lạt",
+              "city": "Đà Lạt",
+              "area": "Ga Đà Lạt",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/taladalat/hotel/dalat-vn.html?hotel=32680041&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 10954459,
+            "hotel_name": "Khách sạn Sài Gòn's Book Dalat ( Hồ Xuân Hương)",
+            "city": "Đà Lạt",
+            "score": 62.85650684931507,
+            "raw": {
+              "id": 10954459,
+              "name": "Khách sạn Sài Gòn's Book Dalat ( Hồ Xuân Hương)",
+              "city": "Đà Lạt",
+              "area": "Hồ Xuân Hương",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/capital-o-585-saigon-book-da-lat-hotel/hotel/dalat-vn.html?hotel=10954459&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 9698,
+            "hotel_name": "Khách Sạn TTC Đà Lạt",
+            "city": "Đà Lạt",
+            "score": 61.12499999999999,
+            "raw": {
+              "id": 9698,
+              "name": "Khách Sạn TTC Đà Lạt",
+              "city": "Đà Lạt",
+              "area": "Trung tâm Thành phố Đà Lạt",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/ttc-hotel-premium-dalat/hotel/dalat-vn.html?hotel=9698&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 74577726,
+            "hotel_name": "Khách sạn Amory Đà Lạt",
+            "city": "Đà Lạt",
+            "score": 60.339999999999996,
+            "raw": {
+              "id": 74577726,
+              "name": "Khách sạn Amory Đà Lạt",
+              "city": "Đà Lạt",
+              "area": "Ga Đà Lạt",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/harmony-dalat-hotel/hotel/khu-chi-lang-vn.html?hotel=74577726&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 50.459499936550856
+    },
+    {
+      "i": 17,
+      "expected": {
+        "hotel_id": 8213119,
+        "hotel_name": "Meliá Vinpearl Hải Phòng Rivera",
+        "city": "Hải Phòng"
+      },
+      "input_name": "Mel",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 8213119,
+        "canonical_name": "Meliá Vinpearl Hải Phòng Rivera",
+        "confidence": 0.97,
+        "candidates": [
+          {
+            "hotel_id": 8213119,
+            "hotel_name": "Meliá Vinpearl Hải Phòng Rivera",
+            "city": "Hải Phòng",
+            "score": 97.0,
+            "raw": {
+              "id": 8213119,
+              "name": "Meliá Vinpearl Hải Phòng Rivera",
+              "city": "Hải Phòng",
+              "area": "Thượng Lý/Quán Toan",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/vinpearl-hotel-rivera-hai-phong/hotel/haiphong-vn.html?hotel=8213119&currency=VND&checkIn=2026-06-12&checkOut=2026-06-13&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 4518434,
+            "hotel_name": "Mercure Hải Phòng",
+            "city": "Hải Phòng",
+            "score": 39.199999999999996,
+            "raw": {
+              "id": 4518434,
+              "name": "Mercure Hải Phòng",
+              "city": "Hải Phòng",
+              "area": "Trung tâm thành phố/chợ Sắt",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/mercure-hai-phong/hotel/haiphong-vn.html?hotel=4518434&currency=VND&checkIn=2026-06-14&checkOut=2026-06-15&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 6393486,
+            "hotel_name": "Sheraton Hải Phòng",
+            "city": "Hải Phòng",
+            "score": 19.785714285714285,
+            "raw": {
+              "id": 6393486,
+              "name": "Sheraton Hải Phòng",
+              "city": "Hải Phòng",
+              "area": "Ven sông - Sông Cấm/Cảng cũ",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/sheraton-hai-phong/hotel/haiphong-vn.html?hotel=6393486&currency=VND&checkIn=2026-06-14&checkOut=2026-06-15&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 58354137,
+            "hotel_name": "Khách sạn Pullman Grand Hải Phòng",
+            "city": "Hải Phòng",
+            "score": 14.5,
+            "raw": {
+              "id": 58354137,
+              "name": "Khách sạn Pullman Grand Hải Phòng",
+              "city": "Hải Phòng",
+              "area": "Trung tâm thành phố/chợ Sắt",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/pullman-hai-phong-grand-hotel/hotel/haiphong-vn.html?hotel=58354137&currency=VND&checkIn=2026-06-14&checkOut=2026-06-15&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 39.24239985644817
+    },
+    {
+      "i": 18,
+      "expected": {
+        "hotel_id": 61425173,
+        "hotel_name": "Khách sạn Tiến Minh 113 Lê Thanh Nghị",
+        "city": "Hà Nội"
+      },
+      "input_name": "Khách sạn Tiến Minh Lê Thanh Nghị",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 61425173,
+        "canonical_name": "Khách sạn Tiến Minh 113 Lê Thanh Nghị",
+        "confidence": 0.9711,
+        "candidates": [
+          {
+            "hotel_id": 61425173,
+            "hotel_name": "Khách sạn Tiến Minh 113 Lê Thanh Nghị",
+            "city": "Hà Nội",
+            "score": 97.10714285714286,
+            "raw": {
+              "id": 61425173,
+              "name": "Khách sạn Tiến Minh 113 Lê Thanh Nghị",
+              "city": "Hà Nội",
+              "area": "Quận Hai Bà Trưng",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/tien-minh-hotel-h37991427/hotel/hanoi-vn.html?hotel=61425173&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 58686039,
+            "hotel_name": "Khách sạn Hanoian",
+            "city": "Hà Nội",
+            "score": 61.832692307692305,
+            "raw": {
+              "id": 58686039,
+              "name": "Khách sạn Hanoian",
+              "city": "Hà Nội",
+              "area": "Hà Đông",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/hanoian-hotel/hotel/dai-mo-vn.html?hotel=58686039&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 247372,
+            "hotel_name": "Khách sạn Mường Thanh Grand Hà Nội",
+            "city": "Hà Nội",
+            "score": 61.4365671641791,
+            "raw": {
+              "id": 247372,
+              "name": "Khách sạn Mường Thanh Grand Hà Nội",
+              "city": "Hà Nội",
+              "area": "Quận Hoàng Mai",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/muong-thanh-grand-hanoi-hotel/hotel/hanoi-vn.html?hotel=247372&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 32821725,
+            "hotel_name": "Khách sạn A83 Hà Nội",
+            "city": "Hà Nội",
+            "score": 59.49884515289526,
+            "raw": {
+              "id": 32821725,
+              "name": "Khách sạn A83 Hà Nội",
+              "city": "Hà Nội",
+              "area": "Đống Đa",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/hanoi-a83-hotel/hotel/hanoi-vn.html?hotel=32821725&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 36780702,
+            "hotel_name": "Khách sạn Coco Hà Nội",
+            "city": "Hà Nội",
+            "score": 58.81388888888888,
+            "raw": {
+              "id": 36780702,
+              "name": "Khách sạn Coco Hà Nội",
+              "city": "Hà Nội",
+              "area": "Cầu Giấy",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/coco-hanoi-hotel/hotel/hanoi-vn.html?hotel=36780702&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 47.39129985682666
+    },
+    {
+      "i": 19,
+      "expected": {
+        "hotel_id": 16209810,
+        "hotel_name": "KOBI Onsen Huế Resort, Liên Kết Bởi Melia",
+        "city": "Huế"
+      },
+      "input_name": "KOBI Onsen Huế Resort, Kết Bởi Melia",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 16209810,
+        "canonical_name": "KOBI Onsen Huế Resort, Liên Kết Bởi Melia",
+        "confidence": 0.9692,
+        "candidates": [
+          {
+            "hotel_id": 16209810,
+            "hotel_name": "KOBI Onsen Huế Resort, Liên Kết Bởi Melia",
+            "city": "Huế",
+            "score": 96.91666666666667,
+            "raw": {
+              "id": 16209810,
+              "name": "KOBI Onsen Huế Resort, Liên Kết Bởi Melia",
+              "city": "Huế",
+              "area": "Thành phố Huế",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/my-an-onsen-spa-resort-h27929192/hotel/hue-vn.html?hotel=16209810&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 5663891,
+            "hotel_name": "Melia Vinpearl Huế",
+            "city": "Huế",
+            "score": 66.40298742138364,
+            "raw": {
+              "id": 5663891,
+              "name": "Melia Vinpearl Huế",
+              "city": "Huế",
+              "area": "Thành phố Huế",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/vinpearl-hotel-hue/hotel/hue-vn.html?hotel=5663891&currency=VND&checkIn=2026-06-12&checkOut=2026-06-13&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 34198470,
+            "hotel_name": "Khách sạn La Vela Huế",
+            "city": "Huế",
+            "score": 58.31785714285714,
+            "raw": {
+              "id": 34198470,
+              "name": "Khách sạn La Vela Huế",
+              "city": "Huế",
+              "area": "Thành phố Huế",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/la-vela-hue-hotel/hotel/hue-vn.html?hotel=34198470&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 11002,
+            "hotel_name": "Huong Giang Hotel Resort & Spa",
+            "city": "Huế",
+            "score": 46.595238095238095,
+            "raw": {
+              "id": 11002,
+              "name": "Huong Giang Hotel Resort & Spa",
+              "city": "Huế",
+              "area": "Sông Hương",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/huong-giang-hotel-resort-spa/hotel/hue-vn.html?hotel=11002&currency=VND&checkIn=2026-06-14&checkOut=2026-06-15&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 70624,
+            "hotel_name": "Khách sạn TTC Imperial",
+            "city": "Huế",
+            "score": 36.75438596491228,
+            "raw": {
+              "id": 70624,
+              "name": "Khách sạn TTC Imperial",
+              "city": "Huế",
+              "area": "Thành phố Huế",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/imperial-hotel-hue/hotel/hue-vn.html?hotel=70624&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 41.41489998437464
+    },
+    {
+      "i": 20,
+      "expected": {
+        "hotel_id": 66680429,
+        "hotel_name": "Khách sạn Hanoi Sail",
+        "city": "Hà Nội"
+      },
+      "input_name": "Khách s",
+      "got": {
+        "status": "ambiguous",
+        "hotel_id": null,
+        "canonical_name": null,
+        "confidence": 0.97,
+        "candidates": [
+          {
+            "hotel_id": 45084233,
+            "hotel_name": "Khách sạn & Spa Ký Ức Trung tâm Hà Nội",
+            "city": "Hà Nội",
+            "score": 97.0,
+            "raw": {
+              "id": 45084233,
+              "name": "Khách sạn & Spa Ký Ức Trung tâm Hà Nội",
+              "city": "Hà Nội",
+              "area": "Phố Cổ",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/ha-noi-memory-central-hotel-and-spa/hotel/hanoi-vn.html?hotel=45084233&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 58686039,
+            "hotel_name": "Khách sạn Hanoian",
+            "city": "Hà Nội",
+            "score": 97.0,
+            "raw": {
+              "id": 58686039,
+              "name": "Khách sạn Hanoian",
+              "city": "Hà Nội",
+              "area": "Hà Đông",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/hanoian-hotel/hotel/dai-mo-vn.html?hotel=58686039&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 48364,
+            "hotel_name": "Khách sạn Sheraton Hà Nội",
+            "city": "Hà Nội",
+            "score": 97.0,
+            "raw": {
+              "id": 48364,
+              "name": "Khách sạn Sheraton Hà Nội",
+              "city": "Hà Nội",
+              "area": "Quận Tây Hồ",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/sheraton-hanoi-hotel/hotel/hanoi-vn.html?hotel=48364&currency=VND&checkIn=2026-06-14&checkOut=2026-06-15&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 33907335,
+            "hotel_name": "Khách sạn A25 Premium - 705 Lạc Long Quân",
+            "city": "Hà Nội",
+            "score": 97.0,
+            "raw": {
+              "id": 33907335,
+              "name": "Khách sạn A25 Premium - 705 Lạc Long Quân",
+              "city": "Hà Nội",
+              "area": "Quận Tây Hồ",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/a25-705-lac-long-quan/hotel/hanoi-vn.html?hotel=33907335&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 32821725,
+            "hotel_name": "Khách sạn A83 Hà Nội",
+            "city": "Hà Nội",
+            "score": 97.0,
+            "raw": {
+              "id": 32821725,
+              "name": "Khách sạn A83 Hà Nội",
+              "city": "Hà Nội",
+              "area": "Đống Đa",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/hanoi-a83-hotel/hotel/hanoi-vn.html?hotel=32821725&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 39.08319980837405
+    },
+    {
+      "i": 21,
+      "expected": {
+        "hotel_id": 33035367,
+        "hotel_name": "Khu nghỉ dưỡng và công viên núi Đảo Mộc Châu",
+        "city": "Mộc Châu"
+      },
+      "input_name": "Khu nghỉ dưỡng và công núi Đảo Mộc Châu",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 33035367,
+        "canonical_name": "Khu nghỉ dưỡng và công viên núi Đảo Mộc Châu",
+        "confidence": 0.9705,
+        "candidates": [
+          {
+            "hotel_id": 33035367,
+            "hotel_name": "Khu nghỉ dưỡng và công viên núi Đảo Mộc Châu",
+            "city": "Mộc Châu",
+            "score": 97.04518072289157,
+            "raw": {
+              "id": 33035367,
+              "name": "Khu nghỉ dưỡng và công viên núi Đảo Mộc Châu",
+              "city": "Mộc Châu",
+              "area": "Mộc Châu",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/moc-chau-island-mountain-park-and-resort-the-bullet-hotel/hotel/moc-chau-vn.html?hotel=33035367&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 57145256,
+            "hotel_name": "Plum Village Mộc Châu",
+            "city": "Mộc Châu",
+            "score": 62.384770114942526,
+            "raw": {
+              "id": 57145256,
+              "name": "Plum Village Mộc Châu",
+              "city": "Mộc Châu",
+              "area": "Mộc Châu",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/plum-ecolodge-moc-chau-h57145256/hotel/moc-chau-vn.html?hotel=57145256&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 35039383,
+            "hotel_name": "Khách sạn Glenda Tower Mộc Châu",
+            "city": "Mộc Châu",
+            "score": 53.857142857142854,
+            "raw": {
+              "id": 35039383,
+              "name": "Khách sạn Glenda Tower Mộc Châu",
+              "city": "Mộc Châu",
+              "area": "Mộc Châu",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/glenda-tower-moc-chau-hotel/hotel/moc-chau-vn.html?hotel=35039383&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 54.527999833226204
+    },
+    {
+      "i": 22,
+      "expected": {
+        "hotel_id": 10987,
+        "hotel_name": "Khách Sạn Liberty Sài Gòn Parkview",
+        "city": "Hồ Chí Minh"
+      },
+      "input_name": "Khách Sạn Liberty SàixGòn Parkview",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 10987,
+        "canonical_name": "Khách Sạn Liberty Sài Gòn Parkview",
+        "confidence": 0.8868,
+        "candidates": [
+          {
+            "hotel_id": 10987,
+            "hotel_name": "Khách Sạn Liberty Sài Gòn Parkview",
+            "city": "Hồ Chí Minh",
+            "score": 88.6764705882353,
+            "raw": {
+              "id": 10987,
+              "name": "Khách Sạn Liberty Sài Gòn Parkview",
+              "city": "Hồ Chí Minh",
+              "area": "Quận 1",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/liberty-hotel-saigon-parkview/hotel/ho-chi-minh-city-vn.html?hotel=10987&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 488444,
+            "hotel_name": "Khách sạn Liberty Central Saigon Riverside",
+            "city": "Hồ Chí Minh",
+            "score": 71.71052631578948,
+            "raw": {
+              "id": 488444,
+              "name": "Khách sạn Liberty Central Saigon Riverside",
+              "city": "Hồ Chí Minh",
+              "area": "Quận 1",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/liberty-central-saigon-riverside-hotel/hotel/ho-chi-minh-city-vn.html?hotel=488444&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 43411,
+            "hotel_name": "Liberty Saigon Green View Hotel",
+            "city": "Hồ Chí Minh",
+            "score": 55.84615384615385,
+            "raw": {
+              "id": 43411,
+              "name": "Liberty Saigon Green View Hotel",
+              "city": "Hồ Chí Minh",
+              "area": "Quận 1",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/liberty-saigon-green-view-hotel/hotel/ho-chi-minh-city-vn.html?hotel=43411&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 317796,
+            "hotel_name": "Khách sạn Ibis Saigon South",
+            "city": "Hồ Chí Minh",
+            "score": 54.8360655737705,
+            "raw": {
+              "id": 317796,
+              "name": "Khách sạn Ibis Saigon South",
+              "city": "Hồ Chí Minh",
+              "area": "Quận 7",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/ibis-saigon-south-hotel/hotel/ho-chi-minh-city-vn.html?hotel=317796&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 31679160,
+            "hotel_name": "Khách sạn Red Sun Sài Gòn",
+            "city": "Hồ Chí Minh",
+            "score": 53.135593220338976,
+            "raw": {
+              "id": 31679160,
+              "name": "Khách sạn Red Sun Sài Gòn",
+              "city": "Hồ Chí Minh",
+              "area": "Tân Bình",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/red-sun-sai-gon-hotel/hotel/ho-chi-minh-city-vn.html?hotel=31679160&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 41.54359991662204
+    },
+    {
+      "i": 23,
+      "expected": {
+        "hotel_id": 4942635,
+        "hotel_name": "The Luxe Hotel Da Lat",
+        "city": "Đà Lạt"
+      },
+      "input_name": "The Luxe HoteD la Lat",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 4942635,
+        "canonical_name": "The Luxe Hotel Da Lat",
+        "confidence": 0.8424,
+        "candidates": [
+          {
+            "hotel_id": 4942635,
+            "hotel_name": "The Luxe Hotel Da Lat",
+            "city": "Đà Lạt",
+            "score": 84.23809523809524,
+            "raw": {
+              "id": 4942635,
+              "name": "The Luxe Hotel Da Lat",
+              "city": "Đà Lạt",
+              "area": "Trung tâm Thành phố Đà Lạt",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/the-luxe-hotel-da-lat/hotel/dalat-vn.html?hotel=4942635&currency=VND&checkIn=2026-06-14&checkOut=2026-06-15&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 50138938,
+            "hotel_name": "Khách sạn Savio Triệu Việt Vương Đà Lạt",
+            "city": "Đà Lạt",
+            "score": 54.425,
+            "raw": {
+              "id": 50138938,
+              "name": "Khách sạn Savio Triệu Việt Vương Đà Lạt",
+              "city": "Đà Lạt",
+              "area": "Trung tâm Thành phố Đà Lạt",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/thanh-do-1-hotel/hotel/dalat-vn.html?hotel=50138938&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 23388080,
+            "hotel_name": "Khách sạn A25 - 386 Hai Bà Trưng Đà Lạt",
+            "city": "Đà Lạt",
+            "score": 53.442241379310346,
+            "raw": {
+              "id": 23388080,
+              "name": "Khách sạn A25 - 386 Hai Bà Trưng Đà Lạt",
+              "city": "Đà Lạt",
+              "area": "Thung lũng Tình yêu",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/q-luxury-hotel-h22351743/hotel/dalat-vn.html?hotel=23388080&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 31642453,
+            "hotel_name": "Mercure Đà Lạt Resort",
+            "city": "Đà Lạt",
+            "score": 48.98809523809524,
+            "raw": {
+              "id": 31642453,
+              "name": "Mercure Đà Lạt Resort",
+              "city": "Đà Lạt",
+              "area": "Ga Đà Lạt",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/mercure-da-lat-resort/hotel/dalat-vn.html?hotel=31642453&currency=VND&checkIn=2026-06-14&checkOut=2026-06-15&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 78233733,
+            "hotel_name": "COCO HOUSE Đà Lạt",
+            "city": "Đà Lạt",
+            "score": 48.0,
+            "raw": {
+              "id": 78233733,
+              "name": "COCO HOUSE Đà Lạt",
+              "city": "Đà Lạt",
+              "area": "Trung tâm Thành phố Đà Lạt",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/coco-house-da-lat/hotel/dalat-vn.html?hotel=78233733&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 49.14620006456971
+    },
+    {
+      "i": 24,
+      "expected": {
+        "hotel_id": 39821588,
+        "hotel_name": "HIIVE by fusion Bình Dương - VSIP 1",
+        "city": "Bình Dương"
+      },
+      "input_name": "HIIVE by fusion Bình - VSIP 1",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 39821588,
+        "canonical_name": "HIIVE by fusion Bình Dương - VSIP 1",
+        "confidence": 1.0,
+        "candidates": [
+          {
+            "hotel_id": 39821588,
+            "hotel_name": "HIIVE by fusion Bình Dương - VSIP 1",
+            "city": "Bình Dương",
+            "score": 100.0,
+            "raw": {
+              "id": 39821588,
+              "name": "HIIVE by fusion Bình Dương - VSIP 1",
+              "city": "Bình Dương",
+              "area": "Thuận An",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/hiive-binh-duong/hotel/binh-duong-vn.html?hotel=39821588&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 38746777,
+            "hotel_name": "Amanda Boutique - Căn hộ dịch vụ & Khách sạn Bình Dương",
+            "city": "Bình Dương",
+            "score": 54.732692307692304,
+            "raw": {
+              "id": 38746777,
+              "name": "Amanda Boutique - Căn hộ dịch vụ & Khách sạn Bình Dương",
+              "city": "Bình Dương",
+              "area": "Thủ Dầu Một",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/amanda-boutique-can-ho-dich-vu/hotel/thu-dau-mot-vn.html?hotel=38746777&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 67675603,
+            "hotel_name": "m² 2 phòng ngủ, 1 phòng tắm riêng ở Thuận An",
+            "city": "Bình Dương",
+            "score": 54.4850414078675,
+            "raw": {
+              "id": 67675603,
+              "name": "m² 2 phòng ngủ, 1 phòng tắm riêng ở Thuận An",
+              "city": "Bình Dương",
+              "area": "Thuận An",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/hotel-lyly-2/hotel/binh-duong-vn.html?hotel=67675603&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 75386631,
+            "hotel_name": "Căn hộ 33 m² 1 phòng ngủ, 1 phòng tắm riêng ở Thuận An",
+            "city": "Bình Dương",
+            "score": 53.66853717240149,
+            "raw": {
+              "id": 75386631,
+              "name": "Căn hộ 33 m² 1 phòng ngủ, 1 phòng tắm riêng ở Thuận An",
+              "city": "Bình Dương",
+              "area": "Thuận An",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/can-ho-thuan-an/hotel/binh-duong-vn.html?hotel=75386631&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 25559635,
+            "hotel_name": "Fairfield by Marriott Nam Bình Dương",
+            "city": "Bình Dương",
+            "score": 52.230158730158735,
+            "raw": {
+              "id": 25559635,
+              "name": "Fairfield by Marriott Nam Bình Dương",
+              "city": "Bình Dương",
+              "area": "Thuận An",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/fairfield-by-marriott-south-binh-duong/hotel/binh-duong-vn.html?hotel=25559635&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 50.67310016602278
+    },
+    {
+      "i": 25,
+      "expected": {
+        "hotel_id": 4462454,
+        "hotel_name": "Resort Thiên Thanh",
+        "city": "Đảo Phú Quốc"
+      },
+      "input_name": "Resort Thanh",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 4462454,
+        "canonical_name": "Resort Thiên Thanh",
+        "confidence": 0.9093,
+        "candidates": [
+          {
+            "hotel_id": 4462454,
+            "hotel_name": "Resort Thiên Thanh",
+            "city": "Đảo Phú Quốc",
+            "score": 90.925,
+            "raw": {
+              "id": 4462454,
+              "name": "Resort Thiên Thanh",
+              "city": "Đảo Phú Quốc",
+              "area": "Dương Đông",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/thien-thanh-phu-quoc-resort/hotel/phu-quoc-island-vn.html?hotel=4462454&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 1158643,
+            "hotel_name": "Tropicana Resort Phú Quốc",
+            "city": "Đảo Phú Quốc",
+            "score": 62.402477477477476,
+            "raw": {
+              "id": 1158643,
+              "name": "Tropicana Resort Phú Quốc",
+              "city": "Đảo Phú Quốc",
+              "area": "Dương Đông",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/tropicana-resort-phu-quoc/hotel/phu-quoc-island-vn.html?hotel=1158643&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 11013,
+            "hotel_name": "Sài Gòn Phú Quốc Resort",
+            "city": "Đảo Phú Quốc",
+            "score": 60.73452380952381,
+            "raw": {
+              "id": 11013,
+              "name": "Sài Gòn Phú Quốc Resort",
+              "city": "Đảo Phú Quốc",
+              "area": "Dương Đông",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/saigon-phu-quoc-resort-and-spa/hotel/phu-quoc-island-vn.html?hotel=11013&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 625168,
+            "hotel_name": "Vinpearl Resort & Spa Phú Quốc",
+            "city": "Đảo Phú Quốc",
+            "score": 60.59166666666666,
+            "raw": {
+              "id": 625168,
+              "name": "Vinpearl Resort & Spa Phú Quốc",
+              "city": "Đảo Phú Quốc",
+              "area": "Gành Dầu",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/vinpearl-resort-spa-phu-qu-c/hotel/phu-quoc-island-vn.html?hotel=625168&currency=VND&checkIn=2026-06-12&checkOut=2026-06-13&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 10247322,
+            "hotel_name": "Vida Loca Resort & Sunset Beach",
+            "city": "Đảo Phú Quốc",
+            "score": 60.37215447154471,
+            "raw": {
+              "id": 10247322,
+              "name": "Vida Loca Resort & Sunset Beach",
+              "city": "Đảo Phú Quốc",
+              "area": "Dương Đông",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/vida-loca-phu-quoc-resort/hotel/phu-quoc-island-vn.html?hotel=10247322&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 51.83869996108115
+    },
+    {
+      "i": 26,
+      "expected": {
+        "hotel_id": 14888478,
+        "hotel_name": "Marina Bay Con Dao Hotel",
+        "city": "Côn Đảo"
+      },
+      "input_name": "Marina Bay Con DaoxHotel",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 14888478,
+        "canonical_name": "Marina Bay Con Dao Hotel",
+        "confidence": 0.9292,
+        "candidates": [
+          {
+            "hotel_id": 14888478,
+            "hotel_name": "Marina Bay Con Dao Hotel",
+            "city": "Côn Đảo",
+            "score": 92.91666666666667,
+            "raw": {
+              "id": 14888478,
+              "name": "Marina Bay Con Dao Hotel",
+              "city": "Côn Đảo",
+              "area": "Biển An Hải",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/marinabay-con-dao-hotel/hotel/con-dao-islands-vn.html?hotel=14888478&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 239657,
+            "hotel_name": "Tân Sơn Nhất Côn Đảo Resort",
+            "city": "Côn Đảo",
+            "score": 50.90686274509804,
+            "raw": {
+              "id": 239657,
+              "name": "Tân Sơn Nhất Côn Đảo Resort",
+              "city": "Côn Đảo",
+              "area": "Biển An Hải",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/tan-son-nhat-con-dao-resort/hotel/con-dao-islands-vn.html?hotel=239657&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 43320993,
+            "hotel_name": "Khách sạn Velar Côn Đảo - Vũng Tàu",
+            "city": "Côn Đảo",
+            "score": 47.875,
+            "raw": {
+              "id": 43320993,
+              "name": "Khách sạn Velar Côn Đảo - Vũng Tàu",
+              "city": "Côn Đảo",
+              "area": "Biển An Hải",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/velar-hotel/hotel/con-d-o-islands-vn.html?hotel=43320993&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 54967082,
+            "hotel_name": "The Mystery Côn Đảo",
+            "city": "Côn Đảo",
+            "score": 47.58720930232558,
+            "raw": {
+              "id": 54967082,
+              "name": "The Mystery Côn Đảo",
+              "city": "Côn Đảo",
+              "area": "Biển Lò Vôi",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/the-mystery-con-dao/hotel/con-d-o-islands-vn.html?hotel=54967082&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 16282119,
+            "hotel_name": "The Secret Con Dao",
+            "city": "Côn Đảo",
+            "score": 43.03571428571429,
+            "raw": {
+              "id": 16282119,
+              "name": "The Secret Con Dao",
+              "city": "Côn Đảo",
+              "area": "Biển Lò Vôi",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/the-secret-con-dao/hotel/con-dao-islands-vn.html?hotel=16282119&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 49.307200126349926
+    },
+    {
+      "i": 27,
+      "expected": {
+        "hotel_id": 38746777,
+        "hotel_name": "Amanda Boutique - Căn hộ dịch vụ & Khách sạn Bình Dương",
+        "city": "Bình Dương"
+      },
+      "input_name": "Amanda Boutique - Căn hộ dịci vụ & Khách sạn Bình Dương",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 38746777,
+        "canonical_name": "Amanda Boutique - Căn hộ dịch vụ & Khách sạn Bình Dương",
+        "confidence": 0.9629,
+        "candidates": [
+          {
+            "hotel_id": 38746777,
+            "hotel_name": "Amanda Boutique - Căn hộ dịch vụ & Khách sạn Bình Dương",
+            "city": "Bình Dương",
+            "score": 96.28851540616246,
+            "raw": {
+              "id": 38746777,
+              "name": "Amanda Boutique - Căn hộ dịch vụ & Khách sạn Bình Dương",
+              "city": "Bình Dương",
+              "area": "Thủ Dầu Một",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/amanda-boutique-can-ho-dich-vu/hotel/thu-dau-mot-vn.html?hotel=38746777&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 5808626,
+            "hotel_name": "Citadines Central Bình Dương",
+            "city": "Bình Dương",
+            "score": 58.8333468164081,
+            "raw": {
+              "id": 5808626,
+              "name": "Citadines Central Bình Dương",
+              "city": "Bình Dương",
+              "area": "Thuận An",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/citadines-central-binh-duong_2/hotel/binh-duong-vn.html?hotel=5808626&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 39821588,
+            "hotel_name": "HIIVE by fusion Bình Dương - VSIP 1",
+            "city": "Bình Dương",
+            "score": 58.615476190476194,
+            "raw": {
+              "id": 39821588,
+              "name": "HIIVE by fusion Bình Dương - VSIP 1",
+              "city": "Bình Dương",
+              "area": "Thuận An",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/hiive-binh-duong/hotel/binh-duong-vn.html?hotel=39821588&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 75386631,
+            "hotel_name": "Căn hộ 33 m² 1 phòng ngủ, 1 phòng tắm riêng ở Thuận An",
+            "city": "Bình Dương",
+            "score": 44.42000145996058,
+            "raw": {
+              "id": 75386631,
+              "name": "Căn hộ 33 m² 1 phòng ngủ, 1 phòng tắm riêng ở Thuận An",
+              "city": "Bình Dương",
+              "area": "Thuận An",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/can-ho-thuan-an/hotel/binh-duong-vn.html?hotel=75386631&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 25559635,
+            "hotel_name": "Fairfield by Marriott Nam Bình Dương",
+            "city": "Bình Dương",
+            "score": 42.545155993431855,
+            "raw": {
+              "id": 25559635,
+              "name": "Fairfield by Marriott Nam Bình Dương",
+              "city": "Bình Dương",
+              "area": "Thuận An",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/fairfield-by-marriott-south-binh-duong/hotel/binh-duong-vn.html?hotel=25559635&currency=VND&checkIn=2026-06-13&checkOut=2026-06-14&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 74.7270998544991
+    },
+    {
+      "i": 28,
+      "expected": {
+        "hotel_id": 926818,
+        "hotel_name": "Sai Gon Rach Gia Hotel",
+        "city": "Rạch Giá (Kiên Giang)"
+      },
+      "input_name": "Sai Go",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 926818,
+        "canonical_name": "Sai Gon Rach Gia Hotel",
+        "confidence": 0.97,
+        "candidates": [
+          {
+            "hotel_id": 926818,
+            "hotel_name": "Sai Gon Rach Gia Hotel",
+            "city": "Rạch Giá (Kiên Giang)",
+            "score": 97.0,
+            "raw": {
+              "id": 926818,
+              "name": "Sai Gon Rach Gia Hotel",
+              "city": "Rạch Giá (Kiên Giang)",
+              "area": "Rạch Giá",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/sai-gon-rach-gia-hotel/hotel/rach-gia-kien-giang-vn.html?hotel=926818&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 71338734,
+            "hotel_name": "Khách sạn Mỹ Phương",
+            "city": "Rạch Giá (Kiên Giang)",
+            "score": 41.163636363636364,
+            "raw": {
+              "id": 71338734,
+              "name": "Khách sạn Mỹ Phương",
+              "city": "Rạch Giá (Kiên Giang)",
+              "area": "Rạch Giá",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/hotel-my-phuong-h14695412/hotel/rach-gia-kien-giang-vn.html?hotel=71338734&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 37353978,
+            "hotel_name": "Sea Stars Hotel",
+            "city": "Rạch Giá (Kiên Giang)",
+            "score": 41.042857142857144,
+            "raw": {
+              "id": 37353978,
+              "name": "Sea Stars Hotel",
+              "city": "Rạch Giá (Kiên Giang)",
+              "area": "Rạch Giá",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/sea-stars-hotel_9/hotel/all/rach-gia-kien-giang-vn.html?hotel=37353978&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 37719704,
+            "hotel_name": "Khách sạn HAPPY",
+            "city": "Rạch Giá (Kiên Giang)",
+            "score": 35.81214285714286,
+            "raw": {
+              "id": 37719704,
+              "name": "Khách sạn HAPPY",
+              "city": "Rạch Giá (Kiên Giang)",
+              "area": "Rạch Giá",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/happy-hotel/hotel/rach-gia-kien-giang-vn.html?hotel=37719704&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 344975,
+            "hotel_name": "Hòa Bình Rạch Giá Resort",
+            "city": "Rạch Giá (Kiên Giang)",
+            "score": 32.75,
+            "raw": {
+              "id": 344975,
+              "name": "Hòa Bình Rạch Giá Resort",
+              "city": "Rạch Giá (Kiên Giang)",
+              "area": "Rạch Giá",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/hoa-binh-rach-gia-resort/hotel/rach-gia-kien-giang-vn.html?hotel=344975&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 57.798200054094195
+    },
+    {
+      "i": 29,
+      "expected": {
+        "hotel_id": 48561897,
+        "hotel_name": "Khu nghỉ dưỡng Emerald Hồ Tràm",
+        "city": "Vũng Tàu"
+      },
+      "input_name": "Khu nhhỉ dưỡng Emerald Hồ Tràm",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 48561897,
+        "canonical_name": "Khu nghỉ dưỡng Emerald Hồ Tràm",
+        "confidence": 0.9358,
+        "candidates": [
+          {
+            "hotel_id": 48561897,
+            "hotel_name": "Khu nghỉ dưỡng Emerald Hồ Tràm",
+            "city": "Vũng Tàu",
+            "score": 93.58333333333334,
+            "raw": {
+              "id": 48561897,
+              "name": "Khu nghỉ dưỡng Emerald Hồ Tràm",
+              "city": "Vũng Tàu",
+              "area": "Bãi biển Hồ Tràm",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/emerald-ho-tram-resort/hotel/vung-tau-vn.html?hotel=48561897&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 25773171,
+            "hotel_name": "Khu nghỉ dưỡng Holiday Inn Hồ Tràm Beach By IHG",
+            "city": "Vũng Tàu",
+            "score": 72.45815833103066,
+            "raw": {
+              "id": 25773171,
+              "name": "Khu nghỉ dưỡng Holiday Inn Hồ Tràm Beach By IHG",
+              "city": "Vũng Tàu",
+              "area": "Bãi biển Hồ Tràm",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/holiday-inn-resort-ho-tram-beach/hotel/vung-tau-vn.html?hotel=25773171&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 6363024,
+            "hotel_name": "Khu nghỉ dưỡng bãi biển Melia Hồ Tràm",
+            "city": "Vũng Tàu",
+            "score": 71.6044776119403,
+            "raw": {
+              "id": 6363024,
+              "name": "Khu nghỉ dưỡng bãi biển Melia Hồ Tràm",
+              "city": "Vũng Tàu",
+              "area": "Bãi biển Hồ Tràm",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/melia-ho-tram-beach-resort/hotel/vung-tau-vn.html?hotel=6363024&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 37244894,
+            "hotel_name": "Dhawa Hồ Tràm",
+            "city": "Vũng Tàu",
+            "score": 69.22732558139535,
+            "raw": {
+              "id": 37244894,
+              "name": "Dhawa Hồ Tràm",
+              "city": "Vũng Tàu",
+              "area": "Bãi biển Hồ Tràm",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/dhawa-ho-tram/hotel/vung-tau-vn.html?hotel=37244894&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 39665334,
+            "hotel_name": "IXORA Hồ Tràm by Fusion",
+            "city": "Vũng Tàu",
+            "score": 53.08490566037736,
+            "raw": {
+              "id": 39665334,
+              "name": "IXORA Hồ Tràm by Fusion",
+              "city": "Vũng Tàu",
+              "area": "Bãi biển Hồ Tràm",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/ixora-ho-tram-by-fusion/hotel/vung-tau-vn.html?hotel=39665334&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 69.54850000329316
+    },
+    {
+      "i": 30,
+      "expected": {
+        "hotel_id": 985340,
+        "hotel_name": "KHÁCH SẠN MƯỜNG THANH LÀO CAI",
+        "city": "Lào Cai"
+      },
+      "input_name": "KH CH SẠN MƯỜNG THANH LÀOÁCAI",
+      "got": {
+        "status": "resolved",
+        "hotel_id": 985340,
+        "canonical_name": "KHÁCH SẠN MƯỜNG THANH LÀO CAI",
+        "confidence": 0.8083,
+        "candidates": [
+          {
+            "hotel_id": 985340,
+            "hotel_name": "KHÁCH SẠN MƯỜNG THANH LÀO CAI",
+            "city": "Lào Cai",
+            "score": 80.82758620689656,
+            "raw": {
+              "id": 985340,
+              "name": "KHÁCH SẠN MƯỜNG THANH LÀO CAI",
+              "city": "Lào Cai",
+              "area": "Lào Cai",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/muong-thanh-grand-lao-cai-hotel/hotel/lao-cai-city-vn.html?hotel=985340&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 46567202,
+            "hotel_name": "Khách sạn Big Lào Cai",
+            "city": "Lào Cai",
+            "score": 50.4,
+            "raw": {
+              "id": 46567202,
+              "name": "Khách sạn Big Lào Cai",
+              "city": "Lào Cai",
+              "area": "Lào Cai",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/to-hop-van-phong-va-can-ho-dich-vu-big-lao-cai/hotel/lao-cai-city-vn.html?hotel=46567202&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          },
+          {
+            "hotel_id": 21120785,
+            "hotel_name": "Khách sạn Lào Cai Diamond",
+            "city": "Lào Cai",
+            "score": 47.222222222222214,
+            "raw": {
+              "id": 21120785,
+              "name": "Khách sạn Lào Cai Diamond",
+              "city": "Lào Cai",
+              "area": "Lào Cai",
+              "country": "Việt Nam",
+              "source_url": "https://www.agoda.com/kim-cuong-hotel_2/hotel/lao-cai-city-vn.html?hotel=21120785&currency=VND&checkIn=2026-06-16&checkOut=2026-06-17&rooms=1&adults=2&children=0"
+            }
+          }
+        ]
+      },
+      "latency_ms": 77.50870008021593
+    }
+  ],
+  "csv_path": "D:\\BAI_TAP\\code\\vinvuong\\DA09\\DA09_Smart-AI-Search-Recommendation-Assistant\\backend\\app\\rag\\data\\hotels_rows.csv",
+  "qdrant_collection": "hotels"
+}
