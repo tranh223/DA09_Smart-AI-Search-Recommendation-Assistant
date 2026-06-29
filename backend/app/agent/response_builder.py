@@ -85,14 +85,17 @@ _RESPONSE_SCHEMA: dict[str, Any] = {
         "next_suggestions": {
             "type": "array",
             "description": (
-                "Sinh đúng 3 truy vấn OTA tiếp theo bằng tiếng Việt theo thứ tự: "
-                "(1) chi tiết hạng phòng và giá tại khách sạn đứng đầu, "
-                "(2) địa điểm lân cận khách sạn, "
-                "(3) hoạt động vui chơi hoặc ăn uống tại điểm đến. "
+                "Sinh đúng 3 truy vấn OTA cá nhân hóa bằng tiếng Việt, phù hợp với ngữ cảnh cuộc hội thoại. "
+                "Phân tích session_context, query và danh sách khách sạn để chọn 3 gợi ý có giá trị nhất: "
+                "(A) Nếu session_context có trip_type gia đình → ưu tiên tiện ích trẻ em, khu vui chơi, kids club tại điểm đến; "
+                "(B) Nếu có trip_type tuần trăng mật hoặc nghỉ dưỡng → ưu tiên spa, view biển, gói đặc biệt tại khách sạn đứng đầu; "
+                "(C) Nếu có session_amenities hoặc session_room_views → khai thác sâu tiện ích/view đó tại điểm đến hoặc khách sạn; "
+                "(D) Nếu session_context thiếu ngân sách hoặc ngày đặt → có thể gợi ý câu hỏi giúp người dùng tinh chỉnh tiêu chí; "
+                "(E) Mặc định khi ngữ cảnh đầy đủ: (1) chi tiết hạng phòng và giá tại khách sạn đứng đầu, "
+                "(2) địa điểm lân cận khách sạn, (3) hoạt động vui chơi hoặc ăn uống tại điểm đến. "
                 "Người dùng phải có thể nhấn và gửi nguyên văn. Mỗi truy vấn phải độc lập, rõ nghĩa, "
-                "không có chủ ngữ hội thoại như "
-                "'Bạn', 'Mình', 'Tôi', 'Anh/chị', không phải câu hỏi yes/no, và phải nhắc lại điểm "
-                "đến hoặc tên khách sạn liên quan. Không tự tạo giá, tiện nghi hay dữ kiện chưa có."
+                "không có chủ ngữ hội thoại như 'Bạn', 'Mình', 'Tôi', 'Anh/chị', không phải câu hỏi yes/no, "
+                "và phải nhắc lại điểm đến hoặc tên khách sạn liên quan. Không tự tạo giá, tiện nghi hay dữ kiện chưa có."
             ),
             "items": {"type": "string"},
         },
@@ -131,14 +134,19 @@ _SYSTEM_INSTRUCTIONS = (
     "Nhiệm vụ: tổng hợp kết quả tìm kiếm thành câu trả lời thân thiện, "
     "giải thích lý do gợi ý cụ thể cho từng khách sạn và tạo các truy vấn tiếp theo. "
     "Trường answer chỉ chứa kết quả và giải thích; không thêm mục 'Câu hỏi tiếp theo' và không hỏi "
-    "follow-up trong answer. Trường next_suggestions chứa đúng 3 truy vấn OTA độc lập có thể gửi "
-    "nguyên văn. Không dùng chủ ngữ hội thoại như 'Bạn', 'Mình', 'Tôi', 'Anh/chị'; không tạo câu "
-    "hỏi yes/no. Mỗi truy vấn phải nhắc lại điểm đến hoặc tên khách sạn liên quan để không phụ "
-    "thuộc lịch sử hội thoại. Luôn giữ thứ tự: (1) chi tiết hạng phòng và giá tại khách sạn đứng "
-    "đầu, (2) địa điểm tham quan/lân cận khách sạn, (3) hoạt động vui chơi hoặc ăn uống tại điểm "
-    "đến. Không tự tạo giá, tiện nghi hay dữ kiện chưa có. "
-    "Dạng đúng: 'Hạng phòng và giá tại Vinpearl Nha Trang', "
-    "'Địa điểm tham quan gần Vinpearl Nha Trang', 'Hoạt động vui chơi và ăn uống tại Nha Trang'. "
+    "follow-up trong answer. Trường next_suggestions chứa đúng 3 truy vấn OTA cá nhân hóa có thể gửi "
+    "nguyên văn — phân tích session_context để xác định loại gợi ý có giá trị nhất cho người dùng này:\n"
+    "• Nếu session_trip_types chứa 'gia đình' → ưu tiên tiện ích trẻ em, khu vui chơi, kids club.\n"
+    "• Nếu session_trip_types chứa 'tuần trăng mật' hoặc 'nghỉ dưỡng' → ưu tiên spa, view biển, gói đặc biệt.\n"
+    "• Nếu có session_amenities (spa, hồ bơi, bãi biển...) → khai thác sâu tiện ích đó tại điểm đến.\n"
+    "• Nếu có session_room_views → gợi ý tìm phòng với view đó tại điểm đến.\n"
+    "• Nếu session_context thiếu ngày đặt hoặc ngân sách → có thể gợi ý câu hỏi tinh chỉnh tiêu chí đó.\n"
+    "• Mặc định khi ngữ cảnh đầy đủ: (1) chi tiết phòng/giá khách sạn đứng đầu, "
+    "(2) địa điểm tham quan/lân cận, (3) hoạt động vui chơi hoặc ăn uống tại điểm đến.\n"
+    "Không dùng chủ ngữ hội thoại 'Bạn', 'Mình', 'Tôi', 'Anh/chị'; không tạo câu hỏi yes/no. "
+    "Mỗi truy vấn phải nhắc lại điểm đến hoặc tên khách sạn liên quan. Không tự tạo dữ kiện chưa có. "
+    "Dạng đúng: 'Hạng phòng view biển tại Vinpearl Nha Trang', "
+    "'Tiện ích spa và hồ bơi tại các resort Đà Nẵng', 'Khu vui chơi trẻ em gần Vinpearl Phú Quốc'. "
     "Dạng sai: 'Bạn muốn xem thêm không?', 'Tìm thêm khách sạn tương tự'. "
     "Nếu prompt có giải thích ngân sách, hãy đưa giải thích đó vào answer bằng ngôn ngữ tự nhiên. "
     "Không tự diễn giải hoặc công bố khoảng giá kỹ thuật từ session_price_range nếu prompt đã có raw_budget/explanation; "
@@ -492,6 +500,7 @@ def _fallback_response(
     destination: str = "",
     suggestion_fallbacks: list[str] | None = None,
     budget_explanation: str = "",
+    session_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Fallback markdown khi LLM không khả dụng."""
     count = len(ranked_recommendations)
@@ -518,9 +527,11 @@ def _fallback_response(
             suggestion_fallbacks or _build_suggestion_fallbacks(
                 destination=destination,
                 ranked_recommendations=ranked_recommendations,
+                session_context=session_context,
             ),
             destination=destination,
             ranked_recommendations=ranked_recommendations,
+            session_context=session_context,
         ),
     }
 
@@ -576,12 +587,22 @@ def _fold_suggestion_text(value: str) -> str:
 
 def _suggestion_category(suggestion: str) -> str:
     text = _fold_suggestion_text(suggestion)
-    if any(keyword in text for keyword in ("hoat dong", "vui choi", "an uong", "am thuc")):
+    if any(kw in text for kw in ("hoat dong", "vui choi", "an uong", "am thuc", "nha hang", "quan an")):
         return "activities"
-    if "phong" in text and any(keyword in text for keyword in ("chi tiet", "hang", "loai", "gia")):
+    if "phong" in text and any(kw in text for kw in ("chi tiet", "hang", "loai", "gia", "view", "biet thu")):
         return "room_details"
-    if any(keyword in text for keyword in ("gan ", "lan can", "xung quanh", "nearby")):
+    if any(kw in text for kw in ("gan ", "lan can", "xung quanh", "nearby", "dia diem tham quan")):
         return "nearby_places"
+    if any(kw in text for kw in (
+        "spa", "ho boi", "bai bien", "gym", "the duc", "kids club", "khu vui choi tre em",
+        "tien ich", "dich vu dac biet", "goi doi", "honeymoon", "trang mat",
+    )):
+        return "amenity_specific"
+    if any(kw in text for kw in (
+        "ngan sach", "lich", "ngay dat", "so nguoi", "so khach", "tinh chinh", "loc theo",
+        "them tieu chi", "them dieu kien",
+    )):
+        return "trip_context"
     return ""
 
 
@@ -599,12 +620,35 @@ def _has_direct_context(
     return any(reference in normalized for reference in references)
 
 
+def _priority_categories(session_context: dict[str, Any] | None) -> list[str]:
+    """Xác định thứ tự ưu tiên category gợi ý dựa trên ngữ cảnh người dùng."""
+    sc = session_context or {}
+    trip_types = [_fold_suggestion_text(t) for t in (sc.get("session_trip_types") or [])]
+    _raw_amenities = sc.get("session_amenities") or {}
+    amenities = list(_raw_amenities.keys()) if isinstance(_raw_amenities, dict) else list(_raw_amenities)
+    room_views = sc.get("session_room_views") or []
+
+    is_family = any(kw in t for t in trip_types for kw in ("gia dinh", "family", "tre em"))
+    is_honeymoon = any(kw in t for t in trip_types for kw in ("trang mat", "hon", "honeymoon"))
+    is_resort = any(kw in t for t in trip_types for kw in ("nghi duong", "resort", "luxury"))
+    has_amenity_pref = bool(amenities or room_views)
+
+    if is_family:
+        return ["amenity_specific", "activities", "room_details", "nearby_places", "trip_context"]
+    if is_honeymoon or is_resort:
+        return ["amenity_specific", "room_details", "activities", "nearby_places", "trip_context"]
+    if has_amenity_pref:
+        return ["amenity_specific", "room_details", "activities", "nearby_places", "trip_context"]
+    return ["room_details", "nearby_places", "activities", "amenity_specific", "trip_context"]
+
+
 def _merge_next_suggestions(
     generated: list[str],
     fallbacks: list[str],
     *,
     destination: str,
     ranked_recommendations: list[dict[str, Any]],
+    session_context: dict[str, Any] | None = None,
     limit: int = 3,
 ) -> list[str]:
     categorized: dict[str, str] = {}
@@ -630,7 +674,7 @@ def _merge_next_suggestions(
         categorized[category] = text
         if len(categorized) >= limit:
             break
-    ordered_categories = ("room_details", "nearby_places", "activities")
+    ordered_categories = _priority_categories(session_context)
     return [
         categorized[category]
         for category in ordered_categories
@@ -642,22 +686,49 @@ def _build_suggestion_fallbacks(
     *,
     destination: str,
     ranked_recommendations: list[dict[str, Any]],
+    session_context: dict[str, Any] | None = None,
 ) -> list[str]:
     names = _hotel_names(ranked_recommendations)
+    sc = session_context or {}
+    trip_types = [_fold_suggestion_text(t) for t in (sc.get("session_trip_types") or [])]
+    _raw_amenities = sc.get("session_amenities") or {}
+    amenities: list[str] = list(_raw_amenities.keys()) if isinstance(_raw_amenities, dict) else list(_raw_amenities)
+    room_views: list[str] = sc.get("session_room_views") or []
+
+    is_family = any(kw in t for t in trip_types for kw in ("gia dinh", "family", "tre em"))
+    is_honeymoon = any(kw in t for t in trip_types for kw in ("trang mat", "hon", "honeymoon"))
+    is_resort = any(kw in t for t in trip_types for kw in ("nghi duong", "resort", "luxury"))
+
     suggestions: list[str] = []
+
+    # amenity-specific fallbacks dựa trên sở thích người dùng
+    if is_family:
+        ref = f"tại {destination}" if destination else (f"gần {names[0]}" if names else "")
+        if ref:
+            suggestions.append(f"Khu vui chơi và tiện ích trẻ em {ref}")
+    elif is_honeymoon and (destination or names):
+        ref = f"tại {names[0]}" if names else f"tại {destination}"
+        suggestions.append(f"Gói đặc biệt dành cho cặp đôi và spa {ref}")
+    elif is_resort and (destination or names):
+        ref = f"tại {names[0]}" if names else f"tại {destination}"
+        suggestions.append(f"Tiện ích spa và hồ bơi {ref}")
+    elif amenities and (destination or names):
+        ref = destination or names[0]
+        suggestions.append(f"{amenities[0].capitalize()} và tiện ích nổi bật tại {ref}")
+    elif room_views and (destination or names):
+        ref = destination or names[0]
+        suggestions.append(f"Phòng {room_views[0]} tại {ref}")
+
+    # standard fallbacks
     if names:
-        suggestions.extend(
-            [
-                f"Chi tiết hạng phòng và giá tại {names[0]}",
-                f"Địa điểm tham quan gần {names[0]}",
-            ]
-        )
+        suggestions.extend([
+            f"Chi tiết hạng phòng và giá tại {names[0]}",
+            f"Địa điểm tham quan gần {names[0]}",
+        ])
     if destination:
         if not names:
             suggestions.append(f"Địa điểm tham quan lân cận tại {destination}")
-        suggestions.append(
-            f"Hoạt động vui chơi và ăn uống tại {destination}"
-        )
+        suggestions.append(f"Hoạt động vui chơi và ăn uống tại {destination}")
     elif names:
         suggestions.append(f"Hoạt động vui chơi và ăn uống gần {names[0]}")
     return suggestions
@@ -752,6 +823,7 @@ def build_response_with_llm(
     suggestion_fallbacks = _build_suggestion_fallbacks(
         destination=destination,
         ranked_recommendations=ranked_recommendations,
+        session_context=session_context,
     )
     budget_explanation = _build_budget_explanation(session_context)
     client = _get_llm_client()
@@ -761,6 +833,7 @@ def build_response_with_llm(
             destination=destination,
             suggestion_fallbacks=suggestion_fallbacks,
             budget_explanation=budget_explanation,
+            session_context=session_context,
         )
 
     prompt = _build_prompt(
@@ -795,6 +868,7 @@ def build_response_with_llm(
                 suggestion_fallbacks,
                 destination=destination,
                 ranked_recommendations=ranked_recommendations,
+                session_context=session_context,
             ),
         }
     except Exception as exc:  # noqa: BLE001
@@ -808,6 +882,7 @@ def build_response_with_llm(
             destination=destination,
             suggestion_fallbacks=suggestion_fallbacks,
             budget_explanation=budget_explanation,
+            session_context=session_context,
         )
 
 
