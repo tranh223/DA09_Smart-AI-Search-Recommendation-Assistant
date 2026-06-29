@@ -1,5 +1,6 @@
 import logging
-from utils.settings import settings
+
+from app.utils.settings import settings
 
 def get_logger(name: str) -> logging.Logger:
     """Create a logger with the specified name."""

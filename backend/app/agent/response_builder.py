@@ -14,7 +14,9 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import threading
+import unicodedata
 from typing import Any, Generator
 
 logger = logging.getLogger(__name__)
@@ -82,7 +84,16 @@ _RESPONSE_SCHEMA: dict[str, Any] = {
         },
         "next_suggestions": {
             "type": "array",
-            "description": "Hãy sinh các gợi ý tiếp theo được cá nhân hóa cho người dùng dựa trên intent hiện tại, lịch sử tương tác, sở thích, ngữ cảnh phiên làm việc và mục tiêu tiềm ẩn; ưu tiên các gợi ý có khả năng giúp người dùng đạt mục tiêu nhanh nhất.(phần này sẽ là phần user sẽ có thể chat với bot)",
+            "description": (
+                "Sinh đúng 3 truy vấn OTA tiếp theo bằng tiếng Việt theo thứ tự: "
+                "(1) chi tiết hạng phòng và giá tại khách sạn đứng đầu, "
+                "(2) địa điểm lân cận khách sạn, "
+                "(3) hoạt động vui chơi hoặc ăn uống tại điểm đến. "
+                "Người dùng phải có thể nhấn và gửi nguyên văn. Mỗi truy vấn phải độc lập, rõ nghĩa, "
+                "không có chủ ngữ hội thoại như "
+                "'Bạn', 'Mình', 'Tôi', 'Anh/chị', không phải câu hỏi yes/no, và phải nhắc lại điểm "
+                "đến hoặc tên khách sạn liên quan. Không tự tạo giá, tiện nghi hay dữ kiện chưa có."
+            ),
             "items": {"type": "string"},
         },
     },
@@ -118,10 +129,17 @@ _GUARDRAIL_RESPONSE_SCHEMA: dict[str, Any] = {
 _SYSTEM_INSTRUCTIONS = (
     "Bạn là trợ lý AI của nền tảng đặt phòng OTA tại Việt Nam. "
     "Nhiệm vụ: tổng hợp kết quả tìm kiếm thành câu trả lời thân thiện, "
-    "giải thích lý do gợi ý cụ thể cho từng khách sạn và đề xuất câu hỏi "
-    "tiếp theo giúp người dùng tinh chỉnh. "
-    "Sau khi đã có gợi ý khách sạn, chỉ hỏi thêm các thông tin follow-up được cung cấp trong prompt, tối đa 2 câu hỏi. "
-    "Không hỏi check-in/check-out ở giai đoạn này, trừ khi prompt follow-up cho phép rõ ràng. "
+    "giải thích lý do gợi ý cụ thể cho từng khách sạn và tạo các truy vấn tiếp theo. "
+    "Trường answer chỉ chứa kết quả và giải thích; không thêm mục 'Câu hỏi tiếp theo' và không hỏi "
+    "follow-up trong answer. Trường next_suggestions chứa đúng 3 truy vấn OTA độc lập có thể gửi "
+    "nguyên văn. Không dùng chủ ngữ hội thoại như 'Bạn', 'Mình', 'Tôi', 'Anh/chị'; không tạo câu "
+    "hỏi yes/no. Mỗi truy vấn phải nhắc lại điểm đến hoặc tên khách sạn liên quan để không phụ "
+    "thuộc lịch sử hội thoại. Luôn giữ thứ tự: (1) chi tiết hạng phòng và giá tại khách sạn đứng "
+    "đầu, (2) địa điểm tham quan/lân cận khách sạn, (3) hoạt động vui chơi hoặc ăn uống tại điểm "
+    "đến. Không tự tạo giá, tiện nghi hay dữ kiện chưa có. "
+    "Dạng đúng: 'Hạng phòng và giá tại Vinpearl Nha Trang', "
+    "'Địa điểm tham quan gần Vinpearl Nha Trang', 'Hoạt động vui chơi và ăn uống tại Nha Trang'. "
+    "Dạng sai: 'Bạn muốn xem thêm không?', 'Tìm thêm khách sạn tương tự'. "
     "Nếu prompt có giải thích ngân sách, hãy đưa giải thích đó vào answer bằng ngôn ngữ tự nhiên. "
     "Không tự diễn giải hoặc công bố khoảng giá kỹ thuật từ session_price_range nếu prompt đã có raw_budget/explanation; "
     "session_price_range chỉ là tín hiệu nội bộ để search/rerank. "
@@ -180,11 +198,11 @@ Rules:
 - Do not claim you checked hotel availability for OUT_OF_SCOPE.
 - Use Markdown only. No HTML.
 - The answer field must be complete by itself. Never end answer with an unfinished sentence such as "Hiện tại VinBot có thể hỗ trợ bạn:" unless the bullets are included in the same answer string.
-- next_suggestions for OUT_OF_SCOPE should only redirect back to hotel tasks, such as finding hotels by destination, budget, amenities, or dates. They are separate UI chips, not part of the answer.
+- For OUT_OF_SCOPE, return an empty next_suggestions list. The answer may briefly state supported hotel capabilities, but do not render follow-up actions.
 - For ASSISTANT_HELP, obey guardrail.assistant_help_context_mode:
-  - NO_HISTORY means answer from current_query only. Do not mention prior trips, hotels, dates, budget, or preferences.
+  - NO_HISTORY means answer from current_query only. Do not mention prior trips, hotels, dates, budget, or preferences. Return an empty next_suggestions list.
   - USE_HISTORY_SUMMARY means the user explicitly asked about remembered context; use conversation_summary and recent_turns if provided.
-  - NONE should be treated like NO_HISTORY for ASSISTANT_HELP.
+  - NONE should be treated like NO_HISTORY for ASSISTANT_HELP, including returning no next_suggestions.
 """.strip()
 
 
@@ -212,6 +230,7 @@ def _guardrail_fallback_response(
     *,
     category: str,
     conversation_summary: str,
+    assistant_help_context_mode: str = "NONE",
 ) -> dict[str, Any]:
     if category == "OUT_OF_SCOPE":
         answer = (
@@ -244,11 +263,12 @@ def _guardrail_fallback_response(
             "Bạn có thể nhắc lại điểm đến hoặc kế hoạch khách sạn của mình không?"
         )
     if category == "OUT_OF_SCOPE":
-        next_suggestions = [
-            "Tìm khách sạn theo điểm đến và ngày đi",
-            "Gợi ý khách sạn theo ngân sách",
-            "Tìm khách sạn có tiện nghi hoặc view mong muốn",
-        ]
+        next_suggestions = []
+    elif (
+        category == "ASSISTANT_HELP"
+        and assistant_help_context_mode != "USE_HISTORY_SUMMARY"
+    ):
+        next_suggestions = []
     elif category == "ASSISTANT_HELP":
         next_suggestions = [
             "Bạn muốn mình nhắc lại kế hoạch chuyến đi đã lưu không?",
@@ -286,6 +306,7 @@ def build_guardrail_response_with_llm(
     if client is None:
         return _guardrail_fallback_response(
             category=category,
+            assistant_help_context_mode=mode,
             conversation_summary=(
                 conversation_summary
                 if category == "ASSISTANT_HELP" and mode == "USE_HISTORY_SUMMARY"
@@ -330,11 +351,21 @@ def build_guardrail_response_with_llm(
         )
         return {
             "answer": str(raw.get("answer") or "").strip(),
-            "next_suggestions": [
-                str(item).strip()
-                for item in (raw.get("next_suggestions") or [])
-                if str(item).strip()
-            ],
+            "next_suggestions": (
+                []
+                if (
+                    category == "OUT_OF_SCOPE"
+                    or (
+                        category == "ASSISTANT_HELP"
+                        and mode != "USE_HISTORY_SUMMARY"
+                    )
+                )
+                else [
+                    str(item).strip()
+                    for item in (raw.get("next_suggestions") or [])
+                    if str(item).strip()
+                ]
+            ),
         }
     except Exception as exc:  # noqa: BLE001
         logger.warning(
@@ -344,6 +375,7 @@ def build_guardrail_response_with_llm(
         )
         return _guardrail_fallback_response(
             category=category,
+            assistant_help_context_mode=mode,
             conversation_summary=(
                 conversation_summary
                 if category == "ASSISTANT_HELP" and mode == "USE_HISTORY_SUMMARY"
@@ -355,7 +387,7 @@ def build_guardrail_response_with_llm(
 def _build_response_context_section(
     *,
     session_context: dict[str, Any] | None,
-    optional_followups: list[str] | None,
+    suggestion_fallbacks: list[str] | None,
     budget_explanation: str,
 ) -> str:
     sections: list[str] = []
@@ -363,11 +395,11 @@ def _build_response_context_section(
         sections.append(f"Session context hiển thị cho answer: {_sanitize_response_session_context(session_context)}")
     if budget_explanation:
         sections.append(f"Giải thích ngân sách cần đưa vào answer nếu phù hợp: {budget_explanation}")
-    if optional_followups:
+    if suggestion_fallbacks:
         sections.append(
-            "Sau khi đã gợi ý khách sạn, hỏi thêm tối đa 2 thông tin này; "
-            "không hỏi check-in/check-out: "
-            + "; ".join(optional_followups[:2])
+            "Các truy vấn next_suggestions dự phòng hợp lệ; chỉ dùng để tham khảo hoặc bù khi "
+            "không có lựa chọn tốt hơn, không chèn chúng vào answer: "
+            + "; ".join(suggestion_fallbacks)
         )
     if not sections:
         return ""
@@ -404,7 +436,7 @@ def _build_prompt(
     rag_answer: str,
     hotels: list[dict[str, Any]],
     session_context: dict[str, Any] | None = None,
-    optional_followups: list[str] | None = None,
+    suggestion_fallbacks: list[str] | None = None,
     budget_explanation: str = "",
 ) -> str:
     hotel_lines: list[str] = []
@@ -440,7 +472,7 @@ def _build_prompt(
     hotels_section = "\n".join(hotel_lines) if hotel_lines else "(chưa có gợi ý)"
     extra_context = _build_response_context_section(
         session_context=session_context,
-        optional_followups=optional_followups,
+        suggestion_fallbacks=suggestion_fallbacks,
         budget_explanation=budget_explanation,
     )
 
@@ -457,7 +489,8 @@ def _build_prompt(
 def _fallback_response(
     ranked_recommendations: list[dict[str, Any]],
     *,
-    optional_followups: list[str] | None = None,
+    destination: str = "",
+    suggestion_fallbacks: list[str] | None = None,
     budget_explanation: str = "",
 ) -> dict[str, Any]:
     """Fallback markdown khi LLM không khả dụng."""
@@ -480,44 +513,154 @@ def _fallback_response(
     return {
         "synthesized_answer": answer,
         "hotel_reasons": {},
-        "next_suggestions": (optional_followups or [])[:2] or [
-            "Bạn muốn lọc thêm theo mức giá không?",
-            "Bạn có yêu cầu đặc biệt về tiện nghi không?",
-            "Bạn cần phòng cho bao nhiêu người?",
-        ],
+        "next_suggestions": _merge_next_suggestions(
+            [],
+            suggestion_fallbacks or _build_suggestion_fallbacks(
+                destination=destination,
+                ranked_recommendations=ranked_recommendations,
+            ),
+            destination=destination,
+            ranked_recommendations=ranked_recommendations,
+        ),
     }
 
 
-def _merge_next_suggestions(priority: list[str], generated: list[str], *, limit: int = 3) -> list[str]:
-    merged: list[str] = []
+_LIST_MARKER_RE = re.compile(r"^\s*(?:(?:[-*•→↳]+)|(?:\d+[.)]))\s*")
+_CONVERSATIONAL_PREFIX_RE = re.compile(
+    r"^(?:bạn|mình|tôi|anh\s*/\s*chị|anh|chị|em)\b",
+    re.IGNORECASE,
+)
+_REQUEST_PREFIX_RE = re.compile(
+    r"^(?:có\s+muốn|muốn|hãy|vui\s+lòng)\b",
+    re.IGNORECASE,
+)
+
+
+def _hotel_names(ranked_recommendations: list[dict[str, Any]]) -> list[str]:
+    names: list[str] = []
+    for item in ranked_recommendations:
+        metadata = item.get("metadata") or {}
+        name = (
+            item.get("hotel_name")
+            or item.get("name")
+            or metadata.get("hotel_name")
+            or metadata.get("name")
+        )
+        text = str(name or "").strip()
+        if text and text not in names:
+            names.append(text)
+    return names
+
+
+def _normalize_suggestion(value: Any) -> str:
+    text = _LIST_MARKER_RE.sub("", str(value or "").strip())
+    text = re.sub(r"\s+", " ", text).strip(" \t\r\n\"'`")
+    text = text.rstrip(" .?!:;")
+    if len(text) < 8:
+        return ""
+    if _CONVERSATIONAL_PREFIX_RE.match(text) or _REQUEST_PREFIX_RE.match(text):
+        return ""
+    return text
+
+
+def _suggestion_dedupe_key(suggestion: str) -> str:
+    key = suggestion.casefold()
+    key = re.sub(r"^(?:danh sách\s+)?(?:các\s+)?", "", key)
+    return re.sub(r"\s+", " ", key).strip()
+
+
+def _fold_suggestion_text(value: str) -> str:
+    normalized = unicodedata.normalize("NFD", value.casefold())
+    return "".join(char for char in normalized if unicodedata.category(char) != "Mn")
+
+
+def _suggestion_category(suggestion: str) -> str:
+    text = _fold_suggestion_text(suggestion)
+    if any(keyword in text for keyword in ("hoat dong", "vui choi", "an uong", "am thuc")):
+        return "activities"
+    if "phong" in text and any(keyword in text for keyword in ("chi tiet", "hang", "loai", "gia")):
+        return "room_details"
+    if any(keyword in text for keyword in ("gan ", "lan can", "xung quanh", "nearby")):
+        return "nearby_places"
+    return ""
+
+
+def _has_direct_context(
+    suggestion: str,
+    *,
+    destination: str,
+    hotel_names: list[str],
+) -> bool:
+    references = [destination, *hotel_names]
+    references = [str(value).strip().casefold() for value in references if str(value).strip()]
+    if not references:
+        return True
+    normalized = suggestion.casefold()
+    return any(reference in normalized for reference in references)
+
+
+def _merge_next_suggestions(
+    generated: list[str],
+    fallbacks: list[str],
+    *,
+    destination: str,
+    ranked_recommendations: list[dict[str, Any]],
+    limit: int = 3,
+) -> list[str]:
+    categorized: dict[str, str] = {}
     seen: set[str] = set()
-    for item in [*priority[:2], *generated]:
-        text = str(item).strip()
-        if not text or text in seen:
+    hotel_names = _hotel_names(ranked_recommendations)
+    for item in [*generated, *fallbacks]:
+        text = _normalize_suggestion(item)
+        key = _suggestion_dedupe_key(text)
+        if (
+            not text
+            or key in seen
+            or not _has_direct_context(
+                text,
+                destination=destination,
+                hotel_names=hotel_names,
+            )
+        ):
             continue
-        seen.add(text)
-        merged.append(text)
-        if len(merged) >= limit:
+        seen.add(key)
+        category = _suggestion_category(text)
+        if not category or category in categorized:
+            continue
+        categorized[category] = text
+        if len(categorized) >= limit:
             break
-    return merged
+    ordered_categories = ("room_details", "nearby_places", "activities")
+    return [
+        categorized[category]
+        for category in ordered_categories
+        if category in categorized
+    ][:limit]
 
 
-def _build_optional_followups(session_context: dict[str, Any] | None) -> list[str]:
-    sc = session_context or {}
-    followups: list[str] = []
-    price = sc.get("session_price_range") or {}
-    has_budget = bool((price or {}).get("min") is not None or (price or {}).get("max") is not None)
-    budget_type = sc.get("budget_type")
-    if not has_budget:
-        followups.append("Bạn muốn ngân sách khách sạn khoảng bao nhiêu?")
-    if (not sc.get("number_of_nights")) and (not sc.get("number_of_days")):
-        if has_budget and budget_type == "total":
-            followups.append("Bạn dự định đi mấy ngày mấy đêm để mình quy đổi ngân sách theo mỗi đêm?")
-        else:
-            followups.append("Bạn dự định đi mấy ngày mấy đêm?")
-    if sc.get("number_of_guests") is None:
-        followups.append("Bạn đi khoảng bao nhiêu người?")
-    return followups[:2]
+def _build_suggestion_fallbacks(
+    *,
+    destination: str,
+    ranked_recommendations: list[dict[str, Any]],
+) -> list[str]:
+    names = _hotel_names(ranked_recommendations)
+    suggestions: list[str] = []
+    if names:
+        suggestions.extend(
+            [
+                f"Chi tiết hạng phòng và giá tại {names[0]}",
+                f"Địa điểm tham quan gần {names[0]}",
+            ]
+        )
+    if destination:
+        if not names:
+            suggestions.append(f"Địa điểm tham quan lân cận tại {destination}")
+        suggestions.append(
+            f"Hoạt động vui chơi và ăn uống tại {destination}"
+        )
+    elif names:
+        suggestions.append(f"Hoạt động vui chơi và ăn uống gần {names[0]}")
+    return suggestions
 
 
 def _build_budget_explanation(session_context: dict[str, Any] | None) -> str:
@@ -604,15 +747,19 @@ def build_response_with_llm(
         Dict với 3 key:
         - synthesized_answer (str): câu trả lời tổng hợp
         - hotel_reasons (dict[str, str]): {hotel_id → lý do}
-        - next_suggestions (list[str]): gợi ý câu hỏi tiếp theo
+        - next_suggestions (list[str]): truy vấn OTA tiếp theo có thể gửi trực tiếp
     """
-    optional_followups = _build_optional_followups(session_context)
+    suggestion_fallbacks = _build_suggestion_fallbacks(
+        destination=destination,
+        ranked_recommendations=ranked_recommendations,
+    )
     budget_explanation = _build_budget_explanation(session_context)
     client = _get_llm_client()
     if client is None:
         return _fallback_response(
             ranked_recommendations,
-            optional_followups=optional_followups,
+            destination=destination,
+            suggestion_fallbacks=suggestion_fallbacks,
             budget_explanation=budget_explanation,
         )
 
@@ -623,7 +770,7 @@ def build_response_with_llm(
         rag_answer=rag_answer,
         hotels=ranked_recommendations,
         session_context=session_context,
-        optional_followups=optional_followups,
+        suggestion_fallbacks=suggestion_fallbacks,
         budget_explanation=budget_explanation,
     )
 
@@ -644,8 +791,10 @@ def build_response_with_llm(
             "synthesized_answer": raw.get("answer") or "",
             "hotel_reasons": hotel_reasons,
             "next_suggestions": _merge_next_suggestions(
-                optional_followups,
                 [str(s) for s in (raw.get("next_suggestions") or []) if s],
+                suggestion_fallbacks,
+                destination=destination,
+                ranked_recommendations=ranked_recommendations,
             ),
         }
     except Exception as exc:  # noqa: BLE001
@@ -656,7 +805,8 @@ def build_response_with_llm(
         )
         return _fallback_response(
             ranked_recommendations,
-            optional_followups=optional_followups,
+            destination=destination,
+            suggestion_fallbacks=suggestion_fallbacks,
             budget_explanation=budget_explanation,
         )
 
@@ -681,7 +831,7 @@ def build_response_stream_with_llm(
     """
     client = _get_llm_client()
     if client is None:
-        fallback = _fallback_response(ranked_recommendations)
+        fallback = _fallback_response(ranked_recommendations, destination=destination)
         yield fallback["synthesized_answer"]
         return
 
@@ -705,5 +855,5 @@ def build_response_stream_with_llm(
             type(exc).__name__,
             exc,
         )
-        fallback = _fallback_response(ranked_recommendations)
+        fallback = _fallback_response(ranked_recommendations, destination=destination)
         yield fallback["synthesized_answer"]

@@ -955,13 +955,15 @@ class QueryUnderstandingPipeline:
         if not conversation_history:
             return []
         queries: list[str] = []
-        for item in conversation_history[-5:]:
+        for item in reversed(conversation_history):
             query = str(item.get("user_query", "")).strip()
             if not query and str(item.get("role", "")).strip().lower() == "user":
                 query = str(item.get("content", "")).strip()
             if query:
                 queries.append(query)
-        return queries
+                if len(queries) >= 5:
+                    break
+        return list(reversed(queries))
 
     def _apply_session_profile_update(
         self,

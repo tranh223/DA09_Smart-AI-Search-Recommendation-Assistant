@@ -813,11 +813,7 @@ def clarify_node(state: AgentState) -> dict[str, Any]:
             chat_history=state.get("chat_history") or [],
         )
         answer = guardrail_response.get("answer") or question
-        next_suggestions = guardrail_response.get("next_suggestions") or [
-            "Tìm khách sạn theo điểm đến và ngày đi",
-            "Gợi ý khách sạn theo ngân sách",
-            "Tìm khách sạn có view hoặc tiện nghi mong muốn",
-        ]
+        next_suggestions = guardrail_response.get("next_suggestions") or []
         logger.debug("[%s][clarify] assistant_help answer=%.60s", req_id, answer)
         return {
             "clarification_question": "",
