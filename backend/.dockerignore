@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+*.log
+logs/
+**/logs/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+tests/
+node_modules/
+package-lock.json
