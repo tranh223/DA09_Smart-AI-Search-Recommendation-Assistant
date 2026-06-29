@@ -5,7 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+.venv
 # Distribution / packaging
 .Python
 build/
@@ -203,6 +203,10 @@ cython_debug/
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
 
+# Runtime rerank logs
+backend/app/recommendation/rerank/logs/
+**/logs/*.jsonl
+
 # Ruff stuff:
 .ruff_cache/
 
@@ -216,3 +220,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# frontend
+node_modules/
+dist/
+build/
+*.log
+
+# backendlog
+backend/logs/
+backend/app/recommendation/rerank/logs/

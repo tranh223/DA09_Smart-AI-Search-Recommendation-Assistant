@@ -1,0 +1,128 @@
+{
+  "summary": {
+    "timestamp": "2026-06-27T02:24:25.971565",
+    "total_cases": 3,
+    "avg_latency_ms": 5290.357351303101,
+    "avg_keyword_coverage": 0.0
+  },
+  "results": [
+    {
+      "case_id": "FULL_01",
+      "case_name": "Hotel feature QA (RAG only expected)",
+      "query": "Khách sạn nào phù hợp nhất cho gia đình đi Đà Nẵng và vì sao? Nêu các tiện ích/đặc điểm quan trọng.",
+      "latency_ms": 6421.359300613403,
+      "response_preview": "",
+      "response_len": 0,
+      "plan": null,
+      "rag_evidence": {
+        "success": null,
+        "count": 0,
+        "first_items": []
+      },
+      "graph_evidence": {
+        "success": null,
+        "count": 0,
+        "first_items": []
+      },
+      "keyword_coverage": {
+        "hit_count": 0,
+        "present_keywords": [],
+        "missed_keywords": [
+          "Đà Nẵng"
+        ],
+        "keyword_coverage": 0.0
+      },
+      "debug_keys": [
+        "query",
+        "response",
+        "error",
+        "error_type"
+      ],
+      "raw_detailed": {
+        "query": "Khách sạn nào phù hợp nhất cho gia đình đi Đà Nẵng và vì sao? Nêu các tiện ích/đặc điểm quan trọng.",
+        "response": "",
+        "error": "Connection error.",
+        "error_type": "APIConnectionError"
+      }
+    },
+    {
+      "case_id": "FULL_02",
+      "case_name": "Hotel policy/FAQ QA",
+      "query": "Cho mình hỏi chính sách hoàn/hủy và các yêu cầu đặt phòng của khách sạn ở Nha Trang như thế nào?",
+      "latency_ms": 4675.635576248169,
+      "response_preview": "",
+      "response_len": 0,
+      "plan": null,
+      "rag_evidence": {
+        "success": null,
+        "count": 0,
+        "first_items": []
+      },
+      "graph_evidence": {
+        "success": null,
+        "count": 0,
+        "first_items": []
+      },
+      "keyword_coverage": {
+        "hit_count": 0,
+        "present_keywords": [],
+        "missed_keywords": [
+          "Nha Trang"
+        ],
+        "keyword_coverage": 0.0
+      },
+      "debug_keys": [
+        "query",
+        "response",
+        "error",
+        "error_type"
+      ],
+      "raw_detailed": {
+        "query": "Cho mình hỏi chính sách hoàn/hủy và các yêu cầu đặt phòng của khách sạn ở Nha Trang như thế nào?",
+        "response": "",
+        "error": "Connection error.",
+        "error_type": "APIConnectionError"
+      }
+    },
+    {
+      "case_id": "FULL_03",
+      "case_name": "Hotel vs activities comparison (RAG + Graph)",
+      "query": "So sánh mức độ liên quan giữa các hoạt động dành cho trẻ em tại VinWonders Cửa Hội và Suối Tiên đối với một gia đình ở Thành phố Hồ Chí Minh.",
+      "latency_ms": 4774.0771770477295,
+      "response_preview": "",
+      "response_len": 0,
+      "plan": null,
+      "rag_evidence": {
+        "success": null,
+        "count": 0,
+        "first_items": []
+      },
+      "graph_evidence": {
+        "success": null,
+        "count": 0,
+        "first_items": []
+      },
+      "keyword_coverage": {
+        "hit_count": 0,
+        "present_keywords": [],
+        "missed_keywords": [
+          "VinWonders",
+          "Suối Tiên"
+        ],
+        "keyword_coverage": 0.0
+      },
+      "debug_keys": [
+        "query",
+        "response",
+        "error",
+        "error_type"
+      ],
+      "raw_detailed": {
+        "query": "So sánh mức độ liên quan giữa các hoạt động dành cho trẻ em tại VinWonders Cửa Hội và Suối Tiên đối với một gia đình ở Thành phố Hồ Chí Minh.",
+        "response": "",
+        "error": "Connection error.",
+        "error_type": "APIConnectionError"
+      }
+    }
+  ]
+}

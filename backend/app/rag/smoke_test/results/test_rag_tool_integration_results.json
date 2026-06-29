@@ -1,0 +1,186 @@
+{
+  "timestamp": "2026-06-26T16:57:29.356829",
+  "file": "test_rag_tool_integration.py",
+  "test_type": "Integration Tests with Real Hotel IDs",
+  "summary": {
+    "total": 24,
+    "passed": 23,
+    "failed": 1,
+    "success_rate": "95.8%"
+  },
+  "tests": [
+    {
+      "name": "test_hotel_ask_input_with_real_ids",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration.TestRagToolWithRealHotelIds",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_hotel_ask_input_duplicate_ids",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration.TestRagToolWithRealHotelIds",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_search_rag_with_real_hotel_ids",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration.TestRagToolWithRealHotelIds",
+      "time": 0.001,
+      "status": "passed"
+    },
+    {
+      "name": "test_normalize_chunks_with_qdrant_data",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration.TestRagToolWithRealHotelIds",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_multiple_hotels_response",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration.TestRagToolWithRealHotelIds",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_tool_initialization_for_multiple_hotels",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration.TestRagToolWithRealHotelIds",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_query_with_multiple_sections",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration.TestRagToolWithRealHotelIds",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_search_luxury_hotel_amenities",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration.TestRealWorldScenarios",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_search_room_comparison_multiple_hotels",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration.TestRealWorldScenarios",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_search_with_location_context",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration.TestRealWorldScenarios",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_search_specific_amenity",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration.TestRealWorldScenarios",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_chunk_quality_scoring",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration.TestRealWorldScenarios",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_invalid_hotel_id_handling",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration.TestErrorHandlingWithRealIds",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_empty_response_handling",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration.TestErrorHandlingWithRealIds",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_malformed_chunk_handling",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration.TestErrorHandlingWithRealIds",
+      "time": 0.001,
+      "status": "failed",
+      "error": "AssertionError: assert 2 == 1\n +  where 2 = len([HotelAskChunk(score=0.0, chunk_id=None, section=None, content='Valid chunk', metadata={'hotel_id': 12345, 'query': 'test', 'source': 'hotel_ask', 'source_type': None}), HotelAskChunk(score=0.0, chunk_id=None, section=None, content='No text field', metadata={'hotel_id': 12345, 'query': 'test', 'source': 'hotel_ask', 'source_type': None})])"
+    },
+    {
+      "name": "test_each_hotel_id_valid[12345]",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_each_hotel_id_valid[23456]",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_each_hotel_id_valid[34567]",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_each_hotel_id_valid[45678]",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_each_hotel_id_valid[56789]",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_query_to_sections_mapping[amenities-expected_sections0]",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_query_to_sections_mapping[room types-expected_sections1]",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_query_to_sections_mapping[questions-expected_sections2]",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration",
+      "time": 0.0,
+      "status": "passed"
+    },
+    {
+      "name": "test_query_to_sections_mapping[full info-expected_sections3]",
+      "classname": "app.rag.smoke_test.test_rag_tool_integration",
+      "time": 0.0,
+      "status": "passed"
+    }
+  ],
+  "passed_tests": [
+    "test_hotel_ask_input_with_real_ids",
+    "test_hotel_ask_input_duplicate_ids",
+    "test_search_rag_with_real_hotel_ids",
+    "test_normalize_chunks_with_qdrant_data",
+    "test_multiple_hotels_response",
+    "test_tool_initialization_for_multiple_hotels",
+    "test_query_with_multiple_sections",
+    "test_search_luxury_hotel_amenities",
+    "test_search_room_comparison_multiple_hotels",
+    "test_search_with_location_context",
+    "test_search_specific_amenity",
+    "test_chunk_quality_scoring",
+    "test_invalid_hotel_id_handling",
+    "test_empty_response_handling",
+    "test_each_hotel_id_valid[12345]",
+    "test_each_hotel_id_valid[23456]",
+    "test_each_hotel_id_valid[34567]",
+    "test_each_hotel_id_valid[45678]",
+    "test_each_hotel_id_valid[56789]",
+    "test_query_to_sections_mapping[amenities-expected_sections0]",
+    "test_query_to_sections_mapping[room types-expected_sections1]",
+    "test_query_to_sections_mapping[questions-expected_sections2]",
+    "test_query_to_sections_mapping[full info-expected_sections3]"
+  ],
+  "failed_tests": [
+    "test_malformed_chunk_handling"
+  ]
+}
