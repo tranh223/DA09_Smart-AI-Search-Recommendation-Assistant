@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 
-from tools.rag_tool import (
+from app.rag.tools.rag_tool import (
     HotelAskInput,
     HotelAskChunk,
     HotelAskOutput,
@@ -15,6 +15,11 @@ from tools.rag_tool import (
     _coerce_float,
     search_rag,
 )
+
+
+@pytest.fixture
+def anyio_backend():
+    return "asyncio"
 
 
 class TestHotelAskInput:
@@ -270,7 +275,7 @@ class TestHotelAskTool:
         assert tool._should_retry(exc, 1) is False
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_hotel_ask_tool_ask_empty_query():
     """Test ask with empty query."""
     tool = HotelAskTool()
@@ -280,7 +285,7 @@ async def test_hotel_ask_tool_ask_empty_query():
     assert result.chunks == []
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_hotel_ask_tool_ask_no_hotel_ids():
     """Test ask with no hotel IDs."""
     tool = HotelAskTool()
@@ -290,7 +295,7 @@ async def test_hotel_ask_tool_ask_no_hotel_ids():
     assert result.chunks == []
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_hotel_ask_tool_context_manager():
     """Test context manager."""
     async with HotelAskTool() as tool:
@@ -310,7 +315,7 @@ class TestSearchRag:
         result = search_rag("   ")
         assert result == []
 
-    @patch("tools.rag_tool.asyncio.run")
+    @patch("app.rag.tools.rag_tool.asyncio.run")
     def test_search_rag_with_hotel_ids(self, mock_run):
         """Test search_rag with explicit hotel IDs."""
         # Mock the async result
@@ -319,7 +324,11 @@ class TestSearchRag:
             hotel_ids=[123],
             chunks=[HotelAskChunk(content="test", score=0.9)]
         )
-        mock_run.return_value = mock_output
+        def run_without_await_warning(coroutine):
+            coroutine.close()
+            return mock_output
+
+        mock_run.side_effect = run_without_await_warning
         
         result = search_rag("test", hotel_ids=[123])
         assert mock_run.called

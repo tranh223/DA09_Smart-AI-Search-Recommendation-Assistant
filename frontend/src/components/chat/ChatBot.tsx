@@ -15,6 +15,7 @@ interface BotMsg {
   kind: 'bot';
   text: string;
   chips?: string[];
+  suggestionActions?: boolean;
   /** true khi bubble đang hiển thị status pipeline, false/undefined khi là answer thật */
   isStatus?: boolean;
 }
@@ -173,27 +174,64 @@ function TypingDots() {
   );
 }
 
-function QuickReplyChips({ chips, onChip, disabled }: { chips: string[]; onChip: (c: string) => void; disabled: boolean }) {
+function QuickReplyChips({
+  chips,
+  onChip,
+  disabled,
+  actions = false,
+}: {
+  chips: string[];
+  onChip: (c: string) => void;
+  disabled: boolean;
+  actions?: boolean;
+}) {
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
+    <div style={{
+      display: 'flex',
+      flexDirection: actions ? 'column' : 'row',
+      flexWrap: actions ? 'nowrap' : 'wrap',
+      gap: '8px',
+      marginTop: '10px',
+      width: '100%',
+    }}>
       {chips.map(chip => (
         <button
           key={chip}
           onClick={() => !disabled && onChip(chip)}
           disabled={disabled}
+          aria-label={`Gửi truy vấn: ${chip}`}
           style={{
-            fontFamily: t.font, fontSize: '13px', fontWeight: 500,
-            color: disabled ? t.ink3 : t.ink,
+            display: 'flex',
+            alignItems: 'center',
+            gap: actions ? '10px' : 0,
+            width: actions ? '100%' : 'auto',
+            textAlign: actions ? 'left' : 'center',
+            fontFamily: t.font,
+            fontSize: actions ? '14px' : '13px',
+            lineHeight: 1.45,
+            fontWeight: 500,
+            color: disabled ? t.ink3 : (actions ? t.accent : t.ink),
             border: `1px solid ${disabled ? t.border : t.borderStrong}`,
-            borderRadius: t.rPill, padding: '6px 14px',
-            background: disabled ? t.bgSoft : t.surface,
+            borderRadius: actions ? '6px' : t.rPill,
+            padding: actions ? '10px 12px' : '6px 14px',
+            background: disabled ? t.bgSoft : (actions ? t.accentSoft : t.surface),
             cursor: disabled ? 'default' : 'pointer',
             transition: 'background .15s, border-color .15s',
           }}
           onMouseEnter={e => { if (!disabled) { e.currentTarget.style.background = t.accentSoft; e.currentTarget.style.borderColor = t.accent; } }}
-          onMouseLeave={e => { if (!disabled) { e.currentTarget.style.background = t.surface; e.currentTarget.style.borderColor = t.borderStrong; } }}
+          onMouseLeave={e => {
+            if (!disabled) {
+              e.currentTarget.style.background = actions ? t.accentSoft : t.surface;
+              e.currentTarget.style.borderColor = t.borderStrong;
+            }
+          }}
         >
-          {chip}
+          {actions && (
+            <span aria-hidden="true" style={{ flexShrink: 0, fontSize: '17px', lineHeight: 1 }}>
+              ↳
+            </span>
+          )}
+          <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{chip}</span>
         </button>
       ))}
     </div>
@@ -284,7 +322,12 @@ function BotBubble({
           </ReactMarkdown>
         </div>
         {msg.chips && (
-          <QuickReplyChips chips={msg.chips} onChip={onChip} disabled={chipsDisabled} />
+          <QuickReplyChips
+            chips={msg.chips}
+            onChip={onChip}
+            disabled={chipsDisabled}
+            actions={msg.suggestionActions}
+          />
         )}
       </div>
     </div>
@@ -443,7 +486,9 @@ export function ChatBot({ isOpen, onOpen, onClose, onRecommend, onClearRecommend
             if (chips) {
               setMessages(prev =>
                 prev.map(m =>
-                  m.id === botMsgId && m.kind === 'bot' ? { ...m, chips } : m,
+                  m.id === botMsgId && m.kind === 'bot'
+                    ? { ...m, chips, suggestionActions: true }
+                    : m,
                 ),
               );
             }

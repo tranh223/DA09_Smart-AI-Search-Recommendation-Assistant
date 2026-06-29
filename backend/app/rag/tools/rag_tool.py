@@ -19,9 +19,8 @@ import httpx
 from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict, Field
 
-from utils.langsmith_tracer import tracer
-
-from rag.tools.hotel_entity_resolver import hotel_entity_resolver
+from app.rag.tools.hotel_entity_resolver import hotel_entity_resolver
+from app.utils.langsmith_tracer import tracer
 
 # Load .env from ../backend/.env (3 levels up from backend/app/rag/tools/)
 load_dotenv(Path(__file__).resolve().parent.parent.parent.parent / ".env")

@@ -51,9 +51,13 @@ Nếu venv đã tồn tại, chỉ cần activate:
 ```powershell
 ..\.venv\Scripts\activate
 ```
+Chạy Qdrant cho RAG (cho lần đầu):
+```powershell
+python backend/app/rag/scripts/build_qdrant_hotels_from_csv.py
+```
+Mở docker và khởi động container da09-qdrant
 
 Chạy API:
-
 ```powershell
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
