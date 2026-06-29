@@ -58,6 +58,11 @@ def _in_intent(s: dict[str, Any]) -> dict[str, Any]:
             "check_out": sc.get("check_out"),
             "nearby_place": sc.get("nearby_place"),
             "number_of_guests": sc.get("number_of_guests"),
+            "number_of_days": sc.get("number_of_days"),
+            "number_of_nights": sc.get("number_of_nights"),
+            "budget_type": sc.get("budget_type"),
+            "raw_budget_min": sc.get("raw_budget_min"),
+            "raw_budget_max": sc.get("raw_budget_max"),
         },
         "has_long_term_profile": bool(lt),
     }
@@ -120,6 +125,11 @@ def _in_recommend(s: dict[str, Any]) -> dict[str, Any]:
                 "check_out": getattr(sc, "check_out", None),
                 "nearby_place": getattr(sc, "nearby_place", None),
                 "number_of_guests": getattr(sc, "number_of_guests", None),
+                "number_of_days": getattr(sc, "number_of_days", None),
+                "number_of_nights": getattr(sc, "number_of_nights", None),
+                "budget_type": getattr(sc, "budget_type", None),
+                "raw_budget_min": getattr(sc, "raw_budget_min", None),
+                "raw_budget_max": getattr(sc, "raw_budget_max", None),
                 "has_pet": getattr(sc, "has_pet", None),
                 "has_children": getattr(sc, "has_children", None),
                 "price_range": getattr(sc, "session_price_range", None) and {
@@ -243,6 +253,12 @@ def _out_session(s: dict, r: dict) -> dict:
             "check_in": sc.get("check_in"),
             "check_out": sc.get("check_out"),
             "nearby_place": sc.get("nearby_place"),
+            "number_of_guests": sc.get("number_of_guests"),
+            "number_of_days": sc.get("number_of_days"),
+            "number_of_nights": sc.get("number_of_nights"),
+            "budget_type": sc.get("budget_type"),
+            "raw_budget_min": sc.get("raw_budget_min"),
+            "raw_budget_max": sc.get("raw_budget_max"),
         },
         "long_term_loaded": bool(
             profile.get("long_term_profile") if isinstance(profile, dict) else None
@@ -271,6 +287,7 @@ def _out_intent(s: dict, r: dict) -> dict:
             "allow": guardrail.get("allow"),
             "category": guardrail.get("category"),
             "reason": guardrail.get("reason"),
+            "assistant_help_context_mode": guardrail.get("assistant_help_context_mode"),
         },
         "plan_readiness": {
             "can_build_plan": plan_r.get("can_build_plan"),
@@ -536,6 +553,7 @@ def _ctx_intent(state: dict[str, Any], result: dict[str, Any]) -> dict[str, Any]
             "allow": guardrail.get("allow"),
             "category": guardrail.get("category"),
             "reason": guardrail.get("reason"),
+            "assistant_help_context_mode": guardrail.get("assistant_help_context_mode"),
         },
         "plan_readiness": {
             "can_build_plan": plan_r.get("can_build_plan"),

@@ -8,6 +8,7 @@ import logging
 import os
 import re
 import threading
+import unicodedata
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -156,6 +157,18 @@ def _has_meaningful_value(value: Any) -> bool:
     return True
 
 
+def _normalize_context_text(value: Any) -> str:
+    normalized = unicodedata.normalize("NFD", str(value or "").lower())
+    without_accents = "".join(char for char in normalized if unicodedata.category(char) != "Mn")
+    return re.sub(r"\s+", " ", without_accents).strip()
+
+
+def _is_different_context_destination(current_destination: Any, incoming_destination: Any) -> bool:
+    if not _has_meaningful_value(current_destination) or not _has_meaningful_value(incoming_destination):
+        return False
+    return _normalize_context_text(current_destination) != _normalize_context_text(incoming_destination)
+
+
 def _is_chitchat_query(query: str) -> bool:
     normalized = " ".join(str(query or "").strip().lower().split())
     if not normalized:
@@ -252,8 +265,13 @@ def _summary_session_context_to_runtime(summary_context: dict[str, Any]) -> dict
     for summary_key, runtime_key in (
         ("destination", "destination"),
         ("number_of_guests", "number_of_guests"),
+        ("number_of_days", "number_of_days"),
+        ("number_of_nights", "number_of_nights"),
         ("check_in", "check_in"),
         ("check_out", "check_out"),
+        ("budget_type", "budget_type"),
+        ("raw_budget_min", "raw_budget_min"),
+        ("raw_budget_max", "raw_budget_max"),
     ):
         value = summary_context.get(summary_key)
         if _has_meaningful_value(value):
@@ -281,8 +299,13 @@ def _runtime_session_context_to_summary(session_context: dict[str, Any]) -> dict
     for runtime_key, summary_key in (
         ("destination", "destination"),
         ("number_of_guests", "number_of_guests"),
+        ("number_of_days", "number_of_days"),
+        ("number_of_nights", "number_of_nights"),
         ("check_in", "check_in"),
         ("check_out", "check_out"),
+        ("budget_type", "budget_type"),
+        ("raw_budget_min", "raw_budget_min"),
+        ("raw_budget_max", "raw_budget_max"),
     ):
         value = session_context.get(runtime_key)
         if _has_meaningful_value(value):
@@ -308,13 +331,22 @@ def _merge_summary_session_context(
     incoming_context: dict[str, Any],
 ) -> dict[str, Any]:
     merged = dict(existing_context or {})
+    incoming_destination = incoming_context.get("destination")
+    if _is_different_context_destination(merged.get("destination"), incoming_destination):
+        merged.pop("number_of_days", None)
+        merged.pop("number_of_nights", None)
     for key in (
         "destination",
         "number_of_guests",
+        "number_of_days",
+        "number_of_nights",
         "check_in",
         "check_out",
         "budget_min",
         "budget_max",
+        "raw_budget_min",
+        "raw_budget_max",
+        "budget_type",
         *SUMMARY_SESSION_GROUP_KEYS,
     ):
         value = incoming_context.get(key)
@@ -695,11 +727,16 @@ def _keyword_intent_fallback(query: str, state: AgentState) -> dict[str, Any]:
                 "check_in": session_context.get("check_in"),
                 "check_out": session_context.get("check_out"),
                 "number_of_guests": session_context.get("number_of_guests"),
+                "number_of_days": session_context.get("number_of_days"),
+                "number_of_nights": session_context.get("number_of_nights"),
                 "has_pet": session_context.get("has_pet"),
                 "has_children": session_context.get("has_children"),
                 "nearby_place": session_context.get("nearby_place"),
                 "budget_min": price.get("min") if isinstance(price, dict) else None,
                 "budget_max": price.get("max") if isinstance(price, dict) else None,
+                "raw_budget_min": session_context.get("raw_budget_min"),
+                "raw_budget_max": session_context.get("raw_budget_max"),
+                "budget_type": session_context.get("budget_type"),
                 "currency": (price.get("currency") if isinstance(price, dict) else None) or "VND",
             }
     intent = "hotel_search"
@@ -771,6 +808,7 @@ def clarify_node(state: AgentState) -> dict[str, Any]:
             query=state.get("raw_query") or "",
             category="ASSISTANT_HELP",
             reason=str(guardrail.get("reason") or ""),
+            assistant_help_context_mode=str(guardrail.get("assistant_help_context_mode") or "NO_HISTORY"),
             conversation_summary=state.get("conversation_summary") or "",
             chat_history=state.get("chat_history") or [],
         )
@@ -802,6 +840,7 @@ def clarify_node(state: AgentState) -> dict[str, Any]:
             query=state.get("raw_query") or "",
             category=str(guardrail.get("category") or ""),
             reason=str(guardrail.get("reason") or ""),
+            assistant_help_context_mode=str(guardrail.get("assistant_help_context_mode") or "NONE"),
             conversation_summary=state.get("conversation_summary") or "",
             chat_history=state.get("chat_history") or [],
         )
@@ -906,7 +945,10 @@ def _build_search_query_text(slots: dict[str, Any]) -> str:
 
     budget_text = _format_search_template_budget_range(slots.get("budget_min"), slots.get("budget_max"))
     if budget_text:
-        parts.append(f"Tôi muốn phòng có giá khoảng {budget_text}.")
+        if slots.get("budget_type") == "total" and not slots.get("number_of_nights"):
+            parts.append(f"Tổng ngân sách khách sạn của tôi khoảng {budget_text} cho chuyến đi.")
+        else:
+            parts.append(f"Tôi muốn phòng có giá khoảng {budget_text} mỗi đêm.")
 
     hotel_types = _normalize_search_template_items(slots.get("hotel_types"))
     if hotel_types:
@@ -1057,8 +1099,13 @@ def _resolve_recommend_input(state: AgentState) -> RecommendInput | None:
             destination=destination,
             nearby_place=slots.get("nearby_place"),
             number_of_guests=slots.get("number_of_guests"),
+            number_of_days=slots.get("number_of_days"),
+            number_of_nights=slots.get("number_of_nights"),
             check_in=slots.get("check_in"),
             check_out=slots.get("check_out"),
+            budget_type=slots.get("budget_type"),
+            raw_budget_min=slots.get("raw_budget_min"),
+            raw_budget_max=slots.get("raw_budget_max"),
             has_children=slots.get("has_children"),
             has_pet=slots.get("has_pet"),
             session_price_range=PriceRange(
@@ -1154,6 +1201,11 @@ def response_builder_node(state: AgentState) -> dict[str, Any]:
         destination=(state.get("slots") or {}).get("destination") or "",
         rag_answer=rag_answer,
         ranked_recommendations=ranked,
+        session_context=(
+            (state.get("updated_user_profile") or state.get("user_profile") or {}).get("session_context")
+            if isinstance(state.get("updated_user_profile") or state.get("user_profile"), dict)
+            else {}
+        ),
     )
     return result  # keys: synthesized_answer, hotel_reasons, next_suggestions
 

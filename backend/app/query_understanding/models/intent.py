@@ -37,9 +37,12 @@ class EntitySet:
     budget_min: float | None = None
     budget_max: float | None = None
     budget_scope: str | None = None
+    budget_type: str | None = None
     trip_type: str | None = None
     nearby_place: str | None = None
     number_of_guests: int | None = None
+    number_of_days: int | None = None
+    number_of_nights: int | None = None
     check_in: str | None = None
     check_out: str | None = None
 
