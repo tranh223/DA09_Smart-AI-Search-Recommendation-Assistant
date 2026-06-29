@@ -1,0 +1,59 @@
+# Cloud Build trigger chạy file này khi push lên main.
+# Build image backend -> push Artifact Registry -> deploy Cloud Run.
+#
+# Đặt các substitution _REGION / _REPO / _SERVICE trong cấu hình trigger (hoặc sửa default dưới).
+# Yêu cầu (làm 1 lần, xem checklist trong câu trả lời):
+#   - Bật API: run, cloudbuild, artifactregistry, secretmanager
+#   - Tạo Artifact Registry repo Docker tên ${_REPO}
+#   - Cấp role cho service account của Cloud Build: Cloud Run Admin, Service Account User, Artifact Registry Writer
+#   - Tạo secret trong Secret Manager: OPENAI_API_KEY, MONGO_URI, NEO4J_PASSWORD, POSTGRES_DSN
+
+substitutions:
+  _REGION: asia-southeast1
+  _REPO: da09
+  _SERVICE: da09-backend
+
+steps:
+  # 1) Build image
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:latest
+      - ./backend           # build context = thư mục backend (chứa Dockerfile)
+
+  # 2) Push image
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - --all-tags
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}
+
+  # 3) Deploy Cloud Run
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated
+      - --port=8080
+      - --memory=2Gi
+      - --cpu=2
+      - --timeout=600
+      # Biến không nhạy cảm
+      - --set-env-vars=DATABASE_NAME=VinSmartFuture,QDRANT_COLLECTION=hotels,LOG_LEVEL=INFO
+      # Biến nhạy cảm lấy từ Secret Manager (tạo secret trước)
+      - --set-secrets=OPENAI_API_KEY=OPENAI_API_KEY:latest,MONGO_URI=MONGO_URI:latest,NEO4J_PASSWORD=NEO4J_PASSWORD:latest,POSTGRES_DSN=POSTGRES_DSN:latest
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:latest
+
+options:
+  logging: CLOUD_LOGGING_ONLY
