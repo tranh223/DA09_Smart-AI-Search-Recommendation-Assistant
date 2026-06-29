@@ -108,6 +108,7 @@ class CurrentProfileMerger:
         user_profile: UserProfile,
         *,
         query: str,
+        applied_updates: dict[str, Any] | None = None,
         hidden_profile_signals: list[Any] | None = None,
     ) -> ActiveProfile:
         merged_active_profile = self.merge(
@@ -117,11 +118,11 @@ class CurrentProfileMerger:
         try:
             self._apply_long_term_retention(
                 user_profile=user_profile,
-                merged_active_profile=merged_active_profile,
                 query=query,
+                applied_updates=applied_updates,
                 hidden_profile_signals=hidden_profile_signals,
             )
-            return self._active_profile_from_long_term(user_profile.long_term_profile)
+            return merged_active_profile
         except Exception:
             return merged_active_profile
 
@@ -129,16 +130,22 @@ class CurrentProfileMerger:
         self,
         *,
         user_profile: UserProfile,
-        merged_active_profile: ActiveProfile,
         query: str,
+        applied_updates: dict[str, Any] | None = None,
         hidden_profile_signals: list[Any] | None = None,
     ) -> None:
         resolver = self.retention_resolver or ProfileRetentionResolver()
         self.retention_resolver = resolver
         old_profile = user_profile.long_term_profile
         tagremoved_profile = user_profile.tagremoved_profile
-        session_signals = self._build_session_signals(
-            user_profile.session_context,
+        retention_candidate_profile = self._build_retention_candidate_profile(
+            old_profile=old_profile,
+            session=user_profile.session_context,
+            applied_updates=applied_updates,
+            hidden_profile_signals=hidden_profile_signals,
+        )
+        session_signals = self._build_current_turn_session_signals(
+            applied_updates=applied_updates,
             hidden_profile_signals=hidden_profile_signals,
         )
         decisions = resolver.resolve(
@@ -149,63 +156,159 @@ class CurrentProfileMerger:
         )
         user_profile.long_term_profile = self._build_retained_long_term_profile(
             old_profile=old_profile,
-            merged_active_profile=merged_active_profile,
+            retention_candidate_profile=retention_candidate_profile,
             tagremoved_profile=tagremoved_profile,
             decisions=decisions,
         )
         user_profile.tagremoved_profile = self._build_tagremoved_profile(
             tagremoved_profile=tagremoved_profile,
-            merged_active_profile=merged_active_profile,
+            retention_candidate_profile=retention_candidate_profile,
             decisions=decisions,
         )
 
     @staticmethod
-    def _build_session_signals(
-        session: SessionContext,
+    def _build_retention_candidate_profile(
         *,
+        old_profile: LongTermProfile,
+        session: SessionContext,
+        applied_updates: dict[str, Any] | None = None,
         hidden_profile_signals: list[Any] | None = None,
-    ) -> dict[str, dict[str, CountInteractionValue]]:
-        promoted_preferences = CurrentProfileMerger._build_promoted_preference_habits(session)
+    ) -> ActiveProfile:
+        candidate = CurrentProfileMerger._active_profile_from_long_term(old_profile)
+        applied_updates = applied_updates or {}
+        field_map = {
+            "session_trip_types": "long_term_trip_types",
+            "session_budget_levels": "long_term_budget_levels",
+            "session_preference_habits": "long_term_preference_habits",
+            "session_hotel_types": "long_term_hotel_types",
+            "session_room_views": "long_term_room_views",
+            "session_amenities": "long_term_amenities",
+        }
+        for update_field, profile_field in field_map.items():
+            values = CurrentProfileMerger._read_applied_update_values(applied_updates.get(update_field))
+            if values:
+                CurrentProfileMerger._increment_score_map(getattr(candidate, profile_field), values)
+
         hidden_maps = CurrentProfileMerger._build_hidden_signal_maps(
             hidden_profile_signals,
-            has_explicit_budget=bool(session.session_budget_levels),
+            has_explicit_budget=bool(applied_updates.get("session_budget_levels")),
         )
-        return {
-            "traveler_type": hidden_maps.get("traveler_type", {}),
-            "long_term_trip_types": CurrentProfileMerger._clone_score_map(session.session_trip_types),
-            "long_term_budget_levels": CurrentProfileMerger._merge_score_maps(
-                CurrentProfileMerger._clone_score_map(session.session_budget_levels),
-                hidden_maps.get("long_term_budget_levels", {}),
-            ),
-            "long_term_preference_habits": CurrentProfileMerger._merge_score_maps(
-                promoted_preferences,
-                hidden_maps.get("long_term_preference_habits", {}),
-            ),
-            "long_term_hotel_types": CurrentProfileMerger._clone_score_map(session.session_hotel_types),
-            "long_term_room_views": CurrentProfileMerger._clone_score_map(session.session_room_views),
-            "long_term_amenities": CurrentProfileMerger._clone_score_map(session.session_amenities),
-            "avoid_hotel_types": CurrentProfileMerger._clone_score_map(
-                session.session_negative_preferences.avoid_hotel_types
-            ),
-            "avoid_amenities": CurrentProfileMerger._clone_score_map(
-                session.session_negative_preferences.avoid_amenities
-            ),
-            "avoid_preference_habits": CurrentProfileMerger._clone_score_map(
-                session.session_negative_preferences.avoid_preference_habits
-            ),
-            "avoid_nearby_places": CurrentProfileMerger._clone_score_map(
-                session.session_negative_preferences.avoid_nearby_places
-            ),
-            "avoid_locations": CurrentProfileMerger._clone_score_map(
-                session.session_negative_preferences.avoid_locations
-            ),
+        for profile_field, values in hidden_maps.items():
+            CurrentProfileMerger._merge_score_map_into(getattr(candidate, profile_field), values)
+
+        if "session_price_range_min" in applied_updates:
+            candidate.long_term_price_range.min = session.session_price_range.min
+        if "session_price_range_max" in applied_updates:
+            candidate.long_term_price_range.max = session.session_price_range.max
+        if "session_price_range_min" in applied_updates or "session_price_range_max" in applied_updates:
+            candidate.long_term_price_range.currency = (
+                session.session_price_range.currency or old_profile.long_term_price_range.currency
+            )
+        return candidate
+
+    @staticmethod
+    def _read_applied_update_values(raw_value: Any) -> list[str]:
+        if raw_value is None:
+            return []
+        if isinstance(raw_value, str):
+            value = raw_value.strip()
+            return [value] if value else []
+        if not isinstance(raw_value, list):
+            return []
+        values: list[str] = []
+        seen: set[str] = set()
+        for item in raw_value:
+            value = str(item).strip()
+            if not value or value in seen:
+                continue
+            seen.add(value)
+            values.append(value)
+        return values
+
+    @staticmethod
+    def _increment_score_map(target: dict[str, CountInteractionValue], values: list[str]) -> None:
+        today = date.today().isoformat()
+        for value in values:
+            current = target.get(value)
+            if current is None:
+                target[value] = CountInteractionValue(count=1, last_interaction=today)
+                continue
+            target[value] = CountInteractionValue(
+                count=current.count + 1,
+                last_interaction=CurrentProfileMerger._latest_interaction(
+                    current.last_interaction,
+                    today,
+                ),
+            )
+
+    @staticmethod
+    def _merge_score_map_into(
+        target: dict[str, CountInteractionValue],
+        values: dict[str, CountInteractionValue],
+    ) -> None:
+        for key, value in values.items():
+            current = target.get(key)
+            if current is None:
+                target[key] = CountInteractionValue(
+                    count=value.count,
+                    last_interaction=value.last_interaction,
+                )
+                continue
+            target[key] = CountInteractionValue(
+                count=current.count + value.count,
+                last_interaction=CurrentProfileMerger._latest_interaction(
+                    current.last_interaction,
+                    value.last_interaction,
+                ),
+            )
+
+    @staticmethod
+    def _build_current_turn_session_signals(
+        *,
+        applied_updates: dict[str, Any] | None = None,
+        hidden_profile_signals: list[Any] | None = None,
+    ) -> dict[str, dict[str, CountInteractionValue]]:
+        applied_updates = applied_updates or {}
+        signals: dict[str, dict[str, CountInteractionValue]] = {
+            "traveler_type": {},
+            "long_term_trip_types": {},
+            "long_term_budget_levels": {},
+            "long_term_preference_habits": {},
+            "long_term_hotel_types": {},
+            "long_term_room_views": {},
+            "long_term_amenities": {},
+            "avoid_hotel_types": {},
+            "avoid_amenities": {},
+            "avoid_preference_habits": {},
+            "avoid_nearby_places": {},
+            "avoid_locations": {},
         }
+        field_map = {
+            "session_trip_types": "long_term_trip_types",
+            "session_budget_levels": "long_term_budget_levels",
+            "session_preference_habits": "long_term_preference_habits",
+            "session_hotel_types": "long_term_hotel_types",
+            "session_room_views": "long_term_room_views",
+            "session_amenities": "long_term_amenities",
+        }
+        for update_field, profile_field in field_map.items():
+            values = CurrentProfileMerger._read_applied_update_values(applied_updates.get(update_field))
+            if values:
+                CurrentProfileMerger._increment_score_map(signals[profile_field], values)
+
+        hidden_maps = CurrentProfileMerger._build_hidden_signal_maps(
+            hidden_profile_signals,
+            has_explicit_budget=bool(applied_updates.get("session_budget_levels")),
+        )
+        for profile_field, values in hidden_maps.items():
+            CurrentProfileMerger._merge_score_map_into(signals[profile_field], values)
+        return signals
 
     def _build_retained_long_term_profile(
         self,
         *,
         old_profile: LongTermProfile,
-        merged_active_profile: ActiveProfile,
+        retention_candidate_profile: ActiveProfile,
         tagremoved_profile: LongTermProfile,
         decisions: dict[str, dict[str, list[str]]],
     ) -> LongTermProfile:
@@ -217,48 +320,48 @@ class CurrentProfileMerger:
             traveler_type=self._select_group_map(
                 group_name="traveler_type",
                 selected_keys=decisions.get("traveler_type", {}).get("profile", []),
-                primary_profile=merged_active_profile,
+                primary_profile=retention_candidate_profile,
                 secondary_profile=tagremoved_profile,
             ),
             long_term_trip_types=self._select_group_map(
                 group_name="long_term_trip_types",
                 selected_keys=decisions.get("long_term_trip_types", {}).get("profile", []),
-                primary_profile=merged_active_profile,
+                primary_profile=retention_candidate_profile,
                 secondary_profile=tagremoved_profile,
             ),
             long_term_budget_levels=self._select_group_map(
                 group_name="long_term_budget_levels",
                 selected_keys=decisions.get("long_term_budget_levels", {}).get("profile", []),
-                primary_profile=merged_active_profile,
+                primary_profile=retention_candidate_profile,
                 secondary_profile=tagremoved_profile,
             ),
             long_term_price_range=PriceRange(
-                min=merged_active_profile.long_term_price_range.min,
-                max=merged_active_profile.long_term_price_range.max,
-                currency=merged_active_profile.long_term_price_range.currency,
+                min=retention_candidate_profile.long_term_price_range.min,
+                max=retention_candidate_profile.long_term_price_range.max,
+                currency=retention_candidate_profile.long_term_price_range.currency,
             ),
             long_term_preference_habits=self._select_group_map(
                 group_name="long_term_preference_habits",
                 selected_keys=decisions.get("long_term_preference_habits", {}).get("profile", []),
-                primary_profile=merged_active_profile,
+                primary_profile=retention_candidate_profile,
                 secondary_profile=tagremoved_profile,
             ),
             long_term_hotel_types=self._select_group_map(
                 group_name="long_term_hotel_types",
                 selected_keys=decisions.get("long_term_hotel_types", {}).get("profile", []),
-                primary_profile=merged_active_profile,
+                primary_profile=retention_candidate_profile,
                 secondary_profile=tagremoved_profile,
             ),
             long_term_room_views=self._select_group_map(
                 group_name="long_term_room_views",
                 selected_keys=decisions.get("long_term_room_views", {}).get("profile", []),
-                primary_profile=merged_active_profile,
+                primary_profile=retention_candidate_profile,
                 secondary_profile=tagremoved_profile,
             ),
             long_term_amenities=self._select_group_map(
                 group_name="long_term_amenities",
                 selected_keys=decisions.get("long_term_amenities", {}).get("profile", []),
-                primary_profile=merged_active_profile,
+                primary_profile=retention_candidate_profile,
                 secondary_profile=tagremoved_profile,
             ),
             recommendation_clicks=old_profile.recommendation_clicks,
@@ -266,31 +369,31 @@ class CurrentProfileMerger:
                 avoid_hotel_types=self._select_group_map(
                     group_name="avoid_hotel_types",
                     selected_keys=decisions.get("avoid_hotel_types", {}).get("profile", []),
-                    primary_profile=merged_active_profile,
+                    primary_profile=retention_candidate_profile,
                     secondary_profile=tagremoved_profile,
                 ),
                 avoid_amenities=self._select_group_map(
                     group_name="avoid_amenities",
                     selected_keys=decisions.get("avoid_amenities", {}).get("profile", []),
-                    primary_profile=merged_active_profile,
+                    primary_profile=retention_candidate_profile,
                     secondary_profile=tagremoved_profile,
                 ),
                 avoid_preference_habits=self._select_group_map(
                     group_name="avoid_preference_habits",
                     selected_keys=decisions.get("avoid_preference_habits", {}).get("profile", []),
-                    primary_profile=merged_active_profile,
+                    primary_profile=retention_candidate_profile,
                     secondary_profile=tagremoved_profile,
                 ),
                 avoid_nearby_places=self._select_group_map(
                     group_name="avoid_nearby_places",
                     selected_keys=decisions.get("avoid_nearby_places", {}).get("profile", []),
-                    primary_profile=merged_active_profile,
+                    primary_profile=retention_candidate_profile,
                     secondary_profile=tagremoved_profile,
                 ),
                 avoid_locations=self._select_group_map(
                     group_name="avoid_locations",
                     selected_keys=decisions.get("avoid_locations", {}).get("profile", []),
-                    primary_profile=merged_active_profile,
+                    primary_profile=retention_candidate_profile,
                     secondary_profile=tagremoved_profile,
                 ),
             ),
@@ -300,7 +403,7 @@ class CurrentProfileMerger:
         self,
         *,
         tagremoved_profile: LongTermProfile,
-        merged_active_profile: ActiveProfile,
+        retention_candidate_profile: ActiveProfile,
         decisions: dict[str, dict[str, list[str]]],
     ) -> LongTermProfile:
         return LongTermProfile(
@@ -312,19 +415,19 @@ class CurrentProfileMerger:
                 group_name="traveler_type",
                 selected_keys=decisions.get("traveler_type", {}).get("tagremoved", []),
                 primary_profile=tagremoved_profile,
-                secondary_profile=merged_active_profile,
+                secondary_profile=retention_candidate_profile,
             ),
             long_term_trip_types=self._select_group_map(
                 group_name="long_term_trip_types",
                 selected_keys=decisions.get("long_term_trip_types", {}).get("tagremoved", []),
                 primary_profile=tagremoved_profile,
-                secondary_profile=merged_active_profile,
+                secondary_profile=retention_candidate_profile,
             ),
             long_term_budget_levels=self._select_group_map(
                 group_name="long_term_budget_levels",
                 selected_keys=decisions.get("long_term_budget_levels", {}).get("tagremoved", []),
                 primary_profile=tagremoved_profile,
-                secondary_profile=merged_active_profile,
+                secondary_profile=retention_candidate_profile,
             ),
             long_term_price_range=PriceRange(
                 min=tagremoved_profile.long_term_price_range.min,
@@ -335,25 +438,25 @@ class CurrentProfileMerger:
                 group_name="long_term_preference_habits",
                 selected_keys=decisions.get("long_term_preference_habits", {}).get("tagremoved", []),
                 primary_profile=tagremoved_profile,
-                secondary_profile=merged_active_profile,
+                secondary_profile=retention_candidate_profile,
             ),
             long_term_hotel_types=self._select_group_map(
                 group_name="long_term_hotel_types",
                 selected_keys=decisions.get("long_term_hotel_types", {}).get("tagremoved", []),
                 primary_profile=tagremoved_profile,
-                secondary_profile=merged_active_profile,
+                secondary_profile=retention_candidate_profile,
             ),
             long_term_room_views=self._select_group_map(
                 group_name="long_term_room_views",
                 selected_keys=decisions.get("long_term_room_views", {}).get("tagremoved", []),
                 primary_profile=tagremoved_profile,
-                secondary_profile=merged_active_profile,
+                secondary_profile=retention_candidate_profile,
             ),
             long_term_amenities=self._select_group_map(
                 group_name="long_term_amenities",
                 selected_keys=decisions.get("long_term_amenities", {}).get("tagremoved", []),
                 primary_profile=tagremoved_profile,
-                secondary_profile=merged_active_profile,
+                secondary_profile=retention_candidate_profile,
             ),
             recommendation_clicks=tagremoved_profile.recommendation_clicks,
             long_term_negative_preferences=NegativePreferences(
@@ -361,31 +464,31 @@ class CurrentProfileMerger:
                     group_name="avoid_hotel_types",
                     selected_keys=decisions.get("avoid_hotel_types", {}).get("tagremoved", []),
                     primary_profile=tagremoved_profile,
-                    secondary_profile=merged_active_profile,
+                    secondary_profile=retention_candidate_profile,
                 ),
                 avoid_amenities=self._select_group_map(
                     group_name="avoid_amenities",
                     selected_keys=decisions.get("avoid_amenities", {}).get("tagremoved", []),
                     primary_profile=tagremoved_profile,
-                    secondary_profile=merged_active_profile,
+                    secondary_profile=retention_candidate_profile,
                 ),
                 avoid_preference_habits=self._select_group_map(
                     group_name="avoid_preference_habits",
                     selected_keys=decisions.get("avoid_preference_habits", {}).get("tagremoved", []),
                     primary_profile=tagremoved_profile,
-                    secondary_profile=merged_active_profile,
+                    secondary_profile=retention_candidate_profile,
                 ),
                 avoid_nearby_places=self._select_group_map(
                     group_name="avoid_nearby_places",
                     selected_keys=decisions.get("avoid_nearby_places", {}).get("tagremoved", []),
                     primary_profile=tagremoved_profile,
-                    secondary_profile=merged_active_profile,
+                    secondary_profile=retention_candidate_profile,
                 ),
                 avoid_locations=self._select_group_map(
                     group_name="avoid_locations",
                     selected_keys=decisions.get("avoid_locations", {}).get("tagremoved", []),
                     primary_profile=tagremoved_profile,
-                    secondary_profile=merged_active_profile,
+                    secondary_profile=retention_candidate_profile,
                 ),
             ),
         )

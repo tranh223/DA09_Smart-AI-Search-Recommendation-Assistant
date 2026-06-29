@@ -76,10 +76,15 @@ class SessionContext:
     current_location: str | None = None
     nearby_place: str | None = None
     number_of_guests: int | None = None
+    number_of_days: int | None = None
+    number_of_nights: int | None = None
     has_pet: bool | None = None
     has_children: bool | None = None
     check_in: str | None = None
     check_out: str | None = None
+    budget_type: str | None = None
+    raw_budget_min: float | None = None
+    raw_budget_max: float | None = None
     note_amenities: str | None = None
     is_enough_recommend: bool | None = None
     session_trip_types: ScoreMap = field(default_factory=dict)

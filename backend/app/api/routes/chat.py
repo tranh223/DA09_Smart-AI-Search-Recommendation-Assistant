@@ -112,6 +112,8 @@ def _merge_slots_into_profile(
     for key in (
         "destination", "check_in", "check_out",
         "number_of_guests", "has_pet", "has_children", "nearby_place",
+        "number_of_days", "number_of_nights", "budget_type",
+        "raw_budget_min", "raw_budget_max",
     ):
         if key not in session and slots.get(key) is not None:
             session[key] = slots[key]

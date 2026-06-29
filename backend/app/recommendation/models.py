@@ -66,10 +66,15 @@ class SessionContext(BaseModel):
     current_location: str | None = None
     nearby_place: str | None = None         # điểm landmark/khu vực quan tâm
     number_of_guests: int | None = None
+    number_of_days: int | None = None
+    number_of_nights: int | None = None
     has_pet: bool | None = None
     has_children: bool | None = None
     check_in: str | None = None             # "YYYY-MM-DD"
     check_out: str | None = None
+    budget_type: str | None = None
+    raw_budget_min: float | None = None
+    raw_budget_max: float | None = None
     session_price_range: PriceRange = Field(default_factory=PriceRange)
 
     class Config:
