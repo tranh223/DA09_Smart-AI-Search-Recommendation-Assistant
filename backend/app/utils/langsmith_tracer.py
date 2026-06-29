@@ -11,10 +11,10 @@ except Exception:  # pragma: no cover - depends on installed langsmith version
     langsmith_trace = None
 
 try:
-    from app.rag.config.settings import settings
-    from app.rag.utils.logger import get_logger
+    from utils.settings import settings
+    from utils.logger import get_logger
 except Exception:  # pragma: no cover - standalone app/rag script mode
-    from config.settings import settings
+    from utils.settings import settings
     from utils.logger import get_logger
 
 

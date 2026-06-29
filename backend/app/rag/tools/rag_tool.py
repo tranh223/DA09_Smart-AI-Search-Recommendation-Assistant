@@ -3,9 +3,7 @@
 The old local FAISS hotel chunk search has been replaced by DA10 Hotel Ask:
     GET /hotel/{hotel_id}/ask?q=...&top_k=...&sections=...
 
-This tool deliberately does not use an API key. It resolves hotel entities from
-the local CSV catalog, then asks the remote service for chunk-level evidence
-within each resolved hotel.
+Hotel entities are resolved via vector search in Qdrant using hotel_entity_resolver.
 """
 
 from __future__ import annotations
@@ -14,6 +12,7 @@ import asyncio
 import logging
 import os
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -22,12 +21,10 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from utils.langsmith_tracer import tracer
 
-try:
-    from modules.hotel_entity_intent_helper import extract_hotel_entities
-except Exception:  # pragma: no cover - direct package import fallback
-    from app.rag.modules.hotel_entity_intent_helper import extract_hotel_entities
+from rag.tools.hotel_entity_resolver import hotel_entity_resolver
 
-load_dotenv()
+# Load .env from ../backend/.env (3 levels up from backend/app/rag/tools/)
+load_dotenv(Path(__file__).resolve().parent.parent.parent.parent / ".env")
 
 logger = logging.getLogger(__name__)
 
@@ -283,16 +280,47 @@ def _coerce_float(value: Any) -> float:
         return 0.0
 
 
+def _extract_candidate_hotels_from_query(query: str) -> list[dict[str, Any]]:
+    if not query:
+        return []
+
+    chunks = []
+    for sep in [";", ",", "|", "\n", "\r", " và ", " với ", " cho ", " khi "]:
+        if sep in query:
+            chunks = [c.strip() for c in query.split(sep) if c.strip()]
+            break
+    if not chunks:
+        chunks = [query.strip()]
+
+    key_markers = ["khach san", "khách sạn", "resort", "hotel", "villa", "apartment", "khu nghi", "nhà nghỉ"]
+
+    candidates: list[dict[str, Any]] = []
+    for ch in chunks:
+        low = ch.lower()
+        if any(m in low for m in key_markers) and len(ch) >= 3:
+            candidates.append({"hotel_id": -1, "hotel_name": ch, "city": None, "raw": {}})
+
+    return candidates
+
+
 def _resolve_hotel_ids_from_query(query: str, max_hotels: int = 3) -> list[int]:
-    """Extract hotel IDs from query text using entity matching."""
+    """Extract hotel IDs from query text using vector-based entity resolution."""
     try:
-        entities = extract_hotel_entities(query, max_entities=max_hotels)
-        resolved = [entity.hotel_id for entity in entities]
-        if resolved:
-            logger.info(f"Resolved {len(resolved)} hotel IDs from query: {resolved}")
+        candidates = _extract_candidate_hotels_from_query(query) or []
+        resolved_ids: list[int] = []
+        for cand in candidates:
+            name = str(cand.get("hotel_name") or "").strip()
+            if not name:
+                continue
+            resolution = hotel_entity_resolver.resolve(name, candidates=[], city=None)
+            if resolution.status == "resolved" and resolution.hotel_id is not None:
+                resolved_ids.append(resolution.hotel_id)
+        resolved_ids = resolved_ids[:max_hotels]
+        if resolved_ids:
+            logger.info(f"Resolved {len(resolved_ids)} hotel IDs from query: {resolved_ids}")
         else:
             logger.debug(f"No hotel IDs resolved from query: {query[:100]}")
-        return resolved
+        return resolved_ids
     except Exception as exc:
         logger.warning(f"Hotel entity extraction failed: {exc}")
         return []
