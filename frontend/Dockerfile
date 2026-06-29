@@ -11,7 +11,7 @@ RUN npm ci || npm install
 COPY . .
 
 ARG VITE_BACKEND_BASE_URL
-ARG VITE_OTA_BASE_URL=https://da09-smart-ai-search-recommendation-assistant-338005853285.asia-southeast1.run.app/
+ARG VITE_OTA_BASE_URL=https://supabase-ota-travel.onrender.com
 ARG VITE_OTA_API_KEY=
 ENV VITE_BACKEND_BASE_URL=$VITE_BACKEND_BASE_URL \
     VITE_OTA_BASE_URL=$VITE_OTA_BASE_URL \
