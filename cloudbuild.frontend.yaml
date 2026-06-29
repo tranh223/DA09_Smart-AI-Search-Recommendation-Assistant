@@ -1,0 +1,51 @@
+# Build frontend (Vite) -> nginx image -> deploy Cloud Run service da09-frontend.
+# Dùng chung Artifact Registry repo "da09" với backend.
+#
+# QUAN TRỌNG: đặt _BACKEND_URL = URL Cloud Run của backend (build-time, nhúng cứng).
+#   Lấy URL backend:
+#   gcloud run services describe da09-backend --region=asia-southeast1 --format='value(status.url)'
+
+substitutions:
+  _REGION: asia-southeast1
+  _REPO: da09
+  _SERVICE: da09-frontend
+  _BACKEND_URL: https://REPLACE-voi-url-backend.run.app
+
+steps:
+  # 1) Build image (truyền URL backend vào lúc build)
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --build-arg=VITE_BACKEND_BASE_URL=${_BACKEND_URL}
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:latest
+      - ./frontend          # build context = thư mục frontend
+
+  # 2) Push image
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - --all-tags
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}
+
+  # 3) Deploy Cloud Run
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated
+      - --port=8080
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:latest
+
+options:
+  logging: CLOUD_LOGGING_ONLY
