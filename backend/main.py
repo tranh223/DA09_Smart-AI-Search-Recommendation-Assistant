@@ -167,6 +167,7 @@ from app.api.routes.test import router as test_router  # noqa: E402
 from app.api.routes.dashboard import router as dashboard_router  # noqa: E402
 from app.api.routes.traces import router as traces_router  # noqa: E402
 from app.api.routes.booking import router as booking_router  # noqa: E402
+from app.api.routes.analytics import router as analytics_router  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -210,6 +211,10 @@ async def lifespan(app: FastAPI):
     else:
         logger.info("[startup] All required env vars present.")
 
+    # Kết nối MongoDB một lần duy nhất trong worker process
+    from app.db.mongo.mongo_client import connect as mongo_connect, disconnect as mongo_disconnect  # noqa: PLC0415
+    mongo_connect()
+
     worker = threading.Thread(target=start_log_listener, daemon=True)
     worker.start()
     logger.info("[startup] Kafka log listener started.")
@@ -227,7 +232,9 @@ async def lifespan(app: FastAPI):
         ENABLE_TEST_ENDPOINTS,
     )
     yield
+
     logger.info("[shutdown] Application shutting down.")
+    mongo_disconnect()
 
 
 # ── App factory ───────────────────────────────────────────────────────────────
@@ -298,6 +305,7 @@ app.include_router(health_router)
 app.include_router(dashboard_router)
 app.include_router(traces_router)
 app.include_router(booking_router)
+app.include_router(analytics_router)
 
 if ENABLE_TEST_ENDPOINTS:
     app.include_router(test_router)

@@ -221,7 +221,7 @@ class HotelEntityResolver:
         margin = best["score"] - runner_up_score
 
         if best["score"] < self.auto_resolve_threshold:
-            status = "not_found"
+            status = "low_confidence"
         elif len(ranked) > 1 and margin < self.ambiguity_margin:
             status = "ambiguous"
         else:
@@ -231,9 +231,9 @@ class HotelEntityResolver:
             status=status,
             input_name=hotel_name,
             input_city=city,
-            hotel_id=best["hotel_id"] if status == "resolved" else None,
-            canonical_name=best["hotel_name"] if status == "resolved" else None,
-            matched_alias=hotel_name if status == "resolved" else None,
+            hotel_id=best["hotel_id"],
+            canonical_name=best["hotel_name"],
+            matched_alias=hotel_name,
             confidence=round(best["score"] / 100.0, 4),
             candidates=[
                 {
@@ -247,8 +247,7 @@ class HotelEntityResolver:
             ],
         )
 
-        if status == "resolved":
-            self._resolved_cache[cache_key] = (best["hotel_id"], best["hotel_name"])
+        self._resolved_cache[cache_key] = (best["hotel_id"], best["hotel_name"])
 
         return resolution
 
