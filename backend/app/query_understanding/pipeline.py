@@ -246,20 +246,10 @@ class QueryUnderstandingPipeline:
             },
         )
 
-        is_assistant_help = (
-            guardrail_result.category == "ASSISTANT_HELP"
-            or self.checker.is_assistant_capability_query(query)
-        )
+        is_assistant_help = guardrail_result.category == "ASSISTANT_HELP"
         if is_assistant_help:
             timing["total_pipeline_ms"] = _elapsed_ms(pipeline_start)
             guardrail_payload = asdict(guardrail_result)
-            if guardrail_result.category != "ASSISTANT_HELP":
-                guardrail_payload = {
-                    "allow": False,
-                    "category": "ASSISTANT_HELP",
-                    "reason": "Detected assistant help/capability query.",
-                    "assistant_help_context_mode": "NO_HISTORY",
-                }
             _log_intent_terminal(
                 "assistant_help",
                 route="answer_without_recommend",
@@ -288,7 +278,7 @@ class QueryUnderstandingPipeline:
                     guardrail=guardrail_payload,
                     checker={
                         "assistant_help": True,
-                        "assistant_capability": self.checker.is_assistant_capability_query(query),
+                        "assistant_capability": guardrail_result.assistant_help_context_mode == "NO_HISTORY",
                         "classification": "assistant_help",
                     },
                     intent={},
@@ -297,7 +287,7 @@ class QueryUnderstandingPipeline:
                         "intent": {},
                         "hidden_intent": {
                             "path": "skipped",
-                            "reason": "assistant_capability_query",
+                            "reason": "assistant_help_query",
                         },
                         "semantic_mapping": {},
                         "tag_graph_expansion": {},

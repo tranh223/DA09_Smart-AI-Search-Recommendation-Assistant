@@ -113,7 +113,11 @@ export function HotelsPage({
     Promise.all(
       recoQuery.hotels.map((hotel) =>
         getHotel(hotel.id)
-          .then((detail) => ({ ...hotel, ...detail }))
+          .then((detail) => ({
+            ...hotel,
+            ...detail,
+            min_price: hotel.min_price ?? detail.min_price,
+          }))
           .catch(() => hotel),
       ),
     )

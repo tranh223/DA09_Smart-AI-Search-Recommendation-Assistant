@@ -1022,6 +1022,49 @@ def _format_vnd_million_for_search_template(value: Any) -> str:
     return f"{rounded:.2f}".rstrip("0").rstrip(".")
 
 
+def _router_plan_lengths(state: AgentState) -> tuple[int, int] | None:
+    """Return (rag_steps, recommendation_steps) from QU trace when available."""
+    qu_trace = state.get("qu_trace") or {}
+    if not isinstance(qu_trace, dict):
+        return None
+
+    router = qu_trace.get("router") or {}
+    if not isinstance(router, dict):
+        return None
+
+    rag_plan = router.get("rag_plan")
+    recommendation_plan = router.get("recommendation_plan")
+    if not isinstance(rag_plan, list) or not isinstance(recommendation_plan, list):
+        return None
+
+    return (len(rag_plan), len(recommendation_plan))
+
+
+def _should_run_rag(state: AgentState) -> bool:
+    """Decide whether RAG should execute for current request."""
+    plan_lengths = _router_plan_lengths(state)
+    if plan_lengths is not None:
+        rag_steps, _ = plan_lengths
+        return rag_steps > 0
+
+    # Fallback for legacy paths without QU router trace.
+    return (state.get("intent") or "") in {"information", "special_feature", "hotel_similar"}
+
+
+def _should_run_recommend(state: AgentState) -> bool:
+    """Decide whether recommendation pipeline should execute for current request."""
+    plan_lengths = _router_plan_lengths(state)
+    if plan_lengths is not None:
+        _, recommendation_steps = plan_lengths
+        return recommendation_steps > 0
+
+    # Fallback for legacy paths without QU router trace.
+    return state.get("recommend_input") is not None or (state.get("intent") or "") in {
+        "personalization",
+        "hotel_search",
+    }
+
+
 # ── RAG node ──────────────────────────────────────────────────────────────────
 def rag_node(state: AgentState) -> dict[str, Any]:
     """Chạy RAG pipeline (planner → retrieval → aggregation → generation).
@@ -1034,6 +1077,11 @@ def rag_node(state: AgentState) -> dict[str, Any]:
 
     Fallback: trả empty nếu RAG chatbot không khởi tạo được.
     """
+    req_id = state.get("request_id") or state.get("session_id") or "-"
+    if not _should_run_rag(state):
+        logger.debug("[%s][rag] skipped — no rag plan", req_id)
+        return {"rag_docs": [], "rag_answer": "", "rag_confidence": 0.0}
+
     from app.agent.rag_adapter import run_rag  # noqa: PLC0415
     return run_rag(
         query=state.get("rewritten_query") or state.get("raw_query") or "",
@@ -1052,6 +1100,10 @@ def recommend_node(state: AgentState) -> dict[str, Any]:
     Fallback: build từ slots thủ công (client cũ hoặc khi QU không khả dụng).
     """
     req_id = state.get("request_id") or state.get("session_id") or "-"
+    if not _should_run_recommend(state):
+        logger.debug("[%s][recommend] skipped — no recommendation plan", req_id)
+        return {"recommend_input": None, "merged_candidates": [], "_raw_source_stats": {}}
+
     recommend_input = _resolve_recommend_input(state)
     if recommend_input is None:
         logger.warning("[%s][recommend] recommend_input=None (no destination) → empty candidates", req_id)
@@ -1296,6 +1348,7 @@ def analytics_node(state: AgentState) -> dict[str, Any]:
             query=state.get("raw_query") or "",
             final_response=state.get("final_response") or {},
             latency_summary=latency_summary,
+            state=state,
         )
 
     return {"latency_summary": latency_summary}
@@ -1422,10 +1475,11 @@ def _emit_analytics(
     query: str,
     final_response: dict[str, Any],
     latency_summary: dict[str, Any],
+    state: dict[str, Any] | None = None,
 ) -> None:
     """Gửi events Kafka. Bắt toàn bộ exception để không block graph."""
     try:
-        from app.analytics.logging.logger import log_latency  # noqa: PLC0415
+        from app.analytics.logging.logger import log_latency, log_ttft, log_token  # noqa: PLC0415
         answer = final_response.get("answer") or ""
         if query and answer:
             _persist_chat_history_directly(
@@ -1435,9 +1489,25 @@ def _emit_analytics(
                 answer=answer,
             )
             _schedule_summary_update(user_id=user_id)
-        total_s = (latency_summary.get("total_ms") or 0) / 1000.0
-        if total_s > 0:
-            log_latency(time=total_s, session_id=session_id)
+        # Latency và TTFT đơn vị ms
+        total_ms = latency_summary.get("total_ms") or 0
+        if total_ms > 0:
+            # Trong kiến trúc này graph chạy xong rồi mới stream từng word,
+            # nên TTFT = tổng latency graph (thời gian từ request đến token đầu tiên)
+            log_ttft(time=total_ms, session_id=session_id)
+        # Log token từ QU pipeline trace (tổng hợp tất cả LLM calls)
+        if state is not None:
+            llm_traces = (state.get("qu_trace") or {}).get("llm_traces") or {}
+            total_inp = 0
+            total_out = 0
+            for trace_val in llm_traces.values():
+                if isinstance(trace_val, dict):
+                    usage = trace_val.get("usage") or trace_val.get("response_meta", {}).get("usage") or {}
+                    if isinstance(usage, dict):
+                        total_inp += int(usage.get("input_tokens") or 0)
+                        total_out += int(usage.get("output_tokens") or 0)
+            if total_inp > 0 or total_out > 0:
+                log_token(inp=total_inp, out=total_out, session_id=session_id)
     except Exception as exc:  # noqa: BLE001
         logger.warning("[analytics_node] Kafka emit failed (non-fatal): %s", exc)
 

@@ -9,7 +9,8 @@ from app.db.mongo.mongo_client import get_collection
 from app.utils.util import transform_id
 from bson import ObjectId
 from app.analytics.metrics.evaluator import evaluate_session
-from openai.types.responses import ResponseUsage
+import asyncio
+from fastapi import BackgroundTasks
 
 try:
     from kafka import KafkaConsumer, KafkaProducer
@@ -54,14 +55,23 @@ def producer_send(session_id: str, value):
         value=value
     ).get(timeout=10)
     return True
+
+async def eval_manual(session_id: str):
+    await asyncio.sleep(4)
+    sessions = get_collection("Sessions")
+    doc = sessions.find_one({"_id": session_id})
+    if doc and doc.get("evaluated", False):
+        return
+    evaluate_session(session_id=session_id)
     
-def end_session(session_id: str):
+def end_session(session_id: str, background_tasks: BackgroundTasks):
     value = {
         "session_id": session_id,
         "type": "SESSION_END",
         "log": datetime.now().isoformat()
     }
     producer_send(session_id, value)
+    background_tasks.add_task(eval_manual, session_id)
     if producer is not None:
         producer.flush(timeout=1)
     
@@ -134,13 +144,16 @@ def log_booking(session_id: str):
     }
     producer_send(session_id, value)
 
-def log_token(usage: ResponseUsage, session_id: str):
+def log_token(inp: int, out: int, session_id: str):
+    '''
+    log lại input/output token khi chat
+    '''
     value = {
         "session_id": session_id,
         "type": "TOKEN",
         "log": {
-            'inp': usage.input_tokens,
-            'out': usage.output_tokens
+            'inp': inp,
+            'out': out
         }
     }
     producer_send(session_id, value)

@@ -133,7 +133,7 @@ def session_average_latency(session_id: str, collection):
     tính latency trung bình của cả 1 phiên
     output: float (giây)
     '''
-    doc = collection.find_one({"_id": ObjectId(session_id)})
+    doc = collection.find_one({"_id": session_id})
 
     if doc is None:
         raise ValueError(f"Session {session_id} not found")
@@ -141,7 +141,7 @@ def session_average_latency(session_id: str, collection):
     latencies = doc.get("latency", [])
 
     if not latencies:
-        return 0.0
+        return None
 
     avg_ms = sum(latencies) / len(latencies)
 
@@ -153,7 +153,7 @@ def session_average_ttft(session_id: str, collection):
     tính ttft trung bình của cả 1 phiên
     output: float (giây)
     '''
-    doc = collection.find_one({"_id": ObjectId(session_id)})
+    doc = collection.find_one({"_id": session_id})
 
     if doc is None:
         raise ValueError(f"Session {session_id} not found")
@@ -161,7 +161,7 @@ def session_average_ttft(session_id: str, collection):
     ttfts = doc.get("ttft", [])
 
     if not ttfts:
-        return 0.0
+        return None
 
     avg_ms = sum(ttfts) / len(ttfts)
 
@@ -173,7 +173,7 @@ def session_csat(session_id: str, collection):
     tính csat cho 1 phiên
     output: csat theo dạng %
     '''
-    doc = collection.find_one({"_id": ObjectId(session_id)})
+    doc = collection.find_one({"_id": session_id})
 
     if doc is None:
         raise ValueError(f"Session {session_id} not found")
@@ -189,7 +189,7 @@ def session_csat(session_id: str, collection):
 
     total = num_like + num_dislike
 
-    if total == 0 & final_reaction is None:
+    if total == 0 and final_reaction is None:
         return None
     
     if final_reaction is None:
@@ -197,7 +197,7 @@ def session_csat(session_id: str, collection):
     elif total == 0:
         csat = final_reaction * 100
     else:
-        csat = (num_like / total) * 0.3 +  final_reaction * 0.7
+        csat = (num_like / total) * 30 +  final_reaction * 70
 
     return csat
 
@@ -207,7 +207,7 @@ def clear_log(session_id: str, collection):
     xóa reaction, final reaction, latency, ttft, booking của phiên chat sau khi đánh giá
     '''
     collection.update_one(
-        {"_id": ObjectId(session_id)},
+        {"_id": session_id},
         {
             "$unset": {
                 "num_like": "",
@@ -240,7 +240,7 @@ def save_evaluation_result(
     '''
 
     session = sessions_collection.find_one(
-        {"_id": ObjectId(session_id)}
+        {"_id": session_id}
     )
 
     if session is None:
@@ -252,24 +252,30 @@ def save_evaluation_result(
     # booking = session.get("booking", False)
 
     date_str = datetime.now().strftime("%Y-%m-%d")
+    input_token = session.get('input_token', 0)
+    output_token = session.get('output_token', 0)
+
+    push_data = {}
+    if csat is not None:
+        push_data["csat"] = csat
+    if average_latency is not None:
+        push_data["latency"] = average_latency
+    if average_ttft is not None:
+        push_data["ttft"] = average_ttft
+    push_data["booking"] = booking
+    if input_token != 0:
+        push_data["input_token"] = input_token
+    if output_token != 0:
+        push_data["output_token"] = output_token
 
     eval_collection.update_one(
         {"date": date_str},
-        {
-            "$push": {
-                "csat": csat,
-                "latency": average_latency,
-                "ttft": average_ttft,
-                "booking": booking,
-                'input_token': session.get('input_token', 0),
-                'output_token': session.get('output_token', 0)
-            }
-        },
+        {"$push": push_data},
         upsert=True
     )
 
     sessions_collection.update_one(
-        {"_id": ObjectId(session_id)},
+        {"_id": session_id},
         {
             "$set": {
                 "evaluated": True
@@ -283,14 +289,14 @@ def evaluate_session(session_id: str):
     eval_collection = get_collection("Eval")
     sessions_collection = get_collection("Sessions")
 
-    if sessions_collection.find_one({"_id": ObjectId(session_id)}).get("evaluated", False):
+    if sessions_collection.find_one({"_id": session_id}).get("evaluated", False):
         raise ValueError(f"Session {session_id} already evaluated")
 
     latency = session_average_latency(session_id, sessions_collection)
     ttft = session_average_ttft(session_id, sessions_collection)
     csat = session_csat(session_id, sessions_collection)
-    booking = sessions_collection.find_one({"_id": ObjectId(session_id)}).get("booking", False)
+    booking = sessions_collection.find_one({"_id": session_id}).get("booking", False)
 
     save_evaluation_result(session_id, csat, latency, ttft, booking, eval_collection, sessions_collection)
 
-    clear_log(session_id, sessions_collection)
+    # clear_log(session_id, sessions_collection)
