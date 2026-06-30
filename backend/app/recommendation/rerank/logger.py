@@ -23,3 +23,19 @@ def write_rerank_log(settings: Settings, payload: dict[str, Any], write_debug_fi
             # Do not raise logging errors
             pass
 
+
+def write_mapping_log(settings: Any, raw_input: list[dict], normalized: list[dict]) -> None:
+    try:
+        path = settings.base_dir / "logs" / "rerank_candidates_mapping.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "raw_candidates_input": raw_input,
+            "normalized_candidates": normalized
+        }
+        with path.open("w", encoding="utf-8") as handle:
+            json.dump(payload, handle, ensure_ascii=False, indent=2, default=str)
+    except Exception:
+        pass
+
+

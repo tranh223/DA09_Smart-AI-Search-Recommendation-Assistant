@@ -9,6 +9,14 @@ def build_reasons(item: dict[str, Any], profile: dict[str, Any], llm_reasons: li
     features = item.get("feature_scores", {})
     if session.get("destination") and item.get("destination") == session.get("destination"):
         reasons.append(f"Phù hợp chuyến đi gia đình tại {item.get('destination')}")
+    if features.get("suitability", 0) >= 0.70:
+        session_trip_types = set(session.get("trip_types", {}).keys())
+        hotel_tags = set(item.get("tags", []))
+        matching_types = session_trip_types.intersection(hotel_tags)
+        if matching_types:
+            reasons.append(f"Rất phù hợp cho {', '.join(matching_types)}")
+        else:
+            reasons.append("Phù hợp với loại hình chuyến đi của bạn")
     if features.get("personalization", 0) >= 0.75 and item.get("hotel_type"):
         reasons.append(f"Khớp loại {item.get('hotel_type')} mà session đang ưu tiên")
     matching_views = [view for view in item.get("room_views", []) if view in session.get("room_views", {})]

@@ -177,7 +177,6 @@ def personalization_score(profile: dict[str, Any], hotel: dict[str, Any]) -> flo
     session = _session(profile)
     long = _long(profile)
     hotel_type = hotel.get("hotel_type")
-    trip_tags = _schema_trip_tags(hotel)
     habits = _schema_preference_habits(hotel)
     clicked = {to_str_id(item) for item in as_list(as_dict(long.get("recommendation_clicks")).get("hotel"))}
 
@@ -188,10 +187,6 @@ def personalization_score(profile: dict[str, Any], hotel: dict[str, Any]) -> flo
         if hotel_types:
             total += 1
             score += clamp(hotel_types.get(hotel_type, 0.0))
-        trip_types = as_dict(source.get("trip_types"))
-        if trip_types:
-            total += 1
-            score += weighted_overlap(trip_types, trip_tags)
         pref_habits = as_dict(source.get("preference_habits"))
         if pref_habits:
             total += 1
@@ -202,6 +197,20 @@ def personalization_score(profile: dict[str, Any], hotel: dict[str, Any]) -> flo
     if hotel.get("item_id") in clicked:
         score = clamp(score + 0.12)
     return score
+
+
+def suitability_score(profile: dict[str, Any], hotel: dict[str, Any]) -> float:
+    session = _session(profile)
+    long = _long(profile)
+    trip_tags = _schema_trip_tags(hotel)
+
+    def source_score(source: dict[str, Any]) -> float:
+        trip_types = as_dict(source.get("trip_types"))
+        if not trip_types:
+            return 0.5
+        return weighted_overlap(trip_types, trip_tags)
+
+    return clamp(0.70 * source_score(session) + 0.30 * source_score(long))
 
 
 def location_score(profile: dict[str, Any], hotel: dict[str, Any]) -> float:
@@ -253,6 +262,7 @@ def score_candidate(profile: dict[str, Any], hotel: dict[str, Any], trend_signal
         "review": review_score(hotel),
         "availability": availability_score(hotel),
         "personalization": personalization_score(profile, hotel),
+        "suitability": suitability_score(profile, hotel),
         "location": location_score(profile, hotel),
         "trend": trend,
     }
@@ -260,7 +270,8 @@ def score_candidate(profile: dict[str, Any], hotel: dict[str, Any], trend_signal
     # weights used for transparency
     weights = {
         "keyword": 0.2,          # base của ranking trước khi rerank (search_score)
-        "personalization": 0.2,   # mức độ ảnh hưởng của cá nhân hóa (session + long term)
+        "personalization": 0.1,   # mức độ ảnh hưởng của cá nhân hóa (session + long term)
+        "suitability": 0.1,       # Điểm phù hợp đối tượng chuyến đi
         "amenity": 0.07,          # trọng số tiện ích
         "budget": 0.15,           # Khớp khoảng giá ngân sách
         "availability": 0.03,     # Độ sẵn có của phòng trống
