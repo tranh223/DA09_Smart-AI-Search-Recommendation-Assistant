@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
-from app.analytics.logging.logger import log_booking_for_graph
+from app.analytics.logging.logger import log_booking, log_booking_for_graph
 from app.api.middleware import get_request_id
 from app.api.models import APIResponse
 from app.auth.dependencies import get_current_user_dep
@@ -21,6 +21,7 @@ router = APIRouter(prefix="/booking", tags=["booking"])
 class BookingCreateRequest(BaseModel):
     hotel_id: int = Field(gt=0)
     hotel_name: str = Field(min_length=1)
+    session_id: str | None = Field(default=None)  # optional — dùng để log_booking vào Kafka analytics
 
 
 @router.post("", response_model=APIResponse, summary="Book a hotel")
@@ -46,6 +47,13 @@ async def create_booking(
                 message="Không lưu được booking.",
                 request_id=req_id,
             )
+
+        # Gửi event booking lên Kafka để analytics pipeline tracking
+        if req.session_id:
+            try:
+                log_booking(req.session_id)
+            except Exception as _log_exc:  # noqa: BLE001
+                logger.warning("log_booking kafka failed (non-fatal): %s", _log_exc)
 
         return APIResponse.ok(
             data={

@@ -81,7 +81,7 @@ export class BackendApiError extends Error {
 }
 
 export async function bookHotel(
-  payload: { hotel_id: number; hotel_name: string },
+  payload: { hotel_id: number; hotel_name: string; session_id?: string | null },
   token?: string | null,
 ): Promise<{ booking_id: string; hotel_id: number; hotel_name: string }> {
   const headers: Record<string, string> = {
@@ -250,5 +250,50 @@ export async function sendChatMessageStream(
     }
   } finally {
     reader.releaseLock();
+  }
+}
+
+export async function notifySessionEnd(session_id: string, token?: string | null) {
+  const url = `${BACKEND_BASE_URL}/analytics/session_end`;
+  const payload = { session_id };
+
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  try {
+    console.log('[notifySessionEnd] Sending session_end to backend:', { session_id, url });
+    await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), keepalive: true });
+    console.log('[notifySessionEnd] Success');
+  } catch (e) {
+    console.error('[notifySessionEnd] Failed:', e);
+    // best-effort — don't throw to avoid breaking UI close flows
+  }
+}
+
+export async function logReaction(session_id: string, reaction: boolean, token?: string | null) {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  try {
+    await fetch(`${BACKEND_BASE_URL}/analytics/reaction`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ session_id, reaction }),
+    });
+  } catch (e) {
+    console.error('[logReaction] Failed:', e);
+  }
+}
+
+export async function logFinalReaction(session_id: string, final_reaction: boolean, token?: string | null) {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  try {
+    await fetch(`${BACKEND_BASE_URL}/analytics/final_reaction`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ session_id, final_reaction }),
+    });
+  } catch (e) {
+    console.error('[logFinalReaction] Failed:', e);
   }
 }
