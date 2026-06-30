@@ -645,6 +645,9 @@ def rerank(
         log.info("[Rerank] No candidates — returning empty immediately.")
         return {"ranked_items": [], "ranked_hotels": []}
 
+    import copy
+    raw_candidate_items_input = copy.deepcopy(candidate_items)
+
     settings = load_settings()
     opts = as_dict(options)
     top_k = 6
@@ -683,6 +686,11 @@ def rerank(
     candidate_ids = [item["item_id"] for item in candidates]
     norm_ms = (time.perf_counter() - t_norm) * 1000
     log.info("[Rerank] Phase 2 Normalize | %.2f ms | %d candidates", norm_ms, len(candidates))
+    try:
+        from .logger import write_mapping_log
+        write_mapping_log(settings, raw_candidate_items_input, candidates)
+    except Exception:
+        pass
 
     # ── Phase 3: Load profile + bookings ────────────────────────────────
     t_profile = time.perf_counter()
