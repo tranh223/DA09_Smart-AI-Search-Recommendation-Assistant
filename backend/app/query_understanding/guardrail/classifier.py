@@ -69,8 +69,9 @@ ASSISTANT_HELP criteria:
 - current_query asks what VinBot/the assistant/the system can do, what features it has, or how it can help
 - current_query asks the assistant to recall, summarize, or answer based on already-known trip/hotel/travel context from conversation_summary or recent_user_queries
 - current_query asks about information the user has already interacted with, such as their planned destination, travel dates, hotel preferences, budget, selected hotels, khu vui chơi, or prior travel/hotel intent
+- current_query is a social/conversational turn to the assistant (for example greetings, thanks, short confirmations, polite small talk) where a friendly assistant reply is appropriate
 - ASSISTANT_HELP is not a recommendation/search request. It should be answered conversationally and must not trigger hotel recommendation.
-- Do not classify as ASSISTANT_HELP unless current_query explicitly asks about assistant capability, system capability, or remembered conversation/trip context.
+- For social/conversational turns, default to ASSISTANT_HELP instead of OUT_OF_SCOPE unless the message is clearly unrelated, malicious, or unreadable.
 
 OUT_OF_SCOPE criteria:
 - everything else not covered by OTA_QUERY or ASSISTANT_HELP
@@ -78,7 +79,7 @@ OUT_OF_SCOPE criteria:
 - programming, API keys, tokens, SDKs, cloud credentials, developer tooling, technical account setup, unrelated software integration
 - medical, legal, financial, schoolwork, entertainment, news, general knowledge, or other non-travel/non-OTA topics
 - nonsensical, corrupted, spammy, or unreadable input
-- vague one-word or command-like messages that do not clearly provide OTA details or ask assistant capability, such as "clear", "ok", "test", "abc", "hmm"
+- command-like messages that request system control actions (for example "clear", "reset", "xoa lich su") without clear OTA/help intent
 
 Decision rules:
 - Return allow=true only for OTA_QUERY.
@@ -90,7 +91,10 @@ Decision rules:
 - Do not classify current_query as OTA_QUERY only because conversation_summary contains hotel context. The current_query itself must be OTA/travel/hotel related or a short follow-up answer that fills active OTA details.
 - If current_query asks "do you remember where/when I planned to go?", classify ASSISTANT_HELP, not OTA_QUERY.
 - If current_query asks "what can you do?", classify ASSISTANT_HELP, not OTA_QUERY.
-- If current_query is vague or unclear and does not itself mention travel/hotel/OTA details or assistant capability, classify OUT_OF_SCOPE even when conversation_summary contains hotel context.
+- If current_query is a greeting or polite opener like "xin chao", "hello", "hi", classify ASSISTANT_HELP with assistant_help_context_mode=NO_HISTORY.
+- If current_query is a short acknowledgement or thanks like "ok", "cam on", "duoc", classify ASSISTANT_HELP with assistant_help_context_mode=NO_HISTORY unless it is clearly a system command.
+- If current_query asks general travel/hotel guidance without requiring remembered context, classify OTA_QUERY.
+- If current_query is vague or unclear and does not itself mention travel/hotel/OTA details or assistant capability, prefer ASSISTANT_HELP when it is a normal conversational turn; use OUT_OF_SCOPE only for truly unrelated, malicious, or unreadable input.
 - If current_query asks about API key/token/SDK/cloud/developer service, classify OUT_OF_SCOPE even if the word "service" appears.
 - If current_query asks "khách sạn này có dịch vụ gì" or "dịch vụ phòng thế nào", classify OTA_QUERY because it clearly means hotel service.
 - If current_query is ambiguous but reasonably about travel/hotel/tourism, prefer OTA_QUERY over OUT_OF_SCOPE.
@@ -103,9 +107,15 @@ class OTAGuardrailClassifier:
         self,
         client: OpenAIResponsesClient | None = None,
         model: str | None = None,
+        temperature: float | None = None,
     ) -> None:
         self.client = client or OpenAIResponsesClient()
         self.model = model or os.getenv("LLM_MODEL", "gpt-4o-mini")
+        self.temperature = (
+            temperature
+            if temperature is not None
+            else float(os.getenv("GUARDRAIL_TEMPERATURE", "0.3") or "0.3")
+        )
         self.last_trace: dict[str, object] = {}
 
     def classify(
@@ -134,10 +144,12 @@ class OTAGuardrailClassifier:
             strict=True,
             prompt_cache_key=prompt_cache.get("prompt_cache_key"),
             prompt_cache_retention=prompt_cache.get("prompt_cache_retention"),
+            temperature=self.temperature,
         )
         self.last_trace = {
             "path": "llm",
             "model": self.model,
+            "temperature": self.temperature,
             "prompt_cache": prompt_cache,
             "response_meta": dict(self.client.last_response_meta),
             "input": {
