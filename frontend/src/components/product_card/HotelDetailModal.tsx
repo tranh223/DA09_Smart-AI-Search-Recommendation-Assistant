@@ -90,7 +90,7 @@ export function HotelDetailModal({ hotelId, fallback, onClose }: Props) {
     setBookingState('saving');
     setBookingError(null);
     try {
-      await bookHotel({ hotel_id: hotel.id, hotel_name: hotel.name }, token);
+      await bookHotel({ hotel_id: hotel.id, hotel_name: hotel.name, session_id: sessionStorage.getItem('vinbot_session_id') }, token);
       setBookingState('saved');
     } catch (err) {
       setBookingState('idle');

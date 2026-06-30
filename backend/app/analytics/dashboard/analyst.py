@@ -47,6 +47,9 @@ import calendar
 COST_PER_INPUT_TOKEN = 0.15 / 1000000
 COST_PER_OUTPUT_TOKEN = 0.6 / 1000000
 
+def handle_cost(cost: float):
+    return int(cost * 100000) / 100000
+
 def analysis_by_day(month: int):
     year = datetime.now().year
     eval_collection = get_collection("Eval")
@@ -93,7 +96,7 @@ def analysis_by_day(month: int):
         input_token_lst = doc.get('input_token', [])
         output_token_lst = doc.get('output_token', [])
 
-        csat.append(round(sum(csat_list) / len(csat_list) * 100, 2) if csat_list else 0)
+        csat.append(round(sum(csat_list) / len(csat_list), 2) if csat_list else 0)
         latency.append(round(sum(latency_list) / len(latency_list), 2) if latency_list else 0)
         ttft.append(round(sum(ttft_list) / len(ttft_list), 2) if ttft_list else 0)
         input_token.append(round(sum(input_token_lst) / len(input_token_lst), 2) if input_token_lst else 0)
@@ -120,8 +123,8 @@ def analysis_by_day(month: int):
         "booking": booking,
         'input_token': input_token,
         'output_token': output_token,
-        'input_token_cost': [round(i * COST_PER_INPUT_TOKEN, 2) for i in input_token],
-        'output_token_cost': [round(i * COST_PER_OUTPUT_TOKEN, 2) for i in output_token]
+        'input_token_cost': [handle_cost(i * COST_PER_INPUT_TOKEN) for i in input_token],
+        'output_token_cost': [handle_cost(i * COST_PER_OUTPUT_TOKEN) for i in output_token]
     }
 
 def analysis_by_month(year: int):
@@ -160,18 +163,11 @@ def analysis_by_month(year: int):
         output_token = []
         
         for doc in eval_collection.find({"date": {"$regex": f"{year}-{month:02d}-"}}):
-            print(doc)
-            csat.append(sum(doc.get("csat"))/len(doc.get("csat")))
-            latency.append(sum(doc.get("latency"))/len(doc.get("latency")))
-            ttft.append(sum(doc.get("ttft"))/len(doc.get("ttft")))
-            booked = 0
-            book = doc.get("booking")
-            for b in book:
-                if b == True:
-                    booked += 1
-            booking.append(booked/len(book))
+            csat += doc.get('csat', [])
+            latency += doc.get('latency', [])
+            ttft += doc.get('ttft', [])
+            booking += doc.get('booking', [])
             if "ragas" in doc:
-                print(doc["ragas"])
                 ragas["faithfulness"].append(doc["ragas"].get("faithfulness"))
                 ragas["answer_relevance"].append(doc["ragas"].get("answer_relevancy"))
                 ragas["context_precision"].append(doc["ragas"].get("context_precision"))
@@ -180,10 +176,10 @@ def analysis_by_month(year: int):
             output_token += doc.get('output_token', [])
         
         months.append(month)
-        csat_month.append(round(sum(csat)/len(csat) * 100, 2) if len(csat) > 0 else 0)
+        csat_month.append(round(sum(csat)/len(csat), 2) if len(csat) > 0 else 0)
         latency_month.append(round(sum(latency)/len(latency), 2) if len(latency) > 0 else 0)
         ttft_month.append(round(sum(ttft)/len(ttft), 2) if len(ttft) > 0 else 0)
-        booking_month.append(round(sum(booking)/len(booking) * 100, 2) if len(booking) > 0 else 0)
+        booking_month.append(round(len([i for i in booking if i == True])/len(booking) * 100, 2) if len(booking) > 0 else 0)
         ragas_month["faithfulness"].append(sum(ragas["faithfulness"])/len(ragas["faithfulness"]) if len(ragas["faithfulness"]) > 0 else 0)
         ragas_month["answer_relevance"].append(sum(ragas["answer_relevance"])/len(ragas["answer_relevance"]) if len(ragas["answer_relevance"]) > 0 else 0)
         ragas_month["context_precision"].append(sum(ragas["context_precision"])/len(ragas["context_precision"]) if len(ragas["context_precision"]) > 0 else 0)
@@ -200,8 +196,8 @@ def analysis_by_month(year: int):
         "ragas": ragas_month,
         'input_token': input_token_month,
         'output_token': output_token_month,
-        'input_token_cost': [round(i * COST_PER_INPUT_TOKEN, 2) for i in input_token_month],
-        'output_token_cost': [round(i * COST_PER_OUTPUT_TOKEN, 2) for i in output_token_month]
+        'input_token_cost': [handle_cost(i * COST_PER_INPUT_TOKEN) for i in input_token_month],
+        'output_token_cost': [handle_cost(i * COST_PER_OUTPUT_TOKEN) for i in output_token_month]
     }
 
 # print(analysis_by_month(2026))

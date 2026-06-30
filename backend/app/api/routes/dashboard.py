@@ -34,7 +34,7 @@ async def overview(current_user=Depends(require_admin)) -> APIResponse:
             booking = booked / len(booking_list) if booking_list else 0
             inp_token = sum(doc.get("input_token") or []) / (len(doc.get("input_token") or []) or 1)
             out_token = sum(doc.get("output_token") or []) / (len(doc.get("output_token") or []) or 1)
-            data = {"csat": round(csat * 100, 2), "latency": latency, "ttft": ttft, "hit rate": round(booking * 100, 2), "input token": inp_token, "output token": out_token}
+            data = {"csat": round(csat, 2), "latency": round(latency, 2), "ttft": round(ttft, 2), "hit rate": round(booking * 100, 2), "input token": inp_token, "output token": out_token}
         return APIResponse.ok(data=data, request_id=req_id)
     except Exception as exc:
         logger.exception("overview failed")

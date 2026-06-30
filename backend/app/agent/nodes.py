@@ -1296,6 +1296,7 @@ def analytics_node(state: AgentState) -> dict[str, Any]:
             query=state.get("raw_query") or "",
             final_response=state.get("final_response") or {},
             latency_summary=latency_summary,
+            state=state,
         )
 
     return {"latency_summary": latency_summary}
@@ -1422,10 +1423,11 @@ def _emit_analytics(
     query: str,
     final_response: dict[str, Any],
     latency_summary: dict[str, Any],
+    state: dict[str, Any] | None = None,
 ) -> None:
     """Gửi events Kafka. Bắt toàn bộ exception để không block graph."""
     try:
-        from app.analytics.logging.logger import log_latency  # noqa: PLC0415
+        from app.analytics.logging.logger import log_latency, log_ttft, log_token  # noqa: PLC0415
         answer = final_response.get("answer") or ""
         if query and answer:
             _persist_chat_history_directly(
@@ -1435,9 +1437,25 @@ def _emit_analytics(
                 answer=answer,
             )
             _schedule_summary_update(user_id=user_id)
-        total_s = (latency_summary.get("total_ms") or 0) / 1000.0
-        if total_s > 0:
-            log_latency(time=total_s, session_id=session_id)
+        # Latency và TTFT đơn vị ms
+        total_ms = latency_summary.get("total_ms") or 0
+        if total_ms > 0:
+            # Trong kiến trúc này graph chạy xong rồi mới stream từng word,
+            # nên TTFT = tổng latency graph (thời gian từ request đến token đầu tiên)
+            log_ttft(time=total_ms, session_id=session_id)
+        # Log token từ QU pipeline trace (tổng hợp tất cả LLM calls)
+        if state is not None:
+            llm_traces = (state.get("qu_trace") or {}).get("llm_traces") or {}
+            total_inp = 0
+            total_out = 0
+            for trace_val in llm_traces.values():
+                if isinstance(trace_val, dict):
+                    usage = trace_val.get("usage") or trace_val.get("response_meta", {}).get("usage") or {}
+                    if isinstance(usage, dict):
+                        total_inp += int(usage.get("input_tokens") or 0)
+                        total_out += int(usage.get("output_tokens") or 0)
+            if total_inp > 0 or total_out > 0:
+                log_token(inp=total_inp, out=total_out, session_id=session_id)
     except Exception as exc:  # noqa: BLE001
         logger.warning("[analytics_node] Kafka emit failed (non-fatal): %s", exc)
 

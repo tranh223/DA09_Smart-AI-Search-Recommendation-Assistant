@@ -382,6 +382,12 @@ async def chat_stream(
                     yield _sse({"type": "delta", "text": chunk})
                     if _STREAM_WORD_DELAY > 0:
                         await asyncio.sleep(_STREAM_WORD_DELAY)
+        true_latency_ms = round((time.perf_counter() - t0) * 1000)
+        try:
+            from app.analytics.logging.logger import log_latency
+            log_latency(time=true_latency_ms, session_id=req.session_id)
+        except Exception as log_err:
+            logger.warning("[analytics] Log Latency failed: %s", log_err)
 
         # ── Bước 3: metadata đầy đủ ──────────────────────────────────────────
         yield _sse({

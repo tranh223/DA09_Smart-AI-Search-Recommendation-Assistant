@@ -167,6 +167,7 @@ from app.api.routes.test import router as test_router  # noqa: E402
 from app.api.routes.dashboard import router as dashboard_router  # noqa: E402
 from app.api.routes.traces import router as traces_router  # noqa: E402
 from app.api.routes.booking import router as booking_router  # noqa: E402
+from app.api.routes.analytics import router as analytics_router  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -304,6 +305,7 @@ app.include_router(health_router)
 app.include_router(dashboard_router)
 app.include_router(traces_router)
 app.include_router(booking_router)
+app.include_router(analytics_router)
 
 if ENABLE_TEST_ENDPOINTS:
     app.include_router(test_router)
