@@ -251,6 +251,11 @@ def pipeline_result_to_state(
     active_profile = pipeline_result.active_profile
     updated_profile = pipeline_result.updated_user_profile
     has_plan = router_result is not None
+    has_recommendation_plan = bool(
+        has_plan
+        and router_result is not None
+        and getattr(router_result, "recommendation_plan", None)
+    )
 
     # Pre-compute sc_dict once — dùng cho cả _extract_slots và _to_session_context
     sc_dict: dict[str, Any] = asdict(updated_profile.session_context)
@@ -275,7 +280,7 @@ def pipeline_result_to_state(
     }
 
     recommend_input: RecommendInput | None = None
-    if has_plan and active_profile is not None:
+    if has_recommendation_plan and active_profile is not None:
         recommend_input = RecommendInput(
             user_id=updated_profile.user_id,
             profile=_to_profile(active_profile),

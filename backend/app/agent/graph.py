@@ -53,7 +53,9 @@ def build_graph():
         },
     )
 
-    # rewrite fan-out → RAG và Recommend chạy song song (cùng độ sâu 1 từ rewrite)
+    # rewrite fan-out: cả 2 node luôn được schedule ở mức graph,
+    # nhưng mỗi node sẽ tự skip theo QU router plan (rag_plan/recommendation_plan).
+    # Nhờ đó chỉ nhánh cần thiết mới chạy pipeline nặng.
     graph.add_edge("clarify", "analytics")
     graph.add_edge("rewrite", "rag")
     graph.add_edge("rewrite", "recommend")

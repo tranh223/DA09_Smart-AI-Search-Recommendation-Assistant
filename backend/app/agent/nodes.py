@@ -1022,6 +1022,49 @@ def _format_vnd_million_for_search_template(value: Any) -> str:
     return f"{rounded:.2f}".rstrip("0").rstrip(".")
 
 
+def _router_plan_lengths(state: AgentState) -> tuple[int, int] | None:
+    """Return (rag_steps, recommendation_steps) from QU trace when available."""
+    qu_trace = state.get("qu_trace") or {}
+    if not isinstance(qu_trace, dict):
+        return None
+
+    router = qu_trace.get("router") or {}
+    if not isinstance(router, dict):
+        return None
+
+    rag_plan = router.get("rag_plan")
+    recommendation_plan = router.get("recommendation_plan")
+    if not isinstance(rag_plan, list) or not isinstance(recommendation_plan, list):
+        return None
+
+    return (len(rag_plan), len(recommendation_plan))
+
+
+def _should_run_rag(state: AgentState) -> bool:
+    """Decide whether RAG should execute for current request."""
+    plan_lengths = _router_plan_lengths(state)
+    if plan_lengths is not None:
+        rag_steps, _ = plan_lengths
+        return rag_steps > 0
+
+    # Fallback for legacy paths without QU router trace.
+    return (state.get("intent") or "") in {"information", "special_feature", "hotel_similar"}
+
+
+def _should_run_recommend(state: AgentState) -> bool:
+    """Decide whether recommendation pipeline should execute for current request."""
+    plan_lengths = _router_plan_lengths(state)
+    if plan_lengths is not None:
+        _, recommendation_steps = plan_lengths
+        return recommendation_steps > 0
+
+    # Fallback for legacy paths without QU router trace.
+    return state.get("recommend_input") is not None or (state.get("intent") or "") in {
+        "personalization",
+        "hotel_search",
+    }
+
+
 # ── RAG node ──────────────────────────────────────────────────────────────────
 def rag_node(state: AgentState) -> dict[str, Any]:
     """Chạy RAG pipeline (planner → retrieval → aggregation → generation).
@@ -1034,6 +1077,11 @@ def rag_node(state: AgentState) -> dict[str, Any]:
 
     Fallback: trả empty nếu RAG chatbot không khởi tạo được.
     """
+    req_id = state.get("request_id") or state.get("session_id") or "-"
+    if not _should_run_rag(state):
+        logger.debug("[%s][rag] skipped — no rag plan", req_id)
+        return {"rag_docs": [], "rag_answer": "", "rag_confidence": 0.0}
+
     from app.agent.rag_adapter import run_rag  # noqa: PLC0415
     return run_rag(
         query=state.get("rewritten_query") or state.get("raw_query") or "",
@@ -1052,6 +1100,10 @@ def recommend_node(state: AgentState) -> dict[str, Any]:
     Fallback: build từ slots thủ công (client cũ hoặc khi QU không khả dụng).
     """
     req_id = state.get("request_id") or state.get("session_id") or "-"
+    if not _should_run_recommend(state):
+        logger.debug("[%s][recommend] skipped — no recommendation plan", req_id)
+        return {"recommend_input": None, "merged_candidates": [], "_raw_source_stats": {}}
+
     recommend_input = _resolve_recommend_input(state)
     if recommend_input is None:
         logger.warning("[%s][recommend] recommend_input=None (no destination) → empty candidates", req_id)
