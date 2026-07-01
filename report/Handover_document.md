@@ -508,14 +508,25 @@ Luồng VinBot chat có thể dùng `user_id` / `session_id` tự sinh mà khôn
 
 ### Tài khoản demo
 
-> Tài khoản demo cụ thể (username/password) cần được bàn giao riêng qua kênh bảo mật, không lưu trong Git.
+| Vai trò | Tài khoản | Mật khẩu | Ghi chú |
+|---------|-----------|----------|---------|
+| **Admin** | `demo` | `abc123` | Trang quản trị / dashboard |
+| **User** | `user001` | `123456` | Người dùng thông thường |
 
-Để tạo tài khoản mới trên môi trường local:
+Đăng nhập qua demo: https://da09-fe-338005853285.asia-southeast1.run.app/
+
+Hoặc qua API:
 
 ```powershell
-curl -X POST http://localhost:8000/api/auth/register `
+# User
+curl -X POST http://localhost:8000/api/auth/login `
   -H "Content-Type: application/json" `
-  -d "{\"username\":\"demo_user\",\"password\":\"demo123456\",\"name\":\"Demo User\"}"
+  -d "{\"username\":\"user001\",\"password\":\"123456\"}"
+
+# Admin
+curl -X POST http://localhost:8000/api/auth/login `
+  -H "Content-Type: application/json" `
+  -d "{\"username\":\"demo\",\"password\":\"abc123\"}"
 ```
 
 ---
