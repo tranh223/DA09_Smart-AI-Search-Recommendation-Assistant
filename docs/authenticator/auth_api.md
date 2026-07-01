@@ -10,6 +10,13 @@ Hệ thống sử dụng cơ chế xác thực dựa trên mã thông báo **JWT
 * **Thời gian hết hạn của Access Token**: Mặc định là 1 ngày (1440 phút).
 * **Phân quyền người dùng**: Hệ thống chia làm 2 nhóm quyền chính là `user` (người dùng thông thường) và `admin` (quản trị viên truy cập trang quản trị và dashboard).
 
+### Tài khoản demo
+
+| Vai trò | Tài khoản | Mật khẩu |
+|---------|-----------|----------|
+| **Admin** | `demo` | `abc123` |
+| **User** | `user001` | `123456` |
+
 ### Quy trình Xác thực Token:
 ```
 [Client] ──► Gửi Header "Authorization: Bearer <token>" ──► [FastAPI Middleware]

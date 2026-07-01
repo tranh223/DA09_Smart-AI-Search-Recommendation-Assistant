@@ -350,12 +350,27 @@ curl -X POST http://localhost:8000/chat `
 
 ## 10. Tài Khoản Demo
 
-Hệ thống hiện **không có đăng nhập**. Mỗi phiên chat được định danh bằng:
+### Đăng nhập hệ thống
 
-- `user_id`: ID người dùng (frontend tự sinh hoặc truyền tùy ý)
-- `session_id`: ID phiên chat (frontend tự sinh theo tab/session)
+| Vai trò | Tài khoản | Mật khẩu |
+|---------|-----------|----------|
+| **Admin** | `demo` | `abc123` |
+| **User** | `user001` | `123456` |
 
-Để test với profile đã có lịch sử, dùng lại cùng `user_id` qua các lần gọi API.
+- **Admin:** truy cập trang quản trị / dashboard
+- **User:** người dùng thông thường, personalization đầy đủ
+
+Đăng nhập qua UI hoặc API:
+
+```powershell
+curl -X POST http://localhost:8000/api/auth/login `
+  -H "Content-Type: application/json" `
+  -d "{\"username\":\"user001\",\"password\":\"123456\"}"
+```
+
+### Chat VinBot (không bắt buộc đăng nhập)
+
+Mỗi phiên chat có thể dùng `user_id` / `session_id` tự sinh mà không cần JWT. Để test với profile đã có lịch sử, dùng lại cùng `user_id` qua các lần gọi API.
 
 ---
 
